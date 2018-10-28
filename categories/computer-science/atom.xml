@@ -1,0 +1,499 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Computer Science | David Xia]]></title>
+  <link href="https://www.davidxia.com/categories/computer-science/atom.xml" rel="self"/>
+  <link href="https://www.davidxia.com/"/>
+  <updated>2018-10-28T12:11:58-04:00</updated>
+  <id>https://www.davidxia.com/</id>
+  <author>
+    <name><![CDATA[David Xia]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Useful Site for TLS Server Test]]></title>
+    <link href="https://www.davidxia.com/2017/05/useful-site-for-testing-tls-server-configuration/"/>
+    <updated>2017-05-20T12:49:20-04:00</updated>
+    <id>https://www.davidxia.com/2017/05/useful-site-for-testing-tls-server-configuration</id>
+    <content type="html"><![CDATA[<p>My home server&rsquo;s hard disk&rsquo;s partition map was somehow corrupted. So I&rsquo;m serving this website
+from <a href="https://m.do.co/c/74c553045962">Digital Ocean</a> for now instead of my apartment. While rewriting the nginx server configs,
+I found this useful site that <a href="https://www.ssllabs.com/ssltest/index.html">tests your server&rsquo;s TLS configuration</a>. It&rsquo;ll give you a grade
+and warn you of weak encryption, key exchange protocols, cipher suites, etc.</p>
+
+<p><a href="https://mozilla.github.io/server-side-tls/ssl-config-generator/">Mozilla&rsquo;s TLS configuration generator</a> is useful for providing secure defaults.</p>
+
+<p>I&rsquo;m proud to say this site has an A.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[PGP Best Practices - How to Create Strong and Secure Keys]]></title>
+    <link href="https://www.davidxia.com/2015/05/pgp-best-practices-how-to-create-strong-and-secure-keys/"/>
+    <updated>2015-05-02T00:00:00-04:00</updated>
+    <id>https://www.davidxia.com/2015/05/pgp-best-practices-how-to-create-strong-and-secure-keys</id>
+    <content type="html"><![CDATA[<p>I <a href="https://www.davidxia.com/2013/09/intro-to-public-key-cryptography-and-gpg/" title="Intro to public key cryptography and GPG">wrote about PGP</a> a while ago and showed how to generate a key. Since then I&rsquo;ve managed to do what
+you should never, ever do: forget your key&rsquo;s passphrase. And I didn&rsquo;t generate a revocation cert to
+boot. So I was screwed and had to generate a new one. Forunately not many, and by &ldquo;not many&rdquo; I mean
+zero, people were using that public key which I had uploaded to public keyservers.</p>
+
+<p>I generated a new one and spent a lot of time reading about PGP best practices. Here&rsquo;s what I
+learned.</p>
+
+<!-- more -->
+
+
+<h2>How to Generate Strong Keys and Secure Them</h2>
+
+<ul>
+<li>Use GnuPG version &gt;= 1.4 to make it easier to generate and manage keys
+
+<ul>
+<li>You can <code>brew install gpg2</code> on a Mac</li>
+</ul>
+</li>
+<li>Append the following to <code>~/.gnupg/gpg.conf</code> (or whatever the latest strongest encryption
+algorithms are):</li>
+</ul>
+
+
+<pre><code>personal-digest-preferences SHA256
+cert-digest-algo SHA256
+default-preference-list SHA512 SHA384 SHA256 SHA224 AES256 AES192 AES CAST5 ZLIB BZIP2 ZIP Uncompressed
+</code></pre>
+
+<ul>
+<li><code>gpg --gen-key</code></li>
+<li>Choose 1 at this prompt</li>
+</ul>
+
+
+<pre><code>Please select what kind of key you want:
+   (1) RSA and RSA (default)
+   (2) DSA and Elgamal
+   (3) DSA (sign only)
+   (4) RSA (sign only)
+</code></pre>
+
+<ul>
+<li>Set an expiration date of at most two years (you can always extend it)</li>
+<li>Set a strong passphrase that you&rsquo;ll remember!</li>
+<li>Use the maximum number of bits for your key</li>
+<li>Generate revocation cert(s)
+
+<ul>
+<li><code>gpg --gen-revoke &lt;key id&gt;</code> key id can be the portion of the fingerprint you see in
+<code>gpg --list-keys</code> or the uid if it&rsquo;s unique</li>
+</ul>
+</li>
+<li>Use subkeys for encryption (this is automatically done if you choose 1 above) and another for
+signing. The following was copied from the <a href="https://wiki.debian.org/Subkeys" title="Debian wiki - subkeys">Debian wiki</a>.
+
+<ul>
+<li>Here&rsquo;s the best paragraph from that wiki page:</li>
+</ul>
+</li>
+</ul>
+
+
+<p><blockquote><p>You should keep your private master key very, very safe. However, keeping all your keys extremely
+safe is inconvenient: every time you need to sign a new package upload, you need to copy the
+packages onto suitable portable media, go into your sub-basement, prove to the armed guards that
+you&rsquo;re you by using several methods of biometric and other identification, go through a deadly
+maze, feed the guard dogs the right kind of meat, and then finally open the safe, get out the
+signing laptop, and sign the packages. Then do the reverse to get back up to your Internet
+connection for uploading the packages.</p><footer><strong>subkeys <a href="https://wiki.debian.org/Subkeys">https://wiki.debian.org/Subkeys</a></strong></footer></blockquote></p>
+
+<ul>
+<li><code>gpg --edit-key &lt;your master key id&gt;</code></li>
+<li>At the prompt, enter <code>addkey</code></li>
+<li>Enter passphrase</li>
+<li>Choose the &ldquo;RSA (sign only)&rdquo; key type and pick the maximum bits</li>
+<li>Choose an expiry date</li>
+<li><code>save</code></li>
+<li>Backup the <code>~/.gnupg</code> directory and store it somewhere secure and offline.
+Do this before deleting the private master key in the next step.</li>
+<li>Check <code>gpg --export-secret-key &lt;your master key id&gt; | gpg --list-packets</code> does not show
+<code>gnu-dummy 52K, algo: 0, ...</code>. This means your private master key is there.</li>
+<li><code>gpg --export-secret-subkeys &lt;your master key id&gt; &gt; secret-subkeys</code></li>
+<li><code>gpg --delete-secret-key &lt;your master key id&gt;</code></li>
+<li><code>gpg --import secret-subkeys</code></li>
+<li>Verify that <code>gpg -K</code> shows a &ldquo;sec#&rdquo; instead of just &ldquo;sec&rdquo; for your private key. That means the
+secret key is not really there. You can see the presence of a dummy OpenPGP packet if you run
+<code>gpg --export-secret-key &lt;your master key id&gt; | gpg --list-packets</code>.</li>
+<li><code>gpg --keyserver some.keyserver.com --send-keys &lt;your master key id&gt;</code> to publish it to the world</li>
+</ul>
+
+
+<h2>How to Revoke</h2>
+
+<p>If you ever need to revoke your keys,</p>
+
+<pre><code>gpg --import path/to/revocation-cert
+gpg --keyserver some.keyserver.com --send-key &lt;key id&gt;
+</code></pre>
+
+<h2>How to Sign Other People&rsquo;s keys</h2>
+
+<p>Sign their key with a certain level of trust.</p>
+
+<pre><code>gpg -u david@davidxia.com --sign-key --ask-cert-level harvey@harveyxia.com
+</code></pre>
+
+<p>Export the signed key and email it back to the signee.</p>
+
+<pre><code>gpg --armor --output 00AA11BB-signedBy-1A2B3C4D.asc --export 00AA11BB
+</code></pre>
+
+<p>The signee needs to import the signed key</p>
+
+<pre><code>gpg --import 1A2B3C4D-signedBy-00AA11BB.asc
+</code></pre>
+
+<p>and send your certification to the keyserver.</p>
+
+<pre><code>gpg --send-key 1A2B3C4D
+</code></pre>
+
+<h2>Encrypting messages</h2>
+
+<pre><code>gpg -u david@davidxia.com --recipient harvey@harveyxia.com --output msg.asc --encrypt msg
+</code></pre>
+
+<p>Recipients decrypt with <code>gpg -u harvey@harveyxia.com --output msg --decrypt msg.asc</code>.</p>
+
+<h2>Signing messages</h2>
+
+<pre><code>gpg -u david@davidxia.com --output msg.sig --detach-sign msg
+</code></pre>
+
+<p>Recipients verify with <code>gpg --verify msg.sig msg</code>. They should see &ldquo;Good signature from&hellip;&rdquo;</p>
+
+<h2>References</h2>
+
+<ul>
+<li>a super readable introduction titled <a href="http://www.pgpi.org/doc/pgpintro/" title="How PGP Works">&ldquo;How PGP Works&rdquo;</a></li>
+<li>More info <a href="http://ekaia.org/blog/2009/05/10/creating-new-gpgkey/" title="Creating a new GPG Key">here</a>, <a href="https://alexcabal.com/creating-the-perfect-gpg-keypair/" title="Creating the Perfect GPG Keypair">here</a>, and <a href="https://help.riseup.net/en/security/message-security/openpgp/best-practices" title="OpenPGP Best Practices">here</a> on best practices</li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[How to Backup and Restore Your Hard Disk by Creating a Disk Image]]></title>
+    <link href="https://www.davidxia.com/2013/12/how-to-backup-and-restore-your-hard-disk-by-creating-a-disk-image/"/>
+    <updated>2013-12-21T00:00:00-05:00</updated>
+    <id>https://www.davidxia.com/2013/12/how-to-backup-and-restore-your-hard-disk-by-creating-a-disk-image</id>
+    <content type="html"><![CDATA[<p>It&rsquo;s been almost a year since I <a href="/2013/01/setting-up-my-new-home-server/">setup my personal server</a> which I named Jarvis. I haven&rsquo;t
+backed-up Jarvis at all and recently grew paranoid that something might happen to him. Jarvis
+represents hundreds of hours of work, and there are documents and code that are stored only in him.</p>
+
+<p>I spent some time figuring out how to backup everything. The easiest solution is to initialize
+Git repositories for all my projects and then create bare Git repos for all of them. Then I simply
+tarballed them up and stored copies of them elsewhere.</p>
+
+<p>But I wanted to also preserve all my server configurations and packages. I wanted a hard
+drive that if Jarvis&#8217; hard disk suffered some catastrophic failure like fire, I could simply plug
+into another computer and have a perfect clone up and running in no time. Spending hours
+installing packages isn&rsquo;t fun. What I needed was to take a snapshot of the disk and create a disk
+image. It turns out <code>dd</code> is the command for the job.</p>
+
+<!--more-->
+
+
+<h3>Jarvis is made of:</h3>
+
+<ul>
+<li><a href="http://www.amazon.com/gp/product/B00556F8BU/ref=as_li_ss_tl?ie=UTF8&amp;tag=easiamus00-20&amp;linkCode=as2&amp;camp=1789&amp;creative=390957&amp;creativeASIN=B00556F8BU">Foxconn NTA350</a><img class="auto-height-width" src="https://www.assoc-amazon.com/e/ir?t=easiamus00-20&l=as2&o=1&a=B00556F8BU"></li>
+<li><a href="http://www.amazon.com/gp/product/B002YU83YO/ref=as_li_ss_tl?ie=UTF8&amp;tag=easiamus00-20&amp;linkCode=as2&amp;camp=1789&amp;creative=390957&amp;creativeASIN=B002YU83YO">4GB of RAM</a><img class="auto-height-width" src="https://www.assoc-amazon.com/e/ir?t=easiamus00-20&l=as2&o=1&a=B002YU83YO"></li>
+<li><a href="http://www.amazon.com/gp/product/B004W2JKWG/ref=as_li_ss_tl?ie=UTF8&amp;tag=easiamus00-20&amp;linkCode=as2&amp;camp=1789&amp;creative=390957&amp;creativeASIN=B004W2JKWG">64GB SSD</a><img class="auto-height-width" src="https://www.assoc-amazon.com/e/ir?t=easiamus00-20&l=as2&o=1&a=B004W2JKWG"></li>
+<li>Ubuntu 12.04</li>
+</ul>
+
+
+<h3>I needed:</h3>
+
+<ul>
+<li><a href="http://www.ubuntu.com/download/desktop/create-a-usb-stick-on-mac-osx">bootable USB stick</a> (I used a Mac to create it)</li>
+<li><a href="http://www.amazon.com/gp/product/B007RB0P2I/ref=as_li_ss_tl?ie=UTF8&amp;camp=1789&amp;creative=390957&amp;creativeASIN=B007RB0P2I&amp;linkCode=as2&amp;tag=easiamus00-20">64GB flash drive</a> with Mac OS Extended (<a href="http://stackoverflow.com/a/16657898/553994">unjournaled</a>) file format</li>
+</ul>
+
+
+<h3>Steps I took:</h3>
+
+<ul>
+<li>boot Jarvis from the bootable USB stick by configuring the BIOS
+
+<ul>
+<li>boot into BIOS mode by repeatedly pressing the F2 key right after powering on</li>
+</ul>
+</li>
+<li>find out which disk is the original and which one is the target of the backup by running <code>sudo fdisk -l</code>
+
+<ul>
+<li><code>sda</code> is my original drive and <code>sdc</code> is my flash drive</li>
+</ul>
+</li>
+<li>make sure no partitions are mounted from the source hard drive</li>
+<li>mount the external 64GB flash drive
+
+<ul>
+<li><code>mount -t hfsplus /dev/sdX /mnt/sdX</code> where <code>sdX</code> is the drive <strong>and</strong> partition; <code>sdc1</code> in my case</li>
+</ul>
+</li>
+<li>back up the drive
+
+<ul>
+<li><code>dd if=/dev/sda conv=sync,noerror bs=64K | gzip -c  &gt; /mnt/sdc1/sda.img.gz</code></li>
+</ul>
+</li>
+<li><a href="http://askubuntu.com/a/215521/23430">Monitor the progress</a> of dd by opening another terminal
+and running <code>watch -n 5 'sudo kill -USR1 $(pgrep ^dd)</code></li>
+<li>Store extra information about the drive geometry necessary in order to interpret the partition
+table stored within the image. The most important of which is the cylinder size.
+
+<ul>
+<li><code>fdisk -l /dev/sda &gt; /mnt/sda1/sda_fdisk.info</code></li>
+</ul>
+</li>
+</ul>
+
+
+<h3>Notes:</h3>
+
+<ul>
+<li>I tried using the FAT file system only to find out that the maximum file size is 4GB.</li>
+</ul>
+
+
+<h3>References:</h3>
+
+<ul>
+<li><a href="https://wiki.archlinux.org/index.php/Disk_Cloning#Create_disk_image">Arch Linux - Disk Cloning</a></li>
+<li><a href="http://www.linuxweblog.com/dd-image">Image Your Hard Drive Using dd</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Introduction to Public-key Cryptography and GPG]]></title>
+    <link href="https://www.davidxia.com/2013/09/intro-to-public-key-cryptography-and-gpg/"/>
+    <updated>2013-09-27T00:00:00-04:00</updated>
+    <id>https://www.davidxia.com/2013/09/intro-to-public-key-cryptography-and-gpg</id>
+    <content type="html"><![CDATA[<p><a href="http://en.wikipedia.org/wiki/Public-key_cryptography">Public-key cryptography</a>
+is an encryption method that uses two keys, one public and one private, to securely communicate
+with others. Messages are encrypted using the recipient&rsquo;s public key, but the message can only be
+decrypted using the corresponding private key. Think of the public key as secure mailbox with a
+small slit into which anyone can put letters. But only the owner of the mailbox can retrieve letters
+by opening it with her private key. The security of the encryption scheme is based on
+the fact that it&rsquo;s computationally infeasible to calculate private from public keys.</p>
+
+<p><blockquote><p>Longer key lengths are better, but only up to a point. AES will have 128-bit, 192-bit, and 256-bit
+key lengths. This is far longer than needed for the foreseeable future. In fact, we cannot even
+imagine a world where 256-bit brute force searches are possible. It requires some fundamental
+breakthroughs in physics and our understanding of the universe&hellip;brute-force attacks against 256-bit
+keys will be infeasible until computers are built from something other than matter and occupy
+something other than space.</p><footer><strong>Applied Cryptography <a href="http://www.amazon.com/gp/product/0471117099/ref=as_li_ss_tl?ie=UTF8&amp;camp=1789&amp;creative=390957&amp;creativeASIN=0471117099&amp;linkCode=as2&amp;tag=easiamus00-20">http://www.amazon.com/gp/product/0471117099/ref=as_li_ss_tl?ie=UTF8&amp;camp=1789&amp;creative=390957&amp;creativeASIN=0471117099&amp;linkCode=as2&amp;tag=easiamus00-20</a></strong></footer></blockquote></p>
+
+<!-- more -->
+
+
+<p>Let&rsquo;s say there are two individuals, David and Nette. They want to send each other messages without
+a counterparty, let&rsquo;s call him Enessay, eavesdropping. Both David and Nette would generate their own
+key pairs. Luckily there&rsquo;s a free software program called <a href="http://www.gnupg.org/">GnuPG</a> that they
+can use.</p>
+
+<pre><code>gpg --gen-key
+</code></pre>
+
+<p>They exchange public keys so that David can encrypt messages to Nette and vice versa.</p>
+
+<pre><code>gpg --armor --export [email associated with generated key pair]
+</code></pre>
+
+<p>David writes a message titled <code>super_secret_message</code> and encrypts it using Nette&rsquo;s public key.</p>
+
+<pre><code>gpg --output super_secret_message.gpg --encrypt --recipient nette@internetz.com super_secret_message
+</code></pre>
+
+<p>He attaches <code>super_secret_message.gpg</code> to an email and sends it to Nette who decrypts it.</p>
+
+<pre><code>gpg --decrypt super_secret_message.gpg
+</code></pre>
+
+<p>Tada! That simple. And although Enessay can intercept the encrypted <code>super_secret_message.gpg</code> file,
+he cannot crack the code and read the message. David and Nette are safe.</p>
+
+<ul>
+<li>Further reading: <a href="http://www.gnupg.org/gph/en/manual.html">The GNU Privacy Handbook</a></li>
+</ul>
+
+
+<p>Here&rsquo;s my public key:</p>
+
+<pre><code>-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: GnuPG v2
+
+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
+VswBtq/GbejN9AXk4X2SM2SbB8E=
+=cFDb
+-----END PGP PUBLIC KEY BLOCK-----
+</code></pre>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Learning Computer Science Fundamentals Makes You a Better Software Engineer]]></title>
+    <link href="https://www.davidxia.com/2012/05/learning-computer-science-fundamentals-makes-you-a-better-software-engineer/"/>
+    <updated>2012-05-31T00:00:00-04:00</updated>
+    <id>https://www.davidxia.com/2012/05/learning-computer-science-fundamentals-makes-you-a-better-software-engineer</id>
+    <content type="html"><![CDATA[<p>I&rsquo;ve heard that one can become a great software engineer with ten years of experience or with
+fewer years of experience but a solid grasp of data structures and algorithms. Since I studied
+pure math as an undergrad, I love this stuff. Recurrence relations, prime numbers in hashing
+functions for hash tables, P vs NP.</p>
+
+<p>When I first started off programming I didn&rsquo;t know just how much I didn&rsquo;t know. I thought that
+being able to write a simple CRUD application was all there was to it and who cares about knowing
+how quick sort works. It&rsquo;s true that I&rsquo;ll probably never have to implement a hash table on the
+job, but knowing how to reverse a string or a linked list is like knowing how to play the scales
+as a musician. They&rsquo;ll never be played during a concert, but they are classic building blocks in
+understanding computing.</p>
+
+<!--more-->
+
+
+<p>So if you are learning how to code and not enrolled in an academic CS program, invest time after
+you master your first language or framework and learn the fundamentals of computer science. This
+will pay off especially if you&rsquo;re looking for a job since they are common interview questions.</p>
+
+<p>Learn how modern computer architecture works on a basic level (CPU, memory, disk). Read about data
+structures and algorithms. Networking knowledge is also very helpful (TCP/IP, DNS, basic
+architecture of the Internet). Find out how databases work (normalization, best practices for
+designing data models, indexes, ACID-compliance). Object-oriented programming is necessary to
+know. Threads and locks are not as common but good to understand.</p>
+
+<p>Being able to implement the below fluently in one or two languages is also necessary. The
+following is taken from <a href="http://www.amazon.com/gp/product/145157827X/ref=as_li_ss_tl?ie=UTF8&amp;tag=easiamus00-20&amp;linkCode=as2&amp;camp=1789&amp;creative=390957&amp;creativeASIN=145157827X"><em>Cracking the Coding Interview</em></a><img src="https://www.assoc-amazon.com/e/ir?t=easiamus00-20&amp;l=as2&amp;o=1&amp;a=145157827X" alt="" />.</p>
+
+<h3>Data Structures</h3>
+
+<ul>
+<li>linked list</li>
+<li>binary tree</li>
+<li>trie</li>
+<li>stack</li>
+<li>queue</li>
+<li>vector/arraylist</li>
+<li>hash table</li>
+</ul>
+
+
+<h3>Algorithms</h3>
+
+<ul>
+<li>breadth-first search</li>
+<li>depth-first search</li>
+<li>binary search</li>
+<li>merge sort</li>
+<li>quick sort</li>
+<li>tree insert/find/etc</li>
+</ul>
+
+
+<h3>Concepts</h3>
+
+<ul>
+<li>bit manipulation</li>
+<li>singleton design pattern</li>
+<li>factory design pattern</li>
+<li>memory (stack vs heap)</li>
+<li>recursion</li>
+<li>big-O time</li>
+</ul>
+
+]]></content>
+  </entry>
+  
+</feed>

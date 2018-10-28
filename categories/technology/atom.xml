@@ -1,0 +1,435 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Technology | David Xia]]></title>
+  <link href="https://www.davidxia.com/categories/technology/atom.xml" rel="self"/>
+  <link href="https://www.davidxia.com/"/>
+  <updated>2018-10-28T12:11:58-04:00</updated>
+  <id>https://www.davidxia.com/</id>
+  <author>
+    <name><![CDATA[David Xia]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[My QCon NYC 2016 Slides - Reach Production Faster With Containers in Testing]]></title>
+    <link href="https://www.davidxia.com/2016/06/my-qcon-nyc-2016-slides/"/>
+    <updated>2016-06-20T17:15:49-04:00</updated>
+    <id>https://www.davidxia.com/2016/06/my-qcon-nyc-2016-slides</id>
+    <content type="html"><![CDATA[<p>Here are the slides from my <a href="https://qconnewyork.com/ny2016/presentation/reaching-production-faster-with-containers-in-testing">QCon NYC 2016 talk titled &ldquo;Reach Production Faster with Containers in
+Testing.&rdquo;</a> in various formats. <span xmlns:dct="http://purl.org/dc/terms/" property="dct:title">All formats of &ldquo;Reach Production Faster with Containers in Testing&rdquo;</span> by <a xmlns:cc="http://creativecommons.org/ns#" href="https://www.davidxia.com/2016/06/my-qcon-nyc-2016-slides-reach-production-faster-with-containers-in-testing/" property="cc:attributionName" rel="cc:attributionURL">David Xia</a> are licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.</p>
+
+<iframe src="//www.slideshare.net/slideshow/embed_code/key/p1uEfRmocwplbk" width="595" height="485" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" style="border:1px solid #CCC; border-width:1px; margin-bottom:5px; max-width: 100%;" allowfullscreen> </iframe>
+
+
+<p> <div style="margin-bottom:5px"> <strong> <a href="//www.slideshare.net/DavidXia/qcon-nyc-2016-reach-production-faster-with-containers-in-testing" title="QCon NYC 2016: Reach Production Faster with Containers in Testing" target="_blank">QCon NYC 2016: Reach Production Faster with Containers in Testing</a> </strong> from <strong><a href="//www.slideshare.net/DavidXia" target="_blank">David Xia</a></strong> </div></p>
+
+<p>More formats here:</p>
+
+<ul>
+<li><a href="https://drive.google.com/file/d/0By_v8MtsRMKkSloyT3gxalRuYjQ/view?usp=sharing">PDF</a></li>
+<li><a href="https://drive.google.com/file/d/0By_v8MtsRMKkSm9BVW5uWFR5TFk/view?usp=sharing">Keynote</a></li>
+<li><a href="https://drive.google.com/file/d/0By_v8MtsRMKkRkpQWk5paUZOUW8/view?usp=sharing">PowerPoint</a></li>
+</ul>
+
+
+<p><img class="center <a" src="href="https://i.imgur.com/w0P47Ugl.jpg">https://i.imgur.com/w0P47Ugl.jpg</a>&#8221; width=&#8221;640&#8221; height=&#8221;619&#8221;></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Don't Worry About Forgetting to Cancel Your Subscription - Use a Virtual Credit Card]]></title>
+    <link href="https://www.davidxia.com/2016/04/dont-worry-about-forgetting-to-cancel-your-subscription-use-a-virtual-credit-card/"/>
+    <updated>2016-04-21T08:55:32-04:00</updated>
+    <id>https://www.davidxia.com/2016/04/dont-worry-about-forgetting-to-cancel-your-subscription-use-a-virtual-credit-card</id>
+    <content type="html"><![CDATA[<p>Almost all of us have signed up for a free trial we then forgot to cancel
+before getting charged for the next month or have felt uneasy entering credit card information
+on a sketchy website. I discovered virtual credit card numbers several months ago and now use them
+for both these cases.</p>
+
+<p>Virtual credit card numbers (VCN) are credit card numbers that aren&rsquo;t associated with a physical
+card. They are usually tied to your regular credit card account, and charges to the VCN will show
+up on that credit card statement.</p>
+
+<p>VCNs have two great features on top of regular credit card numbers. <strong>You can set the expiration and
+maximum limit can be charged, and you can cancel them at any time.</strong> Let&rsquo;s say I want to try
+<a href="https://www.spotify.com/premium/">Spotify Premium</a>. It&rsquo;s free for a month and $10 per month afterwards. I generate a VCN, set the limit
+to $1 with an expiration of one month, enter that number into Spotify&rsquo;s website, and forget about
+it. Use a VCN when you&rsquo;re wary that an online merchant might steal or is unable to protect your
+card info as well.</p>
+
+<p>So how does one get a VCN? The only free and bank-sponsored credit cards I know of that offer
+them are <a href="https://www.bankofamerica.com/privacy/accounts-cards/shopsafe.go">Bank of America&rsquo;s ShopSafe feature</a> and <a href="https://www.cardbenefits.citi.com/products/virtual-account-numbers.aspx">Citibank&rsquo;s Virtual Account numbers</a>.
+(<a href="https://www.quora.com/Why-did-American-Express-discontinue-their-one-time-use-virtual-credit-card-numbers">Amex seems to have discontinued theirs.</a>)</p>
+
+<p>There are cases when using a VCN might create more hassle than it&rsquo;s worth. The two I can think of
+are booking a hotel room and needing to show your card when you arrive in person and returning a
+purchase and trying to get a refund.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Why We Should All Care About Digital Privacy]]></title>
+    <link href="https://www.davidxia.com/2015/05/why-we-should-all-care-about-digital-privacy/"/>
+    <updated>2015-05-03T00:00:00-04:00</updated>
+    <id>https://www.davidxia.com/2015/05/why-we-should-all-care-about-digital-privacy</id>
+    <content type="html"><![CDATA[<p>I&rsquo;ve been reading and thinking a lot about digital privacy in the past two weeks. It&rsquo;s
+disconcerting that so many AMericans are resigned about the current state of digital surveillance.
+Before the Snowden leaks, one could plausibly deny the vast extent of mass digital surveillance,
+but in this post-Snowden era, this is increasingly hard to do without appearing like you live under
+a rock.</p>
+
+<p>I recently watched two videos which explain the disturbing extent to which intelligence agencies
+like the NSA have gone to subvert encryption algorithms and to sabotage critical Internet
+infrastructure. In <a href="https://www.youtube.com/watch?v=0SgGMj3Mf88" title="Jacob Appelbaum: Reconstructing narratives - transparency in the service of justice [31c3]">this video</a>, Jacob Appelbaum and Laura Poitras talk about how reading
+through documents leaked by Snowden has led them to believe the spooks have compromised everything
+including PPTP, IPSec, and even SSH. Everything except for PGP (implementations include GnuPG), OTR
+(implementions include Pidgin and Adium), and ZRTP (implementations include the Signal and RedPhone
+mobile apps).</p>
+
+<iframe class="fill-width" width="560" height="315" src="https://www.youtube-nocookie.com/embed/0SgGMj3Mf88?rel=0" frameborder="0" allowfullscreen></iframe>
+
+
+<p>The second video I watched was a <a href="https://www.youtube.com/watch?v=fwcl17Q0bpk" title="NSA operation ORCHESTRA: Annual Status Report">talk by Poul-Henning Kamp</a> in which he pretends
+to be an NSA officer giving a status report to NATO. Kamp talks about the various technical and
+psychological operations the NSA and its associated intelligence agencies use to collect all
+digital communications. I&rsquo;m not sure how much of what Kamp says is true as some parts are
+deliberately tongue in cheek, but none of them seem impossible. Here are just a few:</p>
+
+<ul>
+<li>The <a href="https://youtu.be/fwcl17Q0bpk?t=5m48s">NSA spots a startup</a> that&rsquo;s developing a product that strengthens privacy and thus
+makes the NSA&rsquo;s job harder. They send someone who poses as a venture capitalist. He invests money
+in the startup and gets insider knowledge on what they&rsquo;re making. NSA looks through their
+Rolodex of friendly companies for someone with a patent that&rsquo;s related to the startup&rsquo;s
+product. They convince the company to let loose some patent lawyer trolls on the startup. The
+startup folds or needs to work on something else under legal duress. The founders call the fake
+VC back saying how sorry they were to waste the VC&rsquo;s money. The NSA bites its tongue trying not to
+laugh and busts out the champange bottles.</li>
+<li><a href="https://youtu.be/fwcl17Q0bpk?t=9m47s">Skype&rsquo;s encrypted VoIP product was a threat</a> to the NSA being able to listen in on all telephone
+calls. Skype didn&rsquo;t use standard protocols, was closed-source, was outside the jurisdiction of
+the FTC, and the NSA couldn&rsquo;t bribe the founders of Skype to stop. So the NSA pressured
+eBay to acquire the company which eBay did. But eBay&rsquo;s lawyers bungled the deal and didn&rsquo;t
+get access to the source code or control the infrastructure. So the NSA made eBay sell it back
+to the founders at a loss. eBay wasn&rsquo;t too happy about this. And then the NSA had to spend a lot
+more money making Microsoft acquire Skype. But it was worth it because this time Microsoft got
+all of Skype and made the traffic <a href="http://www.theguardian.com/world/2013/jul/11/microsoft-nsa-collaboration-user-data" title="Microsoft handed the NSA access to encrypted messages">go through Microsoft servers</a> where it could be decrypted.</li>
+<li>How the NSA regularly <a href="https://youtu.be/fwcl17Q0bpk?t=20m19s">derails and slows down open source work</a> by appealing to people&rsquo;s fear,
+uncertainty, and doubt; playing the GPL vs BSD card; spawning <a href="https://en.wikipedia.org/wiki/Parkinson%27s_law_of_triviality" title="Parkinson's law of triviality">bikeshed discussions</a>; and
+soaking up mental bandwidth with bogus crypto proposals.</li>
+</ul>
+
+
+<!-- more -->
+
+
+
+
+<iframe class="fill-width" width="420" height="315" src="https://www.youtube-nocookie.com/embed/fwcl17Q0bpk?rel=0" frameborder="0" allowfullscreen></iframe>
+
+
+<p>I&rsquo;ve tried to verify for myself what Appelbaum and Poitras said. There&rsquo;s a lot of discussion on
+what the intelligence agencies have cracked and what&rsquo;s still safe. Has the NSA compromised SSH in
+general or only in targeted cases? But I wonder if this discussion is useful or if it misses the
+point as Kamp inspiringly points out at the end of his talk.</p>
+
+<p><blockquote><p>So the standard reaction in the open source environment to Edward Snowden&rsquo;s disclosures have been,
+&ldquo;We need to strengthen the protocols! We need to have SSL everywhere.&rdquo; And I think that misses the
+point by a large margin. The things that have been published by the Snowden documents by now are
+the things that the general public can understand reading their newspaper. The stuff we would be
+interested in have not been published and maybe never will. And attempting to add more encryption
+is most likely just going to have more broken encryption on the Internet.</p>
+
+<p><strong>This is not a technical problem. This is a political problem. It must be solved by political means.</strong>
+That means find politicians in your country who can understand this and make sure they understand
+it. If you cannot find politicians, get you some politicians who can understand it. Political will
+is a renewable resource. Use your pencil when you vote. Or run yourself.</p>
+
+<p><strong>This is your children&rsquo;s and grandchildren&rsquo;s future society you&rsquo;re looking at. And we&rsquo;re the guys
+who sort of missed the boat.</strong></p><footer><strong>Poul-Henning Kamp <a href="https://youtu.be/fwcl17Q0bpk?t=30m8s">https://youtu.be/fwcl17Q0bpk?t=30m8s</a></strong></footer></blockquote></p>
+
+<p>If a guy who&rsquo;s been committing to the FreeBSD kernel for over 15 years says he doesn&rsquo;t see a
+technical solution to mass digital surveillance, he&rsquo;s probably got a point. He doesn&rsquo;t see a
+technical solution because he cited the enormous amounts of money and manpower intelligence agencies
+have compared with the measly resources of open source contributors. The Director of National
+Intelligence, the overseer of all US intelligence agencies, requested $53.9 billion for the
+National Intelligence Program&rsquo;s budget in 2016. Even if a small portion of that funded domestic spying
+programs, that&rsquo;s still a lot of money. Meanwhile, <a href="http://www.propublica.org/article/the-worlds-email-encryption-software-relies-on-one-guy-who-is-going-broke" title="The World's Email Encryption Software Relies on One Guy, Who is Going Broke">up until recently</a>, Werner Koch who wrote GnuPG,
+a crucial piece of the world&rsquo;s encryption software, was struggling to raise just $25,000 a year.</p>
+
+<p>I&rsquo;ve been struggling to understand why we Americans are either too apathetic or resigned to fight
+for our privacy rights. I think it&rsquo;s because digital privacy is hard to understand and it&rsquo;s not
+in-your-face spying like finding a camera in your bedroom or a GPS tracker underneath your car.
+Some people believe the costs of giving up their privacy is outweighed by the supposed effectiveness
+in stopping terrorism. In most of my conversations, people believe domestic spying is wrong
+but think resistance is futile. They simply say &ldquo;I have nothing to hide.&rdquo;</p>
+
+<p>This simple statement is pernicious and damaging to not just civil society as a whole but also
+for our future generations. Mass surveillance isn&rsquo;t an individual problem. It&rsquo;s a collective
+problem. I don&rsquo;t have anything to hide from the spooks, but that doesn&rsquo;t mean I&rsquo;m going to give my
+government a free pass for spying on its citizens. Just because I&rsquo;m doing well as an individual
+doesn&rsquo;t mean I throw the group to which I belong under the bus. We don&rsquo;t live in a vacuum, and
+each of our actions or inactions affect those around us.</p>
+
+<p>I&rsquo;ve drawn a flow chart of my argument of why we should stop mass surveillance below.</p>
+
+<p><a href="https://i.imgur.com/athtKWxh.jpg"><img class="center" src="https://i.imgur.com/athtKWxh.jpg" width="640" height="480"></a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[How to Turn the Internet Upside Down]]></title>
+    <link href="https://www.davidxia.com/2015/03/how-to-turn-the-internet-upside-down/"/>
+    <updated>2015-03-15T00:00:00-04:00</updated>
+    <id>https://www.davidxia.com/2015/03/how-to-turn-the-internet-upside-down</id>
+    <content type="html"><![CDATA[<p>I read <a href="http://www.ex-parrot.com/pete/upside-down-ternet.html" title="upside down ternet">this web page</a> many years ago that described how someone used their unencrypted WiFi
+network to prank neighbors by turning all images upside down or making them blurry or simply
+redirecting them to cats. I always wanted to do it myself, but I didn&rsquo;t have the required knowledge
+or hardware until now.</p>
+
+<p>In <a href="/2015/03/how-to-install-dd-wrt-on-an-asus-rt-n16-router/" title="How to install DD-WRT on on Asus RT-N16 router">my previous post</a>, I wrote about how I installed DD-WRT onto my <a href="http://www.amazon.com/gp/product/B00387G6R8/ref=as_li_tl?ie=UTF8&amp;camp=1789&amp;creative=390957&amp;creativeASIN=B00387G6R8&amp;linkCode=as2&amp;tag=easiamus00-20&amp;linkId=6TECRA3HNZATDC4U" title="Asus RT-N16">Asus RT-N16 wireless
+router</a>. You might be able to do this prank with the factory default firmware for your router.
+Your firmware needs to let you do the steps in <a href="http://www.alexlaird.com/2013/03/dd-wrt-guest-wireless/" title="DD-WRT guest wireless">this awesome tutorial</a> to create a separate
+guest WiFi network and add custom iptables rules. If it doesn&rsquo;t, get a better router or flash
+better firmware.</p>
+
+<!-- more -->
+
+
+<p>Install the squid3 proxy caching server on a computer on the LAN using <a href="https://help.ubuntu.com/community/Upside-Down-TernetHowTo" title="Ubuntu Upside down ternet HowTo">this tutorial from
+Ubuntu</a>. Instead of using the Apache web server and that Perl script (which didn&rsquo;t work for me),
+I used Nginx and wrote an analogous Python script. I skipped their &ldquo;Networking Setup&rdquo; section
+because I need to setup iptables rules in my router to redirect all traffic from the guest WiFi to
+the squid proxy host. I setup a new subdomain &ldquo;newsubdomain.davidxia.com&rdquo; to point to the
+proxy host and added the Nginx configuration for it as shown below.</p>
+
+<pre><code class="python Python script for squid url_rewrite_program">#!/usr/bin/env python
+
+import os
+import subprocess
+import sys
+import urllib
+import uuid
+
+
+IMG_DIR = '/var/www/images/'
+BASE_URL = 'http://newsubdomain.davidxia.com/'
+
+
+def modify_url(line):
+    list = line.split(' ')
+    # The first element of the list is the requested URL.
+    old_url = list[0]
+
+    # The returned needs to contain a '\n' at the end.
+    # A '\n' by itself means do not rewrite the URL.
+    new_url = '\n'
+
+    # If the requested URL is a JPG, save it to a file on the proxy host, flip it upside down,
+    # and give the user the URL to the upside down image. :p
+    if old_url.lower().endswith('.jpg'):
+        img_file_name = str(uuid.uuid4()) + '.jpg'
+        img_file_path = os.path.join(IMG_DIR, img_file_name)
+        try:
+            urllib.urlretrieve(old_url, img_file_path)
+            subprocess.check_output(['/usr/bin/mogrify', '-flip', img_file_path])
+            new_url = BASE_URL + img_file_name + '\n'
+        except urllib.ContentTooShortError:
+            # TODO log this and return original URL
+            pass
+        except subprocess.CalledProcessError:
+            # TODO log and return original URL and delete the image file
+            pass
+    return new_url
+
+while True:
+    # The format of the line read from stdin is
+    # URL ip-address/fqdn ident method, e.g. http://saini.co.in 172.17.8.175/saini.co.in - GET -
+    line = sys.stdin.readline().strip()
+
+    # new_url is a simple URL only, e.g. http://fedora.co.in
+    new_url = modify_url(line)
+    sys.stdout.write(new_url)
+    sys.stdout.flush()
+</code></pre>
+
+<pre><code class="plain Nginx config">server {
+  server_name images.davidxia.com;
+  root /var/www/images;
+
+  access_log /var/log/nginx/images.davidxia.com-access.log;
+  error_log /var/log/nginx/images.davidxia.com-error.log;
+
+  index index.html;
+
+  location ~* \.(?:gif|jpe?g|png)$ {
+    expires 30d;
+    add_header Pragma public;
+    add_header Cache-Control "public";
+  }
+}
+</code></pre>
+
+<p>In the <a href="https://help.ubuntu.com/community/Upside-Down-TernetHowTo#Configuration" title="Ubuntu Upside down ternet HowTo - configuration">squid configuration section</a>, be sure to have <code>acl localnet src &lt;network range&gt;</code> where
+<code>network range</code> is 192.168.2.1/24 if you used the aforementioned tutorial. Make sure you can
+make HTTP requests to the proxy on localhost:3128 in order to debug. If you can&rsquo;t, you might need to
+add extra ACL rules to the squid conf file (something like <code>http_access allow localnet</code>).</p>
+
+<p>I found <a href="http://www.dd-wrt.com/wiki/index.php/Squid_Transparent_Proxy#Proxy_Server_on_the_LAN_Subnet" title="squid transparent proxy - proxy server on the LAN subnet">instructions</a> to configure the router&rsquo;s firewall rules but realized my setup
+was different. I don&rsquo;t want to proxy traffic from my regular WiFi subnet 192.168.1.1/24 to my proxy
+host on 192.168.1.134 but instead from 192.168.2.1/24 to 192.168.1.134. Use these rules:</p>
+
+<pre><code class="plain iptables rules for router"># Allow traffic coming into interface br0 from proxy host 192.168.1.134 to exit interface br1 to any destination IP
+iptables -I FORWARD -i br0 -o br1 -s 192.168.1.134 -j ACCEPT
+
+# Allow traffic coming into interface br1 from any IP to exit interface br1 to proxy host 192.168.1.134
+# make stricter later
+iptables -I FORWARD -i br1 -o br0 -d 192.168.1.134 -j ACCEPT
+
+PROXY_IP=192.168.1.134
+PROXY_PORT=3128
+LAN_IP=`nvram get br1_ipaddr`
+LAN_NET=$LAN_IP/`nvram get br1_netmask`
+
+# Modify the destination address of packets as soon as they come in.
+# Change their destination address to the squid proxy on 192.168.1.134:3128.
+# Only change packets matching these criteria: came into the br1 interface, are TCP packets, destined for port 80.
+# This redirects HTTP traffic from the guest WiFi to the squid proxy.
+iptables -t nat -A PREROUTING -i br1 -p tcp --dport 80 -j DNAT --to $PROXY_IP:$PROXY_PORT
+
+# Modify the destination address of packets as they are about to go out.
+# Change their destination address to the br1 interface's IP, ie the virtual Wifi's router IP of 192.168.2.1.
+# Only change packets matching these criteria: leaving the br1 interface, have a source address
+# from the 192.168.2.1/24 subnet, are TCP packets, destined for the proxy IP.
+# This makes the squid proxy return HTTP requests back to the guest Wifi, I think...
+iptables -t nat -I POSTROUTING -o br1 -s $LAN_NET -d $PROXY_IP -p tcp -j SNAT --to $LAN_IP
+
+# Allow traffic coming into the br1 interface and leaving br0 with a source IP from the guest WiFi.
+# Packets have to be TCP and destined for the squid proxy's port.
+iptables -I FORWARD -i br1 -o br0 -s $LAN_NET -d $PROXY_IP -p tcp --dport $PROXY_PORT -j ACCEPT
+</code></pre>
+
+<p>Result!</p>
+
+<blockquote class="twitter-tweet" lang="en"><p>I just turned the Internet upside down! I&#39;m so proud of myself. <a href="http://t.co/FhqI0qPP1j">pic.twitter.com/FhqI0qPP1j</a></p>&mdash; David Xia (@davidxia_) <a href="https://twitter.com/davidxia_/status/576614894767890432">March 14, 2015</a></blockquote>
+
+
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[How to Install DD-WRT on an Asus RT-N16 Router]]></title>
+    <link href="https://www.davidxia.com/2015/03/how-to-install-dd-wrt-on-an-asus-rt-n16-router/"/>
+    <updated>2015-03-13T00:00:00-04:00</updated>
+    <id>https://www.davidxia.com/2015/03/how-to-install-dd-wrt-on-an-asus-rt-n16-router</id>
+    <content type="html"><![CDATA[<p>I&rsquo;ve known about <a href="http://en.wikipedia.org/wiki/DD-WRT" title="DD-WRT">DD-WRT</a> for a while and always wanted to play with it (partly because I
+thought it was needed to do <a href="http://www.ex-parrot.com/pete/upside-down-ternet.html" title="upside down ternet">this prank of turning the Internet upside down</a>).
+My router is leased from Time Warner and probably not supported by DD-WRT.
+So I bought an <a href="http://www.amazon.com/gp/product/B00387G6R8/ref=as_li_tl?ie=UTF8&amp;camp=1789&amp;creative=390957&amp;creativeASIN=B00387G6R8&amp;linkCode=as2&amp;tag=easiamus00-20&amp;linkId=6TECRA3HNZATDC4U" title="Asus RT-N16">Asus RT-N16 router</a> and learned how to flash DD-WRT firmware onto it. The process
+was easier than I expected but required me to read a lot and be careful.
+I sifted through mazes of documentation, blog posts, and forum threads to find the most recent
+and correct ones. I was afraid of bricking my brand new $100 Asus, but I succeeded.
+Here&rsquo;s how you can too.</p>
+
+<h2>What is DD-WRT and why would you install it?</h2>
+
+<p>DD-WRT is open-source Linux-based firmware that can replace and enhance the factory default
+firmware on many wireless routers. Once you install it, you can SSH, overclock the CPU, setup
+advanced access restrictions, change the firewall, etc.</p>
+
+<!-- more -->
+
+
+<h2>How to install DD-WRT onto an Asus RT-N16 wireless router</h2>
+
+<p>Follow <a href="http://www.dd-wrt.com/wiki/index.php/Asus_RT-N16" title="DD-WRT's installation guide for Asus RT-N16">this guide written specifically for the Asus RT-N16</a> and
+flash the initial firmware <a href="ftp://ftp.dd-wrt.com/others/eko/BrainSlayer-V24-preSP2/2010/08-12-10-r14929/broadcom_K26/dd-wrt.v24-14929_NEWD-2_K2.6_mini_RT-N16.trx" title="DD-WRT initial firmware">dd-wrt.v24-14929_NEWD-2_K2.6_mini_RT-N16.trx</a>
+<a href="http://www.dd-wrt.com/wiki/index.php/Asus_RT-N16#How_it_is_done" title="DD-WRT's installation guide for Asus RT-N16">here in step 3</a>. Then in step 7, flash the <a href="http://www.dd-wrt.com/wiki/index.php/What_is_DD-WRT%3F#K2.6_Build_Features" title="DD-WRT K2.6 build features">dd-wrt.v24-18024_NEWD-2_K2.6_mega</a> build
+to get most of the features.</p>
+
+<p>Read everything carefully and make sure to follow all the steps. If you open your router&rsquo;s web UI
+and see the below, give yourself a pat on the back.</p>
+
+<p><img class="center <a" src="href="http://i.kinja-img.com/gawker-media/image/upload/s--K37zgSAg--/c_fit,fl_progressive,q_80,w_636/18o8kyq5au0xojpg.jpg">http://i.kinja-img.com/gawker-media/image/upload/s&#8211;K37zgSAg&#8211;/c_fit,fl_progressive,q_80,w_636/18o8kyq5au0xojpg.jpg</a>&#8221; width=&#8221;636&#8221; height=&#8221;403&#8221;></p>
+
+<h2>Setup SSH access to router</h2>
+
+<p>Go to the web UI. Click on the &ldquo;Services&rdquo; tab and scroll down to the &ldquo;Secure Shell&rdquo; section.
+Enable SSHd and add your SSH public key.</p>
+
+<p><img class="center <a" src="href="https://i.imgur.com/5BFkP24.png">https://i.imgur.com/5BFkP24.png</a>&#8221; width=&#8221;677&#8221; height=&#8221;217&#8221;></p>
+
+<p>Now you can <code>ssh root@&lt;router's IP&gt;</code>.</p>
+
+<h2>Mount a USB hard drive for network-attached storage</h2>
+
+<p>I quickly discovered, thanks to my colleague Andrey, that the Asus has a read-only file system.
+The only way to write anything to it is to mount an external hard disk. Luckily USB disks are
+cheap, this can act as a <a href="http://en.wikipedia.org/wiki/Network-attached_storage" title="network-attached storage">file server/network-attached storage</a>, and it&rsquo;s easy to do.</p>
+
+<p>I bought a ~$25 <a href="http://www.amazon.com/gp/product/B007RB0P2I/ref=as_li_tl?ie=UTF8&amp;camp=1789&amp;creative=390957&amp;creativeASIN=B007RB0P2I&amp;linkCode=as2&amp;tag=easiamus00-20&amp;linkId=OS37UXM3XSWIXCR5" title="SanDisk Cruzer Glide USB 64GB Flash Drive">64GB Sandisk USB</a>. The first step is to <a href="http://www.dd-wrt.com/wiki/index.php/How_to_-_Format_and_Partition_External_Storage_Device" title="How To - Format And Partition External Storage Device">format and partition</a> it
+(<a href="http://www.dd-wrt.com/wiki/index.php/How_to_-_Format_and_Partition_External_Storage_Device#Linux_Command_Line_Method_.28preferred.29" title="How To - Format And Partition External Storage Device: Linux Command Line Method (preferred)">I used a Linux machine</a>). I didn&rsquo;t create the &ldquo;jffs&rdquo; partition because I had a USB instead of
+a multimedia card or &ldquo;MMC&rdquo;.</p>
+
+<p><div class='image center <a'><img  src="href="http://www.hacker9.com/wp-content/uploads/2010/11/How-to-recover-lost-password-of-Memory-Card-MMC-micro-SD-adapter.jpg">http://www.hacker9.com/wp-content/uploads/2010/11/How-to-recover-lost-password-of-Memory-Card-MMC-micro-SD-adapter.jpg</a>&#8221; width=&#8221;215&#8221; height=&#8221;235&#8221; title=&#8221;example MMC&#8221; ><div class='caption'>example MMC</div></div></p>
+
+<p>Plug the USB into the Asus router and follow <a href="http://www.dd-wrt.com/wiki/index.php/USB_storage#USB_Guide_for_v24_and_v24SP1_Mega_of_DD-WRT" title="USB storage - USB Guide for v24 and v24SP1 Mega of DD-WRT">these steps here</a>. You&rsquo;ll know you&rsquo;ve mounted the
+USB correctly when you can <code>touch /opt/test</code> if <code>/opt</code> was your mount point.</p>
+
+<h2>Install extra software using ipkg</h2>
+
+<p>For someone who&rsquo;s used to advanced shells like <a href="http://fishshell.com/" title="fish shell">fish</a> and zsh, I was sad to see I was
+always root (is there a way to create more user accounts?) running sh. There&rsquo;s vi but no vim,
+no <code>--help</code> or man pages for commands, and not even error messages (you have to <code>echo $?</code>). So I
+followed <a href="http://www.dd-wrt.com/wiki/index.php/USB_storage#Option_6.2_-_Extra_software_the_Optware_way" title="USB storage - extra software the optware way">these steps</a> to install ipkg, the <a href="http://en.wikipedia.org/wiki/Ipkg" title="Wikipedia ipkg">Itsy Package Management System</a>, into <code>/opt</code>.</p>
+
+<p>I didn&rsquo;t bother creating <code>/opt/etc/profile</code>. I just use <code>ipkg-opt</code> instead of the built-in <code>ipkg</code>,
+and things seem to work. I installed the following packages:</p>
+
+<pre><code>root@DD-WRT:~# ipkg-opt list_installed
+ipkg-opt - 0.99.163-10 - The Itsy Package Manager
+ncurses - 5.7-3 - NCurses libraries
+uclibc-opt - 0.9.28-13 - micro C library for embedded Linux systems
+vim - 7.3-2 - Yet another version of the vi editor.
+Successfully terminated.
+</code></pre>
+
+<p>As I&rsquo;m writing this, I see that ipkg has been discontinued and that <a href="http://en.wikipedia.org/wiki/Opkg" title="Wikipedia opkg">opkg</a> supersedes it.
+I haven&rsquo;t tried out opkg yet.</p>
+
+<p>The background behind the limited functionality of DD-WRT&rsquo;s operating system is that it&rsquo;s built on
+top of <a href="http://en.wikipedia.org/wiki/BusyBox" title="Wikipedia BuxyBox">BusyBox</a>, a single executable providing a very stripped-down version of Linux.
+BusyBox was specifically created for <a href="http://en.wikipedia.org/wiki/Embedded_operating_system" title="Wikipedia embedded operating systems">embedded operating systems</a>.</p>
+
+<h2>Known bugs in DD-WRT v24-sp2 mega revision 18024</h2>
+
+<ul>
+<li>the router&rsquo;s <a href="http://www.dd-wrt.com/phpBB2/viewtopic.php?t=148539&amp;sid=d550bc235bccd0ea8593df413c3439b7" title="New official dd-wrt build - 18024 is out (BS)">SSH keys change everytime it reboots</a></li>
+<li>NAT loopback doesn&rsquo;t work. I worked around it with the iptables rules below.</li>
+</ul>
+
+
+<pre><code>insmod ipt_mark
+insmod xt_mark
+iptables -t mangle -A PREROUTING -i ! `get_wanface` -d `nvram get wan_ipaddr` -j MARK --set-mark 0xd001
+iptables -t nat -A POSTROUTING -m mark --mark 0xd001 -j MASQUERADE
+</code></pre>
+
+<p>This is <a href="http://www.alexlaird.com/2013/04/dd-wrt-nat-loopback-issue/" title="DD-WRT NAT loopback issue">explained here</a> where the writer claims allowing NAT loopback doesn&rsquo;t make your
+internal network less secure. I think the reason for the disabled NAT loopback is to prevent
+<a href="http://en.wikipedia.org/wiki/DNS_rebinding" title="Wikipedia DNS rebinding">DNS rebinding attacks</a>. This DefCon talk by Craig Heffner explains it nicely.</p>
+
+<iframe class="fill-width" width="560" height="315" src="https://www.youtube-nocookie.com/embed/Zazk0plSoQg?rel=0" frameborder="0" allowfullscreen></iframe>
+
+
+<p>There&rsquo;s an option to enable &ldquo;No DNS rebind&rdquo; in DD-WRT though. Maybe that prevents this
+vulnerability?</p>
+]]></content>
+  </entry>
+  
+</feed>

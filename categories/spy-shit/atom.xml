@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Spy Shit | David Xia]]></title>
+  <link href="https://www.davidxia.com/categories/spy-shit/atom.xml" rel="self"/>
+  <link href="https://www.davidxia.com/"/>
+  <updated>2018-10-28T12:11:58-04:00</updated>
+  <id>https://www.davidxia.com/</id>
+  <author>
+    <name><![CDATA[David Xia]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Why We Should All Care About Digital Privacy]]></title>
+    <link href="https://www.davidxia.com/2015/05/why-we-should-all-care-about-digital-privacy/"/>
+    <updated>2015-05-03T00:00:00-04:00</updated>
+    <id>https://www.davidxia.com/2015/05/why-we-should-all-care-about-digital-privacy</id>
+    <content type="html"><![CDATA[<p>I&rsquo;ve been reading and thinking a lot about digital privacy in the past two weeks. It&rsquo;s
+disconcerting that so many AMericans are resigned about the current state of digital surveillance.
+Before the Snowden leaks, one could plausibly deny the vast extent of mass digital surveillance,
+but in this post-Snowden era, this is increasingly hard to do without appearing like you live under
+a rock.</p>
+
+<p>I recently watched two videos which explain the disturbing extent to which intelligence agencies
+like the NSA have gone to subvert encryption algorithms and to sabotage critical Internet
+infrastructure. In <a href="https://www.youtube.com/watch?v=0SgGMj3Mf88" title="Jacob Appelbaum: Reconstructing narratives - transparency in the service of justice [31c3]">this video</a>, Jacob Appelbaum and Laura Poitras talk about how reading
+through documents leaked by Snowden has led them to believe the spooks have compromised everything
+including PPTP, IPSec, and even SSH. Everything except for PGP (implementations include GnuPG), OTR
+(implementions include Pidgin and Adium), and ZRTP (implementations include the Signal and RedPhone
+mobile apps).</p>
+
+<iframe class="fill-width" width="560" height="315" src="https://www.youtube-nocookie.com/embed/0SgGMj3Mf88?rel=0" frameborder="0" allowfullscreen></iframe>
+
+
+<p>The second video I watched was a <a href="https://www.youtube.com/watch?v=fwcl17Q0bpk" title="NSA operation ORCHESTRA: Annual Status Report">talk by Poul-Henning Kamp</a> in which he pretends
+to be an NSA officer giving a status report to NATO. Kamp talks about the various technical and
+psychological operations the NSA and its associated intelligence agencies use to collect all
+digital communications. I&rsquo;m not sure how much of what Kamp says is true as some parts are
+deliberately tongue in cheek, but none of them seem impossible. Here are just a few:</p>
+
+<ul>
+<li>The <a href="https://youtu.be/fwcl17Q0bpk?t=5m48s">NSA spots a startup</a> that&rsquo;s developing a product that strengthens privacy and thus
+makes the NSA&rsquo;s job harder. They send someone who poses as a venture capitalist. He invests money
+in the startup and gets insider knowledge on what they&rsquo;re making. NSA looks through their
+Rolodex of friendly companies for someone with a patent that&rsquo;s related to the startup&rsquo;s
+product. They convince the company to let loose some patent lawyer trolls on the startup. The
+startup folds or needs to work on something else under legal duress. The founders call the fake
+VC back saying how sorry they were to waste the VC&rsquo;s money. The NSA bites its tongue trying not to
+laugh and busts out the champange bottles.</li>
+<li><a href="https://youtu.be/fwcl17Q0bpk?t=9m47s">Skype&rsquo;s encrypted VoIP product was a threat</a> to the NSA being able to listen in on all telephone
+calls. Skype didn&rsquo;t use standard protocols, was closed-source, was outside the jurisdiction of
+the FTC, and the NSA couldn&rsquo;t bribe the founders of Skype to stop. So the NSA pressured
+eBay to acquire the company which eBay did. But eBay&rsquo;s lawyers bungled the deal and didn&rsquo;t
+get access to the source code or control the infrastructure. So the NSA made eBay sell it back
+to the founders at a loss. eBay wasn&rsquo;t too happy about this. And then the NSA had to spend a lot
+more money making Microsoft acquire Skype. But it was worth it because this time Microsoft got
+all of Skype and made the traffic <a href="http://www.theguardian.com/world/2013/jul/11/microsoft-nsa-collaboration-user-data" title="Microsoft handed the NSA access to encrypted messages">go through Microsoft servers</a> where it could be decrypted.</li>
+<li>How the NSA regularly <a href="https://youtu.be/fwcl17Q0bpk?t=20m19s">derails and slows down open source work</a> by appealing to people&rsquo;s fear,
+uncertainty, and doubt; playing the GPL vs BSD card; spawning <a href="https://en.wikipedia.org/wiki/Parkinson%27s_law_of_triviality" title="Parkinson's law of triviality">bikeshed discussions</a>; and
+soaking up mental bandwidth with bogus crypto proposals.</li>
+</ul>
+
+
+<!-- more -->
+
+
+
+
+<iframe class="fill-width" width="420" height="315" src="https://www.youtube-nocookie.com/embed/fwcl17Q0bpk?rel=0" frameborder="0" allowfullscreen></iframe>
+
+
+<p>I&rsquo;ve tried to verify for myself what Appelbaum and Poitras said. There&rsquo;s a lot of discussion on
+what the intelligence agencies have cracked and what&rsquo;s still safe. Has the NSA compromised SSH in
+general or only in targeted cases? But I wonder if this discussion is useful or if it misses the
+point as Kamp inspiringly points out at the end of his talk.</p>
+
+<p><blockquote><p>So the standard reaction in the open source environment to Edward Snowden&rsquo;s disclosures have been,
+&ldquo;We need to strengthen the protocols! We need to have SSL everywhere.&rdquo; And I think that misses the
+point by a large margin. The things that have been published by the Snowden documents by now are
+the things that the general public can understand reading their newspaper. The stuff we would be
+interested in have not been published and maybe never will. And attempting to add more encryption
+is most likely just going to have more broken encryption on the Internet.</p>
+
+<p><strong>This is not a technical problem. This is a political problem. It must be solved by political means.</strong>
+That means find politicians in your country who can understand this and make sure they understand
+it. If you cannot find politicians, get you some politicians who can understand it. Political will
+is a renewable resource. Use your pencil when you vote. Or run yourself.</p>
+
+<p><strong>This is your children&rsquo;s and grandchildren&rsquo;s future society you&rsquo;re looking at. And we&rsquo;re the guys
+who sort of missed the boat.</strong></p><footer><strong>Poul-Henning Kamp <a href="https://youtu.be/fwcl17Q0bpk?t=30m8s">https://youtu.be/fwcl17Q0bpk?t=30m8s</a></strong></footer></blockquote></p>
+
+<p>If a guy who&rsquo;s been committing to the FreeBSD kernel for over 15 years says he doesn&rsquo;t see a
+technical solution to mass digital surveillance, he&rsquo;s probably got a point. He doesn&rsquo;t see a
+technical solution because he cited the enormous amounts of money and manpower intelligence agencies
+have compared with the measly resources of open source contributors. The Director of National
+Intelligence, the overseer of all US intelligence agencies, requested $53.9 billion for the
+National Intelligence Program&rsquo;s budget in 2016. Even if a small portion of that funded domestic spying
+programs, that&rsquo;s still a lot of money. Meanwhile, <a href="http://www.propublica.org/article/the-worlds-email-encryption-software-relies-on-one-guy-who-is-going-broke" title="The World's Email Encryption Software Relies on One Guy, Who is Going Broke">up until recently</a>, Werner Koch who wrote GnuPG,
+a crucial piece of the world&rsquo;s encryption software, was struggling to raise just $25,000 a year.</p>
+
+<p>I&rsquo;ve been struggling to understand why we Americans are either too apathetic or resigned to fight
+for our privacy rights. I think it&rsquo;s because digital privacy is hard to understand and it&rsquo;s not
+in-your-face spying like finding a camera in your bedroom or a GPS tracker underneath your car.
+Some people believe the costs of giving up their privacy is outweighed by the supposed effectiveness
+in stopping terrorism. In most of my conversations, people believe domestic spying is wrong
+but think resistance is futile. They simply say &ldquo;I have nothing to hide.&rdquo;</p>
+
+<p>This simple statement is pernicious and damaging to not just civil society as a whole but also
+for our future generations. Mass surveillance isn&rsquo;t an individual problem. It&rsquo;s a collective
+problem. I don&rsquo;t have anything to hide from the spooks, but that doesn&rsquo;t mean I&rsquo;m going to give my
+government a free pass for spying on its citizens. Just because I&rsquo;m doing well as an individual
+doesn&rsquo;t mean I throw the group to which I belong under the bus. We don&rsquo;t live in a vacuum, and
+each of our actions or inactions affect those around us.</p>
+
+<p>I&rsquo;ve drawn a flow chart of my argument of why we should stop mass surveillance below.</p>
+
+<p><a href="https://i.imgur.com/athtKWxh.jpg"><img class="center" src="https://i.imgur.com/athtKWxh.jpg" width="640" height="480"></a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Letter Frequency Analysis]]></title>
+    <link href="https://www.davidxia.com/2011/06/letter-frequency-analysis/"/>
+    <updated>2011-06-18T00:00:00-04:00</updated>
+    <id>https://www.davidxia.com/2011/06/letter-frequency-analysis</id>
+    <content type="html"><![CDATA[<p>This page analyzes a text&rsquo;s letter frequency and is an emulation of <a href="http://rumkin.com/tools/cipher/frequency.php">Tyler Atkin&rsquo;s page</a>. One
+application is decoding a <a href="http://en.wikipedia.org/wiki/Caesar_cipher">Caesar cipher</a>. A Caesar or &ldquo;shift&rdquo; cipher is an encryption
+technique in which each letter in the unencrypted message is shifted over a certain number of
+positions. For example, A encodes into B and B into C. The cipher is named after Julius Caesar who
+reportedly used a shift cipher of three to communicate with his generals.</p>
+
+<p>So how do we break a Caesar cipher? One technique is to analyze its letter frequency. In English,
+certain letters like E and T occur more frequently than others like Q and Z. By getting the shape
+of the letter frequency distribution and comparing it to the known relative letter frequencies of
+the English language, we can sometimes determine if a Caesar cipher was used.</p>
+
+<!--more-->
+
+
+<p>Enter text into the box below to see its letter frequency. Click the plus and minus signs to alter
+the plaintext by changing the amount the alphabet is shifted.
+<span id="insert-sample">[Click here][3]</span> for a demo.</p>
+
+<h3>Ciphertext</h3>
+
+<p><textarea id="ciphertext" style="width:700px; height:100px;"></textarea></p>
+
+<p><span id="shift-buttons">
+  <a href="#" id="shift-up" style="text-decoration:none;font-size:22px;">+</a>
+  <a href="#" id="shift-down" style="text-decoration:none;font-size:22px;">-</a>
+</span></p>
+
+<h3>Shifted plaintext</h3>
+
+<div><span id="plaintext"></span></div>
+
+
+<h3>Result</h3>
+
+<p><span id="standard-freqs"></span><br />
+<span id="output" style="position:absolute;top:0;z-index:-1;"></span>
+</div></p>
+
+
+
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Wikileaks' Cablegate Tag Wordle]]></title>
+    <link href="https://www.davidxia.com/2010/12/wikileaks-cablegate-tag-wordle/"/>
+    <updated>2010-12-27T00:00:00-05:00</updated>
+    <id>https://www.davidxia.com/2010/12/wikileaks-cablegate-tag-wordle</id>
+    <content type="html"><![CDATA[<p>I did a frequency analysis on the tags of all 251,287 Wikileaks diplomatic cables and created a
+Wordle word cloud. Size is positively related to frequency. You can download the basic data set
+from <em>The Guardian</em> (sorry, no text included) <a href="http://www.guardian.co.uk/news/datablog/2010/nov/29/wikileaks-cables-data">here</a>, and create your own Wordle <a href="http://www.wordle.net/">here</a>. The
+meanings of the tags are <a href="https://spreadsheets.google.com/pub?key=0Auo8KSVAc9r8dHdnMGhjOXhhNzY0LTE0M0NqNmNTRHc&amp;hl=en&amp;output=html">here</a>.</p>
+
+<p><div class='image center <a'><img  src="href="https://lh3.ggpht.com/-DkELRSEMINg/TyB8ScldhKI/AAAAAAAAAAA/JXdRj5UZ_sg/s640/cablegate+tags+wordle.png">https://lh3.ggpht.com/-DkELRSEMINg/TyB8ScldhKI/AAAAAAAAAAA/JXdRj5UZ_sg/s640/cablegate+tags+wordle.png</a>&#8221; width=&#8221;522&#8221; height=&#8221;340&#8221; title=&#8221;Wikileaks&#8217; Cablegate Tag Wordle&#8221; ><div class='caption'>Wikileaks&#8217; Cablegate Tag Wordle</div></div></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[A Spy? No! Look at Her Hydrangeas!]]></title>
+    <link href="https://www.davidxia.com/2010/06/a-spy-no-look-at-her-hydrangeas/"/>
+    <updated>2010-06-29T00:00:00-04:00</updated>
+    <id>https://www.davidxia.com/2010/06/a-spy-no-look-at-her-hydrangeas</id>
+    <content type="html"><![CDATA[<p>Recent news about FBI busting into suburban homes and handcuffing couples they accuse of being
+Russian spies are quite intriguing and ridiculous. The <em>Times</em> has an <a href="http://www.nytimes.com/2010/06/29/world/europe/29spy.html?fta=y">article</a> with a money
+quote:</p>
+
+<blockquote><p>Jessie Gugig, 15, said she could not believe the charges, especially against Mrs. Murphy. &ldquo;They
+  couldn&rsquo;t have been spies,&rdquo; she said jokingly. &ldquo;Look what she did with the hydrangeas.&rdquo;</p></blockquote>
+
+<!--more-->
+
+
+<p>Investigators have accused the 11 individuals of penetrating American &ldquo;policy making circles.&rdquo; Huh?
+Can we be more specific here? Regardless of what&rsquo;s true, this is some serious spy novel/Tom Clancy
+stuff.</p>
+
+<blockquote><p>But the network of so-called illegals — spies operating under false names outside of diplomatic
+  cover — also used cyber-age technology, according to the charges. They embedded coded texts in
+  ordinary-looking images posted on the Internet, and they communicated by having two agents with
+  laptops containing special software pass casually as messages flashed between them.</p></blockquote>
+
+<p>Meanwhile, Putin&rsquo;s <a href="http://www.nytimes.com/2010/06/30/world/europe/30lavrov.html?ref=global-home">not happy</a> about this.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Can We Please Get Some Qualified People?]]></title>
+    <link href="https://www.davidxia.com/2009/05/can-we-please-get-some-qualified-people/"/>
+    <updated>2009-05-27T00:00:00-04:00</updated>
+    <id>https://www.davidxia.com/2009/05/can-we-please-get-some-qualified-people</id>
+    <content type="html"><![CDATA[<p>When you think of the CIA, you may envision an elite squad of the brightest and most daring
+individuals in the country equipped with <a href="http://popsci.typepad.com/popsci/2006/12/the_15_best_bon.html" title="the 15 best Bond gadgets of all time">state-of-the-art gadgets and weapons</a>. You may
+imagine them penetrating into the highest echelons of terrorist groups and working deep undercover
+in the most hostile foreign nations. You may see them defending America&rsquo;s national security by
+reporting invaluable intelligence procured by <a href="https://www.youtube.com/watch?v=Zc9y7T8JIVE">deftly cultivating relationships with defectors</a>
+and suavely deceiving the unsuspecting.</p>
+
+<p>Forget whatever image of the CIA that Hollywood or Tom Clancy portray. The truth is a lot less
+glamorous and a whole lot more disturbing.</p>
+
+<!--more-->
+
+
+<p>Tim Weiner collected and analyzed more than 50,000 documents from the CIA archives; more than 2
+000 oral histories of American intelligence officers, soldiers, and diplomats; and more than 300
+interviews with those who&rsquo;ve worked at the Agency. The result was his latest book, <a href="http://www.washingtonpost.com/wp-srv/style/longterm/books/chap1/legacyofashes.htm" title="book excerpt - chapter 1"><em>Legacy of
+Ashes: The History of the CIA</em></a> (200).</p>
+
+<p><a href="http://www.amazon.com/gp/product/0307389006/ref=as_li_ss_il?ie=UTF8&amp;camp=1789&amp;creative=390957&amp;creativeASIN=0307389006&amp;linkCode=as2&amp;tag=easiamus00-20" title=""><img class="left" src="http://ecx.images-amazon.com/images/I/51qrPWpbewL.<em>SL160</em>.jpg&#8221; title=&#8221;&lsquo;Legacy of Ashes: The History of the CIA&rsquo;&#8221; ></a></p>
+
+<p>Weiner begins with the creation of the CIA in 1947 as a civilian intelligence agency whose main
+objective was to check the spread of communism during the Cold War. In the long run, the CIA was
+meant to be the eyes and ears of the President, an intelligence organization informing executive
+decision-making by collecting and analyzing intelligence of foreign events, politics, cultures,
+and people. In short, it was supposed to speak truth to power. Weiner argues the CIA has failed to
+live up to its mission from its very inception. It has left in its wake of failures, in the words
+of President Dwight D. Eisenhower, a &ldquo;legacy of ashes.&rdquo;</p>
+
+<p>The CIA&rsquo;s track record is quite appalling. It has a great reputation (well, maybe it once did) but
+a terrible record. Abroad, they planned coups and assassinations, rigged elections, and
+negligently left their own agents to be captured, interrogated, and executed by the regimes of
+Stalin and Mao. Domestically, they told bald-faced lies presidents and, when they did tell the
+truth, persuaded the Commander in Chief to lie to Congress to cover its ass. With all the billions
+of dollars laundered to them through various means, you&rsquo;d think they&rsquo;d provide somewhat decent
+intelligence on major world events. But the CIA was caught with their pants down for the Bay of
+Pigs, Cuban Missile Crisis, the fall of the Soviet Union, and much more.</p>
+
+<p>One of the Agency&rsquo;s biggest problems is attracting and recruiting the right kind of talent for its
+work. All too often, incompetent careerists, provincial old boys who attended Groton then Yale
+then Harvard Law, and vainglorious but myopic leaders are calling the shots whose stakes include
+thousands of lives, disgusting amounts of tax-payer dollars, and America&rsquo;s reputation and values.
+Eisenhower said it takes a &ldquo;strange kind of genius&rdquo; to run the CIA. Weiner writes this genius
+requires, at the very least,</p>
+
+<blockquote><p>men and women with the discipline and self-sacrifice of the nation&rsquo;s best military officers, the
+  cultural awareness and historical knowledge of the nation&rsquo;s best diplomats, and the sense of
+  curiosity and adventure possessed by the nation&rsquo;s best foreign correspondents.</p></blockquote>
+
+<p>We have yet to consistently see officers of this caliber at the CIA.</p>
+
+<p>The end of Legacy of Ashes is extremely infuriating and upsetting to read. It is about the years
+leading up to September 11, 2001. Top leaders of the American intelligence community knew on
+September 11, 1998 that if they didn&rsquo;t fix the CIA, they would have a &ldquo;catastrophic systemic
+intelligence failure.&rdquo; That failure came exactly three years later. Weiner
+writes,</p>
+
+<blockquote><p>It was a systemic failure of American government – the White House, the National Security Council,
+  the FBI, the Federal Aviation Administration, the Immigration and Naturalization Service, the
+  congressional intelligence committees. It was a failure of policy and diplomacy. It was a failure
+  of the reporters who covered the government to understand and convey its disarray to their reade
+  But above all it was a failure to know the enemy. It was the Pearl Harbor that the CIA had been
+  created to prevent.</p></blockquote>
+
+<p>It is so frustrating to learn the CIA had numerous chances to kill Bin Laden before the day his men
+steered their planes into the Twin Towers. But the CIA director at the time, George Tenet, had
+lost confidence in his agency&rsquo;s ability to be right (for good reason too), so he called off the
+strikes every time. Since 2001, the CIA has degenerated into the President&rsquo;s extra-constitutional
+international police, arresting without warrants, setting up illegal prisons in third-world
+countries, and committing acts of torture.</p>
+
+<p>Weiner does not have an ax to grind with the CIA. He states he wants to see the CIA reformed so
+that it can do its job correctly.</p>
+
+<blockquote><p>I hope it may serve as a warning. No republic in history has lasted longer than three hundred
+  years [Actually, the <a href="http://en.wikipedia.org/wiki/San_Marino" title="San Marino">Republic of San Marino</a> has been around since 301. Sorry, Mr. Weiner, you
+  can&rsquo;t always be right], and this nation may not long endure as a great power unless it finds the
+  eyes to see things as they are in the world. That once was the mission of the Central Intelligence
+  Agency.</p></blockquote>
+]]></content>
+  </entry>
+  
+</feed>

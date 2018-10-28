@@ -1,0 +1,414 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Internet | David Xia]]></title>
+  <link href="https://www.davidxia.com/categories/internet/atom.xml" rel="self"/>
+  <link href="https://www.davidxia.com/"/>
+  <updated>2018-10-28T12:11:58-04:00</updated>
+  <id>https://www.davidxia.com/</id>
+  <author>
+    <name><![CDATA[David Xia]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Internet Meme Role Models]]></title>
+    <link href="https://www.davidxia.com/2018/01/internet-meme-role-models/"/>
+    <updated>2018-01-07T11:29:18-05:00</updated>
+    <id>https://www.davidxia.com/2018/01/internet-meme-role-models</id>
+    <content type="html"><![CDATA[<p>I&rsquo;m compiling a list of Internet meme role models. Here&rsquo;s what I have so far. These people &mdash;
+they must be real human beings &mdash; must have either gone out of their way to do the right
+thing in a smart manner, something courageous with bonus points for being funny, or just be
+ridiculous. And they must be memeified. Exceptions will be made for exceptional but not
+memeified people like Hilde Lysiak.</p>
+
+<p>Who else deserves to be on this list?</p>
+
+<ul>
+<li><a href="https://www.youtube.com/watch?v=b58mzz7mQpg">Snack Man</a> defused a violent fight on the subway between a couple before anyone got hurt. He did
+it by standing in between them and munching on Pringles and Gummy Bears.</li>
+<li><a href="https://www.youtube.com/watch?v=m9Md78SJO6s">Ben Innes</a> asked the EgyptAir Flight 181 hijacker who comandeered the airplane with a fake
+explosive belt if he could take a selfie with him. &ldquo;I thought, why not? If he blows us all up it
+won&rsquo;t matter anyway.&rdquo;</li>
+<li><a href="https://www.nytimes.com/2017/10/31/books/hilde-lysiak-child-reporter.html">Hilde Lysiak</a> is ten years old and the writer and publisher of Orange Street News.
+She <a href="https://www.youtube.com/watch?v=0ShfNQOUeAY">doesn&rsquo;t take shit from anyone</a>.</li>
+<li>Salt Bae is&hellip;well you just have to <a href="https://www.youtube.com/watch?v=xWMWJwXvzWk&amp;t=376s">see for yourself</a>.</li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Why We Should All Care About Digital Privacy]]></title>
+    <link href="https://www.davidxia.com/2015/05/why-we-should-all-care-about-digital-privacy/"/>
+    <updated>2015-05-03T00:00:00-04:00</updated>
+    <id>https://www.davidxia.com/2015/05/why-we-should-all-care-about-digital-privacy</id>
+    <content type="html"><![CDATA[<p>I&rsquo;ve been reading and thinking a lot about digital privacy in the past two weeks. It&rsquo;s
+disconcerting that so many AMericans are resigned about the current state of digital surveillance.
+Before the Snowden leaks, one could plausibly deny the vast extent of mass digital surveillance,
+but in this post-Snowden era, this is increasingly hard to do without appearing like you live under
+a rock.</p>
+
+<p>I recently watched two videos which explain the disturbing extent to which intelligence agencies
+like the NSA have gone to subvert encryption algorithms and to sabotage critical Internet
+infrastructure. In <a href="https://www.youtube.com/watch?v=0SgGMj3Mf88" title="Jacob Appelbaum: Reconstructing narratives - transparency in the service of justice [31c3]">this video</a>, Jacob Appelbaum and Laura Poitras talk about how reading
+through documents leaked by Snowden has led them to believe the spooks have compromised everything
+including PPTP, IPSec, and even SSH. Everything except for PGP (implementations include GnuPG), OTR
+(implementions include Pidgin and Adium), and ZRTP (implementations include the Signal and RedPhone
+mobile apps).</p>
+
+<iframe class="fill-width" width="560" height="315" src="https://www.youtube-nocookie.com/embed/0SgGMj3Mf88?rel=0" frameborder="0" allowfullscreen></iframe>
+
+
+<p>The second video I watched was a <a href="https://www.youtube.com/watch?v=fwcl17Q0bpk" title="NSA operation ORCHESTRA: Annual Status Report">talk by Poul-Henning Kamp</a> in which he pretends
+to be an NSA officer giving a status report to NATO. Kamp talks about the various technical and
+psychological operations the NSA and its associated intelligence agencies use to collect all
+digital communications. I&rsquo;m not sure how much of what Kamp says is true as some parts are
+deliberately tongue in cheek, but none of them seem impossible. Here are just a few:</p>
+
+<ul>
+<li>The <a href="https://youtu.be/fwcl17Q0bpk?t=5m48s">NSA spots a startup</a> that&rsquo;s developing a product that strengthens privacy and thus
+makes the NSA&rsquo;s job harder. They send someone who poses as a venture capitalist. He invests money
+in the startup and gets insider knowledge on what they&rsquo;re making. NSA looks through their
+Rolodex of friendly companies for someone with a patent that&rsquo;s related to the startup&rsquo;s
+product. They convince the company to let loose some patent lawyer trolls on the startup. The
+startup folds or needs to work on something else under legal duress. The founders call the fake
+VC back saying how sorry they were to waste the VC&rsquo;s money. The NSA bites its tongue trying not to
+laugh and busts out the champange bottles.</li>
+<li><a href="https://youtu.be/fwcl17Q0bpk?t=9m47s">Skype&rsquo;s encrypted VoIP product was a threat</a> to the NSA being able to listen in on all telephone
+calls. Skype didn&rsquo;t use standard protocols, was closed-source, was outside the jurisdiction of
+the FTC, and the NSA couldn&rsquo;t bribe the founders of Skype to stop. So the NSA pressured
+eBay to acquire the company which eBay did. But eBay&rsquo;s lawyers bungled the deal and didn&rsquo;t
+get access to the source code or control the infrastructure. So the NSA made eBay sell it back
+to the founders at a loss. eBay wasn&rsquo;t too happy about this. And then the NSA had to spend a lot
+more money making Microsoft acquire Skype. But it was worth it because this time Microsoft got
+all of Skype and made the traffic <a href="http://www.theguardian.com/world/2013/jul/11/microsoft-nsa-collaboration-user-data" title="Microsoft handed the NSA access to encrypted messages">go through Microsoft servers</a> where it could be decrypted.</li>
+<li>How the NSA regularly <a href="https://youtu.be/fwcl17Q0bpk?t=20m19s">derails and slows down open source work</a> by appealing to people&rsquo;s fear,
+uncertainty, and doubt; playing the GPL vs BSD card; spawning <a href="https://en.wikipedia.org/wiki/Parkinson%27s_law_of_triviality" title="Parkinson's law of triviality">bikeshed discussions</a>; and
+soaking up mental bandwidth with bogus crypto proposals.</li>
+</ul>
+
+
+<!-- more -->
+
+
+
+
+<iframe class="fill-width" width="420" height="315" src="https://www.youtube-nocookie.com/embed/fwcl17Q0bpk?rel=0" frameborder="0" allowfullscreen></iframe>
+
+
+<p>I&rsquo;ve tried to verify for myself what Appelbaum and Poitras said. There&rsquo;s a lot of discussion on
+what the intelligence agencies have cracked and what&rsquo;s still safe. Has the NSA compromised SSH in
+general or only in targeted cases? But I wonder if this discussion is useful or if it misses the
+point as Kamp inspiringly points out at the end of his talk.</p>
+
+<p><blockquote><p>So the standard reaction in the open source environment to Edward Snowden&rsquo;s disclosures have been,
+&ldquo;We need to strengthen the protocols! We need to have SSL everywhere.&rdquo; And I think that misses the
+point by a large margin. The things that have been published by the Snowden documents by now are
+the things that the general public can understand reading their newspaper. The stuff we would be
+interested in have not been published and maybe never will. And attempting to add more encryption
+is most likely just going to have more broken encryption on the Internet.</p>
+
+<p><strong>This is not a technical problem. This is a political problem. It must be solved by political means.</strong>
+That means find politicians in your country who can understand this and make sure they understand
+it. If you cannot find politicians, get you some politicians who can understand it. Political will
+is a renewable resource. Use your pencil when you vote. Or run yourself.</p>
+
+<p><strong>This is your children&rsquo;s and grandchildren&rsquo;s future society you&rsquo;re looking at. And we&rsquo;re the guys
+who sort of missed the boat.</strong></p><footer><strong>Poul-Henning Kamp <a href="https://youtu.be/fwcl17Q0bpk?t=30m8s">https://youtu.be/fwcl17Q0bpk?t=30m8s</a></strong></footer></blockquote></p>
+
+<p>If a guy who&rsquo;s been committing to the FreeBSD kernel for over 15 years says he doesn&rsquo;t see a
+technical solution to mass digital surveillance, he&rsquo;s probably got a point. He doesn&rsquo;t see a
+technical solution because he cited the enormous amounts of money and manpower intelligence agencies
+have compared with the measly resources of open source contributors. The Director of National
+Intelligence, the overseer of all US intelligence agencies, requested $53.9 billion for the
+National Intelligence Program&rsquo;s budget in 2016. Even if a small portion of that funded domestic spying
+programs, that&rsquo;s still a lot of money. Meanwhile, <a href="http://www.propublica.org/article/the-worlds-email-encryption-software-relies-on-one-guy-who-is-going-broke" title="The World's Email Encryption Software Relies on One Guy, Who is Going Broke">up until recently</a>, Werner Koch who wrote GnuPG,
+a crucial piece of the world&rsquo;s encryption software, was struggling to raise just $25,000 a year.</p>
+
+<p>I&rsquo;ve been struggling to understand why we Americans are either too apathetic or resigned to fight
+for our privacy rights. I think it&rsquo;s because digital privacy is hard to understand and it&rsquo;s not
+in-your-face spying like finding a camera in your bedroom or a GPS tracker underneath your car.
+Some people believe the costs of giving up their privacy is outweighed by the supposed effectiveness
+in stopping terrorism. In most of my conversations, people believe domestic spying is wrong
+but think resistance is futile. They simply say &ldquo;I have nothing to hide.&rdquo;</p>
+
+<p>This simple statement is pernicious and damaging to not just civil society as a whole but also
+for our future generations. Mass surveillance isn&rsquo;t an individual problem. It&rsquo;s a collective
+problem. I don&rsquo;t have anything to hide from the spooks, but that doesn&rsquo;t mean I&rsquo;m going to give my
+government a free pass for spying on its citizens. Just because I&rsquo;m doing well as an individual
+doesn&rsquo;t mean I throw the group to which I belong under the bus. We don&rsquo;t live in a vacuum, and
+each of our actions or inactions affect those around us.</p>
+
+<p>I&rsquo;ve drawn a flow chart of my argument of why we should stop mass surveillance below.</p>
+
+<p><a href="https://i.imgur.com/athtKWxh.jpg"><img class="center" src="https://i.imgur.com/athtKWxh.jpg" width="640" height="480"></a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[How to Troll Your Roommates With a Shared Router]]></title>
+    <link href="https://www.davidxia.com/2015/01/how-to-troll-your-roommates-with-a-shared-router/"/>
+    <updated>2015-01-08T00:00:00-05:00</updated>
+    <id>https://www.davidxia.com/2015/01/how-to-troll-your-roommates-with-a-shared-router</id>
+    <content type="html"><![CDATA[<p>This article will show you how to troll your roommates or family by sending their browsers to
+this <a href="http://heyyeyaaeyaaaeyaeyaa.com">amazing website</a> where He Man sings &ldquo;What&rsquo;s Up&rdquo; by 4 Non Blondes
+(flash required) whenever they try to visit facebook.com.</p>
+
+<h3>What you&rsquo;ll need:</h3>
+
+<ul>
+<li>administrative access to a router (I used a Netgear router with firmware WNR1000v3 leased from
+Time Warner)</li>
+<li>router firmware that lets you configure static routes, port forwarding, etc</li>
+<li>a server connected to the router
+(I used <a href="http://www.davidxia.com/2013/01/setting-up-my-new-home-server/">jarvis</a> which runs Ubuntu 12.04)</li>
+<li>DNS software running on that server (I used <a href="http://en.wikipedia.org/wiki/BIND">bind</a>)</li>
+</ul>
+
+
+<h3>What you won&rsquo;t need:</h3>
+
+<ul>
+<li>access to your victims&#8217; devices (we will be doing something more sophisticated than simply editing
+<code>/etc/hosts</code>)</li>
+</ul>
+
+
+<h2>How the prank will work</h2>
+
+<p>We will intercept the DNS queries unsuspecting devices make to the router for facebook.com and
+reply back with the IP address for He Man. The router will send those DNS queries to your server
+instead of legitimate DNS servers and your server will reply back with the IP for He Man. Your
+roommates will be confused.</p>
+
+<!-- more -->
+
+
+<h2>Configure your router</h2>
+
+<p>If you&rsquo;re connected to the router, you can find the router&rsquo;s IP address with <code>ifconfig</code>. If you&rsquo;re
+on a Mac, you can also go to Network settings -> [select the connection on the left hand side for
+the router] -> Advanced -> TCP/IP -> find the &ldquo;Router&rdquo; IP address.</p>
+
+<p><img class="center <a" src="href="https://fbcdn-sphotos-g-a.akamaihd.net/hphotos-ak-xfa1/v/t1.0-9/10917102_10101626154130882_4752830600148447470_n.jpg?oh=687ddbc7d54a8d49bc0a13c4f0f10fa0&amp;oe=55268EFA&amp;__gda__=1429886743_ed56c2e974636c894617c7c44ed7e783">https://fbcdn-sphotos-g-a.akamaihd.net/hphotos-ak-xfa1/v/t1.0-9/10917102_10101626154130882_4752830600148447470_n.jpg?oh=687ddbc7d54a8d49bc0a13c4f0f10fa0&amp;oe=55268EFA&amp;__gda__=1429886743_ed56c2e974636c894617c7c44ed7e783</a>&#8221; width=&#8221;662&#8221; height=&#8221;560&#8221;></p>
+
+<p><img class="center <a" src="href="https://fbcdn-sphotos-c-a.akamaihd.net/hphotos-ak-xpa1/v/t1.0-9/10919009_10101626154090962_4392777984770748593_n.jpg?oh=c43148c8d01b5086d56e0643f5a7e35e&amp;oe=5532E3B4&amp;__gda__=1428807330_9fd7f561242eddec6d850e5db16e1a56">https://fbcdn-sphotos-c-a.akamaihd.net/hphotos-ak-xpa1/v/t1.0-9/10919009_10101626154090962_4392777984770748593_n.jpg?oh=c43148c8d01b5086d56e0643f5a7e35e&amp;oe=5532E3B4&amp;__gda__=1428807330_9fd7f561242eddec6d850e5db16e1a56</a>&#8221; width=&#8221;619&#8221; height=&#8221;216&#8221;></p>
+
+<p>Go to that IP address in a browser.</p>
+
+<p>Most routers will show you an admin page that prompts for a username and password. The default is
+usually admin/admin or admin/password.</p>
+
+<p><img class="center <a" src="href="https://fbcdn-sphotos-a-a.akamaihd.net/hphotos-ak-xaf1/v/t1.0-9/10410155_10101626154095952_226725594218369342_n.jpg?oh=aed19b834fb767fa8f8663a4a01ac195&amp;oe=5535E796&amp;__gda__=1429460257_bff57da2e2ebcd4c0941690accd39b5a">https://fbcdn-sphotos-a-a.akamaihd.net/hphotos-ak-xaf1/v/t1.0-9/10410155_10101626154095952_226725594218369342_n.jpg?oh=aed19b834fb767fa8f8663a4a01ac195&amp;oe=5535E796&amp;__gda__=1429460257_bff57da2e2ebcd4c0941690accd39b5a</a>&#8221; width=&#8221;700&#8221; height=&#8221;248&#8221;></p>
+
+<p>Find the page that lists the devices connected to the router. Note down your server&rsquo;s IP address.</p>
+
+<p><img class="center <a" src="href="https://fbcdn-sphotos-g-a.akamaihd.net/hphotos-ak-xpa1/v/t1.0-9/10896944_10101626154844452_1876206850052900071_n.jpg?oh=7c9f32651e691da17a5e2013998082d0&amp;oe=55299B48&amp;__gda__=1428651870_0dff0a668214d8e15623be1039b8e646">https://fbcdn-sphotos-g-a.akamaihd.net/hphotos-ak-xpa1/v/t1.0-9/10896944_10101626154844452_1876206850052900071_n.jpg?oh=7c9f32651e691da17a5e2013998082d0&amp;oe=55299B48&amp;__gda__=1428651870_0dff0a668214d8e15623be1039b8e646</a>&#8221; width=&#8221;636&#8221; height=&#8221;161&#8221;></p>
+
+<p>Set the DNS servers for your router to <a href="https://developers.google.com/speed/public-dns/">Google&rsquo;s DNS servers</a>:
+8.8.8.8, 8.8.4.4.</p>
+
+<p><img class="center <a" src="href="https://fbcdn-sphotos-f-a.akamaihd.net/hphotos-ak-xpa1/v/t1.0-9/10407390_10101626154879382_1002124578065929748_n.jpg?oh=5dc7af5bbbd53fd16698ce4924fb9b70&amp;oe=5529AD7D&amp;__gda__=1428557163_e985a42a159b9d85f10f20ddba5c1c64">https://fbcdn-sphotos-f-a.akamaihd.net/hphotos-ak-xpa1/v/t1.0-9/10407390_10101626154879382_1002124578065929748_n.jpg?oh=5dc7af5bbbd53fd16698ce4924fb9b70&amp;oe=5529AD7D&amp;__gda__=1428557163_e985a42a159b9d85f10f20ddba5c1c64</a>&#8221; width=&#8221;666&#8221; height=&#8221;128&#8221;></p>
+
+<p>Setup a static route for each of these Google IPs that point to your server.</p>
+
+<p><img class="center <a" src="href="https://fbcdn-sphotos-c-a.akamaihd.net/hphotos-ak-xap1/v/t1.0-9/10898174_10101626154794552_232860980624736509_n.jpg?oh=42ddf8144e919d83f73bfc0ce307ee7a&amp;oe=55420596&amp;__gda__=1430042031_93da6ec48766a9e2c1788c147c430eb6">https://fbcdn-sphotos-c-a.akamaihd.net/hphotos-ak-xap1/v/t1.0-9/10898174_10101626154794552_232860980624736509_n.jpg?oh=42ddf8144e919d83f73bfc0ce307ee7a&amp;oe=55420596&amp;__gda__=1430042031_93da6ec48766a9e2c1788c147c430eb6</a>&#8221; width=&#8221;700&#8221; height=&#8221;93&#8221;></p>
+
+<p><img class="center <a" src="href="https://scontent-a.xx.fbcdn.net/hphotos-xpf1/v/t1.0-9/10270311_10101626154834472_5673943759150803695_n.jpg?oh=425580867e67451a7cb805159dc5052f&amp;oe=553CC1E6">https://scontent-a.xx.fbcdn.net/hphotos-xpf1/v/t1.0-9/10270311_10101626154834472_5673943759150803695_n.jpg?oh=425580867e67451a7cb805159dc5052f&amp;oe=553CC1E6</a>&#8221; width=&#8221;695&#8221; height=&#8221;266&#8221;></p>
+
+<p>Install and configure DNS software on your server. I used bind9 and followed <a href="https://www.digitalocean.com/community/tutorials/how-to-configure-bind-as-a-private-network-dns-server-on-ubuntu-14-04">this tutorial by
+Digital Ocean</a>.
+I skipped the secondary DNS server and reverse zone files and anything after that.</p>
+
+<pre><code class="plain /etc/bind/named.conf.options">acl "trusted" {
+    localhost;    # ns1 - can be set to localhost
+    192.168.254.1;  # apartment router
+};
+
+options {
+    directory "/var/cache/bind";
+
+    recursion yes;                 # enables resursive queries
+    allow-recursion { trusted; };  # allows recursive queries from "trusted" clients
+    allow-transfer { none; };      # disable zone transfers by default
+
+    // Time Warner DNS to avoid infinite loop
+    forwarders {
+        209.18.47.61;
+        209.18.47.62;
+    };
+
+    dnssec-validation auto;
+
+    auth-nxdomain no;    # conform to RFC1035
+    listen-on-v6 { any; };
+};
+</code></pre>
+
+<pre><code class="plain /etc/bind/named.conf.local">//
+// Do any local configuration here
+//
+zone "facebook.com" {
+    type master;
+    file "/etc/bind/zones/db.facebook.com"; # zone file path
+};
+
+// Consider adding the 1918 zones here, if they are not used in your
+// organization
+include "/etc/bind/zones.rfc1918";
+</code></pre>
+
+<pre><code class="plain /etc/bind/zones/db.facebook.com">;
+; BIND data file for facebook.com zone
+;
+$TTL  604800
+@ IN  SOA jarvis.davidxia.com. jarvis.davidxia.com. (
+            3   ; Serial
+       604800   ; Refresh
+        86400   ; Retry
+      2419200   ; Expire
+       604800 ) ; Negative Cache TTL
+;
+; name servers - NS records
+    IN      NS      jarvis.davidxia.com.
+
+; name servers - A records
+jarvis.davidxia.com.          IN      A       192.168.254.8
+
+; 192.168.254/8 - A records
+facebook.com.        IN      A      205.186.179.191
+www.facebook.com.    IN      A      205.186.179.191
+</code></pre>
+
+<p>Make sure you use different DNS forwarders than the ones you specified in your router, otherwise
+you&rsquo;ll create an infinite loop. I used Time Warner&rsquo;s DNS servers.</p>
+
+<p>Check your server returns He Man&rsquo;s IP when asked for facebook.com.</p>
+
+<pre><code>dig facebook.com @localhost +short
+205.186.179.191
+dig heyyeyaaeyaaaeyaeyaa.com @localhost +short
+205.186.179.191
+</code></pre>
+
+<p>Add iptable rules to replace the router&rsquo;s incoming DNS query packets&#8217; destination IP with your
+server&rsquo;s IP to make your server from actually respond to them. Add rules for both UDP and TCP for
+both IP addresses for a total of four.</p>
+
+<pre><code>sudo iptables -t nat -A PREROUTING -p udp -d 8.8.8.8 --dport 53 -j NETMAP --to 192.168.254.8
+sudo iptables -t nat -A PREROUTING -p udp -d 8.8.4.4 --dport 53 -j NETMAP --to 192.168.254.8
+sudo iptables -t nat -A PREROUTING -p tcp -d 8.8.8.8 --dport 53 -j NETMAP --to 192.168.254.8
+sudo iptables -t nat -A PREROUTING -p tcp -d 8.8.4.4 --dport 53 -j NETMAP --to 192.168.254.8
+</code></pre>
+
+<p>Check you get the following output.</p>
+
+<pre><code>sudo iptables --list -t nat
+
+Chain PREROUTING (policy ACCEPT)
+target     prot opt source               destination
+NETMAP     tcp  --  anywhere             google-public-dns-a.google.com  tcp dpt:domain192.168.254.8/32
+NETMAP     tcp  --  anywhere             google-public-dns-b.google.com  tcp dpt:domain192.168.254.8/32
+NETMAP     udp  --  anywhere             google-public-dns-b.google.com  udp dpt:domain192.168.254.8/32
+NETMAP     udp  --  anywhere             google-public-dns-a.google.com  udp dpt:domain192.168.254.8/32
+
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination
+
+Chain OUTPUT (policy ACCEPT)
+target     prot opt source               destination
+
+Chain POSTROUTING (policy ACCEPT)
+target     prot opt source               destination
+</code></pre>
+
+<p>Now check your router returns He Man&rsquo;s IP when asked for facebook.com.</p>
+
+<pre><code>dig facebook.com @192.168.254.1 +short
+205.186.179.191
+dig heyyeyaaeyaaaeyaeyaa.com @192.168.254.1 +short
+205.186.179.191
+</code></pre>
+
+<p>Use <code>tcpdump</code> to debug if this doesn&rsquo;t work.</p>
+
+<p>And you&rsquo;re done! Kind of&hellip; There are a few things that still don&rsquo;t work. The IP address for He Man
+is probably a server that hosts multiple domains and doesn&rsquo;t know which one to go to if only given
+the IP. Bind can&rsquo;t return a domain name, so I made bind return an IP address which led to a static
+page with some Javascript that simply redirects to heyyeyaaeyaaaeyaeyaa.com.</p>
+
+<pre><code class="html">&lt;html&gt;
+  &lt;head&gt;
+    &lt;title&gt;Redirecting...&lt;/title&gt;
+  &lt;/head&gt;
+
+  &lt;body&gt;
+    &lt;p&gt;Redirecting...&lt;/p&gt;
+    &lt;script type="text/javascript"&gt;
+      window.location = 'http://heyyeyaaeyaaaeyaeyaa.com/';
+    &lt;/script&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<p>The major wrinkle is that Facebook uses SSL/HTTPS so modern browsers will just show a warning and
+not request the page. So you can really only redirect from HTTP sites to other HTTP sites, but
+hopefully this prank is still worth something. I certainly had fun with it :)</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[How to Setup Your Personal Website From Scratch]]></title>
+    <link href="https://www.davidxia.com/2013/05/how-to-setup-personal-website-from-scratch/"/>
+    <updated>2013-05-04T00:00:00-04:00</updated>
+    <id>https://www.davidxia.com/2013/05/how-to-setup-personal-website-from-scratch</id>
+    <content type="html"><![CDATA[<p>You want to have your own personal website, but you don&rsquo;t know where to begin. All this Internet
+stuff just seems like a black box to you. You don&rsquo;t want to bother with complicated technical
+stuff. You just want your website to work. Is this that much to ask?</p>
+
+<p><strong>No.</strong></p>
+
+<p>This tutorial<sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup> will get your own website up and running from scratch in under 1.5 hours. At the
+end you&rsquo;ll be able to type &ldquo;myownwebsite.com&rdquo; into your browser to see a website you own and
+receive e-mail at &ldquo;<a href="&#109;&#97;&#x69;&#x6c;&#x74;&#111;&#x3a;&#x66;&#x69;&#x72;&#115;&#116;&#110;&#x61;&#109;&#x65;&#x40;&#109;&#x79;&#111;&#x77;&#x6e;&#119;&#101;&#98;&#115;&#x69;&#x74;&#x65;&#x2e;&#x63;&#x6f;&#x6d;">&#102;&#x69;&#114;&#115;&#116;&#x6e;&#x61;&#x6d;&#101;&#64;&#x6d;&#x79;&#111;&#119;&#x6e;&#x77;&#x65;&#x62;&#115;&#105;&#x74;&#101;&#46;&#99;&#x6f;&#x6d;</a>&rdquo;. You&rsquo;ll learn how the Internet works on a basic
+level, what domain name servers (DNS) are, and how to link your website to Google&rsquo;s free apps.</p>
+
+<ol>
+<li><p>Read my explanation of <a href="/2012/01/how-the-internets-domain-name-system-works/">how the Internet&rsquo;s Domain Name System works</a></p></li>
+<li><p>Register an available URL (or multiple ones) from a domain registrar like <a href="http://www.name.com">name.com</a><sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup>.</p></li>
+<li><p>Create a <a href="http://www.tumblr.com/">Tumblr</a> blog.</p></li>
+<li><p>Setup DNS records with this <a href="http://www.tumblr.com/docs/en/custom_domains">Tumblr</a> guide.</p></li>
+<li><p>Setup free <a href="http://www.google.com/apps/intl/en/group/index.html">Google Apps</a> to use Gmail, calendar, docs, etc with your new domain.</p></li>
+</ol>
+
+
+<hr />
+<div class="footnotes">
+<hr/>
+<ol>
+<li id="fn:1">
+<p>There are many ways to setup a basic personal website. My method balances cost, ease, and control. You can also try out [about.me][6] to create a basic landing page or [Squarespace][7] to create a more extensive site.<a href="#fnref:1" rev="footnote">&#8617;</a></p></li>
+<li id="fn:2">
+<p>I don&rsquo;t take money for blog posts and wasn&rsquo;t asked to write this by Tumblr or name.com. I recommend them because I they&rsquo;re services I&rsquo;ve personally used and like.<a href="#fnref:2" rev="footnote">&#8617;</a></p></li>
+</ol>
+</div>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[New Spotify Top Tracks Widget]]></title>
+    <link href="https://www.davidxia.com/2013/04/new-spotify-top-tracks-widget/"/>
+    <updated>2013-04-12T00:00:00-04:00</updated>
+    <id>https://www.davidxia.com/2013/04/new-spotify-top-tracks-widget</id>
+    <content type="html"><![CDATA[<p>Check out the new Spotify Top Tracks Widget I made for Spotify.</p>
+
+<iframe src="http://charts.spotify.com/embed/charts/most_streamed/us/latest" width="300" height="400" frameborder="0" allowtransparency="true"></iframe>
+
+]]></content>
+  </entry>
+  
+</feed>

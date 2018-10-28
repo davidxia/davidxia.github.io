@@ -1,0 +1,673 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Information Security | David Xia]]></title>
+  <link href="https://www.davidxia.com/categories/information-security/atom.xml" rel="self"/>
+  <link href="https://www.davidxia.com/"/>
+  <updated>2018-10-28T12:11:58-04:00</updated>
+  <id>https://www.davidxia.com/</id>
+  <author>
+    <name><![CDATA[David Xia]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Why We Should All Care About Digital Privacy]]></title>
+    <link href="https://www.davidxia.com/2015/05/why-we-should-all-care-about-digital-privacy/"/>
+    <updated>2015-05-03T00:00:00-04:00</updated>
+    <id>https://www.davidxia.com/2015/05/why-we-should-all-care-about-digital-privacy</id>
+    <content type="html"><![CDATA[<p>I&rsquo;ve been reading and thinking a lot about digital privacy in the past two weeks. It&rsquo;s
+disconcerting that so many AMericans are resigned about the current state of digital surveillance.
+Before the Snowden leaks, one could plausibly deny the vast extent of mass digital surveillance,
+but in this post-Snowden era, this is increasingly hard to do without appearing like you live under
+a rock.</p>
+
+<p>I recently watched two videos which explain the disturbing extent to which intelligence agencies
+like the NSA have gone to subvert encryption algorithms and to sabotage critical Internet
+infrastructure. In <a href="https://www.youtube.com/watch?v=0SgGMj3Mf88" title="Jacob Appelbaum: Reconstructing narratives - transparency in the service of justice [31c3]">this video</a>, Jacob Appelbaum and Laura Poitras talk about how reading
+through documents leaked by Snowden has led them to believe the spooks have compromised everything
+including PPTP, IPSec, and even SSH. Everything except for PGP (implementations include GnuPG), OTR
+(implementions include Pidgin and Adium), and ZRTP (implementations include the Signal and RedPhone
+mobile apps).</p>
+
+<iframe class="fill-width" width="560" height="315" src="https://www.youtube-nocookie.com/embed/0SgGMj3Mf88?rel=0" frameborder="0" allowfullscreen></iframe>
+
+
+<p>The second video I watched was a <a href="https://www.youtube.com/watch?v=fwcl17Q0bpk" title="NSA operation ORCHESTRA: Annual Status Report">talk by Poul-Henning Kamp</a> in which he pretends
+to be an NSA officer giving a status report to NATO. Kamp talks about the various technical and
+psychological operations the NSA and its associated intelligence agencies use to collect all
+digital communications. I&rsquo;m not sure how much of what Kamp says is true as some parts are
+deliberately tongue in cheek, but none of them seem impossible. Here are just a few:</p>
+
+<ul>
+<li>The <a href="https://youtu.be/fwcl17Q0bpk?t=5m48s">NSA spots a startup</a> that&rsquo;s developing a product that strengthens privacy and thus
+makes the NSA&rsquo;s job harder. They send someone who poses as a venture capitalist. He invests money
+in the startup and gets insider knowledge on what they&rsquo;re making. NSA looks through their
+Rolodex of friendly companies for someone with a patent that&rsquo;s related to the startup&rsquo;s
+product. They convince the company to let loose some patent lawyer trolls on the startup. The
+startup folds or needs to work on something else under legal duress. The founders call the fake
+VC back saying how sorry they were to waste the VC&rsquo;s money. The NSA bites its tongue trying not to
+laugh and busts out the champange bottles.</li>
+<li><a href="https://youtu.be/fwcl17Q0bpk?t=9m47s">Skype&rsquo;s encrypted VoIP product was a threat</a> to the NSA being able to listen in on all telephone
+calls. Skype didn&rsquo;t use standard protocols, was closed-source, was outside the jurisdiction of
+the FTC, and the NSA couldn&rsquo;t bribe the founders of Skype to stop. So the NSA pressured
+eBay to acquire the company which eBay did. But eBay&rsquo;s lawyers bungled the deal and didn&rsquo;t
+get access to the source code or control the infrastructure. So the NSA made eBay sell it back
+to the founders at a loss. eBay wasn&rsquo;t too happy about this. And then the NSA had to spend a lot
+more money making Microsoft acquire Skype. But it was worth it because this time Microsoft got
+all of Skype and made the traffic <a href="http://www.theguardian.com/world/2013/jul/11/microsoft-nsa-collaboration-user-data" title="Microsoft handed the NSA access to encrypted messages">go through Microsoft servers</a> where it could be decrypted.</li>
+<li>How the NSA regularly <a href="https://youtu.be/fwcl17Q0bpk?t=20m19s">derails and slows down open source work</a> by appealing to people&rsquo;s fear,
+uncertainty, and doubt; playing the GPL vs BSD card; spawning <a href="https://en.wikipedia.org/wiki/Parkinson%27s_law_of_triviality" title="Parkinson's law of triviality">bikeshed discussions</a>; and
+soaking up mental bandwidth with bogus crypto proposals.</li>
+</ul>
+
+
+<!-- more -->
+
+
+
+
+<iframe class="fill-width" width="420" height="315" src="https://www.youtube-nocookie.com/embed/fwcl17Q0bpk?rel=0" frameborder="0" allowfullscreen></iframe>
+
+
+<p>I&rsquo;ve tried to verify for myself what Appelbaum and Poitras said. There&rsquo;s a lot of discussion on
+what the intelligence agencies have cracked and what&rsquo;s still safe. Has the NSA compromised SSH in
+general or only in targeted cases? But I wonder if this discussion is useful or if it misses the
+point as Kamp inspiringly points out at the end of his talk.</p>
+
+<p><blockquote><p>So the standard reaction in the open source environment to Edward Snowden&rsquo;s disclosures have been,
+&ldquo;We need to strengthen the protocols! We need to have SSL everywhere.&rdquo; And I think that misses the
+point by a large margin. The things that have been published by the Snowden documents by now are
+the things that the general public can understand reading their newspaper. The stuff we would be
+interested in have not been published and maybe never will. And attempting to add more encryption
+is most likely just going to have more broken encryption on the Internet.</p>
+
+<p><strong>This is not a technical problem. This is a political problem. It must be solved by political means.</strong>
+That means find politicians in your country who can understand this and make sure they understand
+it. If you cannot find politicians, get you some politicians who can understand it. Political will
+is a renewable resource. Use your pencil when you vote. Or run yourself.</p>
+
+<p><strong>This is your children&rsquo;s and grandchildren&rsquo;s future society you&rsquo;re looking at. And we&rsquo;re the guys
+who sort of missed the boat.</strong></p><footer><strong>Poul-Henning Kamp <a href="https://youtu.be/fwcl17Q0bpk?t=30m8s">https://youtu.be/fwcl17Q0bpk?t=30m8s</a></strong></footer></blockquote></p>
+
+<p>If a guy who&rsquo;s been committing to the FreeBSD kernel for over 15 years says he doesn&rsquo;t see a
+technical solution to mass digital surveillance, he&rsquo;s probably got a point. He doesn&rsquo;t see a
+technical solution because he cited the enormous amounts of money and manpower intelligence agencies
+have compared with the measly resources of open source contributors. The Director of National
+Intelligence, the overseer of all US intelligence agencies, requested $53.9 billion for the
+National Intelligence Program&rsquo;s budget in 2016. Even if a small portion of that funded domestic spying
+programs, that&rsquo;s still a lot of money. Meanwhile, <a href="http://www.propublica.org/article/the-worlds-email-encryption-software-relies-on-one-guy-who-is-going-broke" title="The World's Email Encryption Software Relies on One Guy, Who is Going Broke">up until recently</a>, Werner Koch who wrote GnuPG,
+a crucial piece of the world&rsquo;s encryption software, was struggling to raise just $25,000 a year.</p>
+
+<p>I&rsquo;ve been struggling to understand why we Americans are either too apathetic or resigned to fight
+for our privacy rights. I think it&rsquo;s because digital privacy is hard to understand and it&rsquo;s not
+in-your-face spying like finding a camera in your bedroom or a GPS tracker underneath your car.
+Some people believe the costs of giving up their privacy is outweighed by the supposed effectiveness
+in stopping terrorism. In most of my conversations, people believe domestic spying is wrong
+but think resistance is futile. They simply say &ldquo;I have nothing to hide.&rdquo;</p>
+
+<p>This simple statement is pernicious and damaging to not just civil society as a whole but also
+for our future generations. Mass surveillance isn&rsquo;t an individual problem. It&rsquo;s a collective
+problem. I don&rsquo;t have anything to hide from the spooks, but that doesn&rsquo;t mean I&rsquo;m going to give my
+government a free pass for spying on its citizens. Just because I&rsquo;m doing well as an individual
+doesn&rsquo;t mean I throw the group to which I belong under the bus. We don&rsquo;t live in a vacuum, and
+each of our actions or inactions affect those around us.</p>
+
+<p>I&rsquo;ve drawn a flow chart of my argument of why we should stop mass surveillance below.</p>
+
+<p><a href="https://i.imgur.com/athtKWxh.jpg"><img class="center" src="https://i.imgur.com/athtKWxh.jpg" width="640" height="480"></a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[5 Ways to Security Harden Your Linux System]]></title>
+    <link href="https://www.davidxia.com/2012/05/5-ways-to-security-harden-your-linux-system/"/>
+    <updated>2012-05-29T00:00:00-04:00</updated>
+    <id>https://www.davidxia.com/2012/05/5-ways-to-security-harden-your-linux-system</id>
+    <content type="html"><![CDATA[<h2>1. Don&rsquo;t Use FTP or Telnet</h2>
+
+<p>I only use SSH to interact with my remote machine. Your Linux distribution should come with SSH tools already installed, but in case it doesn&rsquo;t, use <a href="http://www.openssh.org/" title="OpenSSH">OpenSSH</a>.</p>
+
+<h2>2. Keep Kernel and Software Up to Date</h2>
+
+<p>If you use apt:</p>
+
+<pre><code># apt-get update &amp;&amp; apt-get upgrade
+</code></pre>
+
+<p><a href="http://www.debian-administration.org/articles/491" title="apticron">Apticron</a> is a package that emails you when security updates are available.</p>
+
+<pre><code># apt-get install apticron
+</code></pre>
+
+<!--more-->
+
+
+<h2>3. User Accounts and Strong Password Policy</h2>
+
+<p>Use the useradd / usermod commands to create and maintain user accounts. The chage command changes
+the number of days between password changes and the date of the last password change. To get a
+user&rsquo;s password expiration info:</p>
+
+<pre><code># chage -l [username]
+</code></pre>
+
+<p>See <code>man chage</code> for more.</p>
+
+<h3>Show Login Failures</h3>
+
+<pre><code>$ faillog
+</code></pre>
+
+<p>Lock and unlock accounts, respectively, with</p>
+
+<pre><code># passwd -l [username]
+# passwd -u [username]
+</code></pre>
+
+<h3>Check No Accounts Have Empty Passwords</h3>
+
+<pre><code># awk -F: '($2 == "") {print}' /etc/shadow
+</code></pre>
+
+<h3>Make Sure No Non-Root Accounts Have UID Set To 0</h3>
+
+<p>Accounts with UID 0 have full system privileges. Check that you only have one line
+(<code>root:x:0:0:root:/root:/bin/bash</code>) when you run this command:</p>
+
+<pre><code># awk -F: '($3 == "0") {print}' /etc/passwd
+</code></pre>
+
+<h2>4. Disable Root Login</h2>
+
+<p>Don&rsquo;t login as root. Use sudo.</p>
+
+<h2>5. Disable Unwanted Services</h2>
+
+<h3>Find Listening Network Ports</h3>
+
+<p>Close any ports and associated network services you don&rsquo;t need.</p>
+
+<pre><code># nmap -sT -O localhost
+</code></pre>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="http://www.cyberciti.biz/tips/linux-security.html" title="20 Linux Server Hardening Security Tips">20 Linux Server Hardening Security Tips</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[How to Setup HTTPS and Secure WordPress Admin With a Self-Signed Certificate]]></title>
+    <link href="https://www.davidxia.com/2012/02/how-to-setup-https-and-secure-wordpress-admin-with-a-self-signed-certificate/"/>
+    <updated>2012-02-28T00:00:00-05:00</updated>
+    <id>https://www.davidxia.com/2012/02/how-to-setup-https-and-secure-wordpress-admin-with-a-self-signed-certificate</id>
+    <content type="html"><![CDATA[<p>I got bored so I learned how to setup HTTPS on the admin parts of my WordPress blog. At first I
+was generating self-signed certificates because I read that buying a third-party verified
+certificate could <a href="http://www.clintharris.net/2009/self-signed-certificates/" title="self-signed-certificates">cost upwards of $100 per year</a>.</p>
+
+<p>Then I saw this <a href="http://arstechnica.com/security/news/2009/12/how-to-get-set-with-a-secure-sertificate-for-free.ars" title="How to obtain and install an SSL/TLS certificate, for free">Ars article</a> on getting a legit one for free.</p>
+
+<!--more-->
+
+
+<p>After enabling mod_ssl on Apache and following the Ars guide above, I was ready to secure the
+admin parts of WordPress. The general idea is to:</p>
+
+<p><blockquote><p>1. Set up two virtual hosts with the same url (the blog url), one secure, the other not.
+2. On the secure virtual host, set up a rewrite rule that shuttles all non-wp-admin traffic to the
+  insecure site.
+3. On the insecure virtual host, set up a rewrite rule that shuttles all traffic to wp-admin to the
+  secure host.
+4. Put in a filter (via a plugin) that filters the links in wp-admin so that once activated,
+  administrative links are rewritten to use https and that edits cookies to work only over encrypted
+  connections.</p><footer><strong>Wordpress <a href="http://codex.wordpress.org/Administration_Over_SSL">http://codex.wordpress.org/Administration_Over_SSL</a></strong></footer></blockquote></p>
+
+<p>For the insecure virtual host:</p>
+
+<pre><code>&lt;VirtualHost *:80&gt;
+    ServerAdmin david@davidxia.com
+    ServerName davidxia.com
+    ServerAlias davidxia.com, www.davidxia.com
+
+    &lt;IfModule mod_rewrite.c&gt;
+        RewriteEngine On
+        RewriteCond %{HTTP_HOST} !^www\. [NC]
+        RewriteRule ^ http://www.%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+    &lt;/IfModule&gt;
+    ...
+&lt;/VirtualHost&gt;
+</code></pre>
+
+<p>For the secure virtual host:</p>
+
+<pre><code>&lt;VirtualHost *:443&gt;
+    ServerName www.davidxia.com
+    &lt;IfModule mod_rewrite.c&gt;
+        RewriteEngine On
+        RewriteRule !^/wordpress/wp-(admin|login|register|content|includes)(.*) - [C]
+        RewriteRule ^(.*)$ http://%{SERVER_NAME}$1 [L]
+    &lt;/IfModule&gt;
+
+    SSLEngine on
+    SSLCertificateFile /path/so/SSLCertificateFile.crt
+    SSLCertificateKeyFile /path/to/SSLCertificateKeyFile.key
+    SSLCertificateChainFile /path/to/sub.class1.server.ca.pem.cer
+    ...
+&lt;/VirtualHost&gt;
+</code></pre>
+
+<p>Now I can finally see a nice green lock symbol in Google Chrome.</p>
+
+<p><img src="https://lh4.googleusercontent.com/-FnSYgF2W1l0/T01D8YlFXlI/AAAAAAAAAJI/WIJHxDajNM0/s800/Screen%20Shot%202012-02-28%20at%204.15.07%20PM.png" title="david xia secure" alt="" /></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[15 Ways to Increase Your WordPress' Security]]></title>
+    <link href="https://www.davidxia.com/2012/02/15-ways-to-increase-your-wordpress-security/"/>
+    <updated>2012-02-18T00:00:00-05:00</updated>
+    <id>https://www.davidxia.com/2012/02/15-ways-to-increase-your-wordpress-security</id>
+    <content type="html"><![CDATA[<h2>1. Don&rsquo;t Display Error Messages on Failed Login</h2>
+
+<p>WordPress&#8217; admin screen displays &ldquo;ERROR: Invalid username.&rdquo; if you enter an invalid username. But
+if you enter a valid username and an incorrect password, it&rsquo;ll say &ldquo;ERROR: Incorrect password.&rdquo;
+This basic security flaw tells intruders which usernames to target. I don&rsquo;t understand why the
+WordPress team designed it this way.</p>
+
+<p>You can disable the error message by putting this in your theme&rsquo;s <code>functions.php</code>:</p>
+
+<pre><code class="php">add_filter('login_errors',create_function('$a', "return null;"));
+</code></pre>
+
+<!--more-->
+
+
+<h2>2. Publish Posts as a Non-Admin User</h2>
+
+<p>Create a WordPress user that has admin privileges and publish all posts as other users that are
+editor level and below. This makes it harder for intruders to guess which usernames have admin
+access.</p>
+
+<h2>3. Create A Plug-In To Protect Your Blog From Malicious URL Requests</h2>
+
+<p>Intruders often try malicious queries to probe website vulnerabilities. Put the following code in
+a text file and save it as <code>blockbadqueries.php</code>. Upload it to <code>wp-content/plugins</code> and activate
+it as you would any other plug-in.</p>
+
+<pre><code class="php Block Bad Queries http://wordpress.org/extend/plugins/block-bad-queries/">/*
+Plugin Name: Block Bad Queries
+Plugin URI: http://perishablepress.com/press/2009/12/22/protect-wordpress-against-malicious-url-requests/
+Description: Protect WordPress Against Malicious URL Requests
+Author URI: http://perishablepress.com/
+Author: Perishable Press
+Version: 1.0
+*/
+
+global $user_ID;
+
+if ($user_ID) {
+    if (!current_user_can('level_10')) {
+        if (strlen($_SERVER['REQUEST_URI']) &gt; 255 ||
+            strpos($_SERVER['REQUEST_URI'], "eval(") ||
+            strpos($_SERVER['REQUEST_URI'], "CONCAT") ||
+            strpos($_SERVER['REQUEST_URI'], "UNION+SELECT") ||
+            strpos($_SERVER['REQUEST_URI'], "base64")) {
+                @header("HTTP/1.1 414 Request-URI Too Long");
+                @header("Status: 414 Request-URI Too Long");
+                @header("Connection: Close");
+                @exit;
+        }
+    }
+}
+</code></pre>
+
+<h2>4. Remove WordPress Version Number</h2>
+
+<p>WordPress automatically displays the version you are using in the head of your blog files. Intruders use this information to target known security holes, especially if you&rsquo;re running older versions. Put this in your theme&rsquo;s <code>functions.php</code>:</p>
+
+<pre><code class="php">remove_action('wp_head', 'wp_generator');
+</code></pre>
+
+<h2>5. Don&rsquo;t Use Default &ldquo;Admin&rdquo; Username</h2>
+
+<p>Before WordPress 3.0, the default admin username was &ldquo;Admin.&rdquo; Can you spell &ldquo;fail&rdquo;? If you&rsquo;re
+using an older version, run this SQL query:</p>
+
+<pre><code class="sql">UPDATE wp_users SET user_login = 'Your New Username' WHERE user_login = 'Admin';
+</code></pre>
+
+<h2>6. Disable Directory Listing</h2>
+
+<p>By default, I disable directory listings. Put this either in your root <code>.htaccess</code> or Apache&rsquo;s site
+config:</p>
+
+<pre><code>Options -Indexes
+</code></pre>
+
+<h2>7. Separate Database User for WordPress Database</h2>
+
+<p>Create a separate database user just for WordPress and restrict its privileges to the relevant
+WordPress tables. If an intruder successfully cracks one WordPress installation, (s)he won&rsquo;t take
+down your other databases.</p>
+
+<h2>8. Change Default WordPress Table Prefixes</h2>
+
+<p>Many published WordPress-specific SQL-injection attacks make the assumption that the table_prefix
+is &ldquo;wp_&rdquo;, the default. Changing this can block some SQL injection attacks.</p>
+
+<h2>9. Secure wp-admin with Apache</h2>
+
+<p>Password protect the admin area. Set <code>AllowOverride All</code> in your Apache config and put this in
+wp-admin&rsquo;s <code>.htaccess</code>:</p>
+
+<pre><code># Secure wp-admin folder
+AuthUserFile /var/www/apache/passwords
+AuthType basic
+AuthName "Some message here"
+require user [user]
+
+# This is the whitelisting of the ajax handler 
+
+Order allow,deny
+Allow from all
+Satisfy any
+</code></pre>
+
+<h2>10. Secure wp-config</h2>
+
+<p>Deny web access to the wp-config folder by putting this <code>.htaccess</code> in your document root:</p>
+
+<pre><code># prevent others from accessing this file
+
+order allow,deny
+deny from all
+
+# secure wp-config
+
+order allow,deny
+deny from all
+</code></pre>
+
+<h2>11. Secure wp-includes</h2>
+
+<p>This goes in the same <code>.htaccess</code> file as above:</p>
+
+<pre><code># secure the wp-includes directory
+RewriteRule ^wordpress/wp-admin/includes/ - [F,L]
+RewriteRule !^wordpress/wp-includes/ - [S=3]
+RewriteRule ^wordpress/wp-includes/[^/] .php$ - [F,L]
+RewriteRule ^wordpress/wp-includes/js/tinymce/langs/. .php - [F,L]
+RewriteRule ^wordpress/wp-includes/theme-compat/ - [F,L]
+</code></pre>
+
+<h2>12. Protect against script injections</h2>
+
+<p>For the same <code>.htaccess</code> file as above:</p>
+
+<pre><code># protect against script injections
+Options  FollowSymLinks
+RewriteEngine On
+RewriteCond %{QUERY_STRING} () [NC,OR]
+RewriteCond %{QUERY_STRING} GLOBALS(=|[|%[0-9A-Z]{0,2}) [OR]
+RewriteCond %{QUERY_STRING} _REQUEST(=|[|%[0-9A-Z]{0,2})
+RewriteRule ^(.*)$ index.php [F,L]
+</code></pre>
+
+<h2>13. Blacklist IP Addresses</h2>
+
+<p>If you notice certain IP addresses spamming you, you can instruct Apache to blacklist their
+requests by putting this in a <code>.htaccess</code> file in the root of your WordPress installation:</p>
+
+<pre><code>order allow,deny
+allow from all
+deny from [IP address 1]
+deny from [IP address 2]
+</code></pre>
+
+<h2>14. Database Backup</h2>
+
+<p>Make sure you use the <a href="http://lesterchan.net/portfolio/programming/php/#wp-dbmanager" title="WP-DBManager">WP-DBManager plugin</a> to schedule regular backups and email the backup
+files to yourself, in case crackers break in and wipe out your database.</p>
+
+<h2>15. Prevent Hotlinking</h2>
+
+<p>This isn&rsquo;t a security measure, but if you don&rsquo;t want others hotlinking to your images, put this in
+<code>.htaccess</code>:</p>
+
+<pre><code># deters content scrapers from hotlinking
+RewriteEngine On
+# modify next line accordingly
+RewriteCond %{HTTP_REFERER} !^http://(. .)?davidxia.com [NC]
+RewriteCond %{HTTP_REFERER} !^$
+#Replace /images/nohotlink.jpg with your "don't hotlink" image url
+RewriteRule .*.(jpe?g|gif|bmp|png)$ /images/nohotlink.jpg [L]
+</code></pre>
+
+<p>Of course, this won&rsquo;t stop them from simply taking your image manually, but at least now you won&rsquo;t
+have to worry about them wasting your bandwidth.</p>
+
+<h2>Resources</h2>
+
+<ul>
+<li><a href="http://wp.smashingmagazine.com/2010/07/01/10-useful-wordpress-security-tweaks/" title="10 Useful WordPress Security Tweaks">10 Useful WordPress Security Tweaks</a></li>
+<li><a href="/2011/08/wordpress-brute-force-attack-script" title="WordPress Brute Force Attack Script">WordPress Brute Force Attack Script</a></li>
+<li><a href="http://codex.wordpress.org/Hardening_WordPress" title="Hardening WordPress">Hardening WordPress</a></li>
+<li><a href="http://codex.wordpress.org/Administration_Over_SSL" title="WordPress Administration Over SSL">WordPress Administration Over SSL</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[8 Ways to Defend Against Brute Force SSH Attacks]]></title>
+    <link href="https://www.davidxia.com/2012/02/8-ways-to-defend-against-brute-force-ssh-attacks/"/>
+    <updated>2012-02-12T00:00:00-05:00</updated>
+    <id>https://www.davidxia.com/2012/02/8-ways-to-defend-against-brute-force-ssh-attacks</id>
+    <content type="html"><![CDATA[<p>I looked at my server&rsquo;s auth logs today and was unsettled to find thousands of lines like these:</p>
+
+<pre><code>Feb 12 06:49:52 localhost sshd[25416]: Invalid user photo from xxx.xxx.xxx.xxx
+Feb 12 06:49:52 localhost sshd[25416]: pam_unix(sshd:auth): check pass; user unknown
+Feb 12 06:49:52 localhost sshd[25416]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=some.random.domain
+Feb 12 06:49:54 localhost sshd[25416]: Failed password for invalid user photo from xxx.xxx.xxx.xxx port 49608 ssh2
+</code></pre>
+
+<p>I was looking at someone running a brute force attack on my server trying to gain SSH access.
+Looking further back in the logs, I found crackers (not the derogatory term for white people but
+<a href="http://catb.org/jargon/html/C/cracker.html" title="Jargon file definition of cracker">people who break security maliciously</a>) had been attacking me for at least a month. Luckily
+the unsophisticated attack simply tried various username/password combinations. After common
+usernames like root, admin, and user were tried, the attackers used names like aaron, gary,
+stephanie, etc.</p>
+
+<p>Alright, time to shut these guys down. (All setting changes were made in <code>/etc/ssh/sshd_config</code> and
+on Ubuntu unless otherwise specified.)</p>
+
+<!--more-->
+
+
+<h2>1. Don&rsquo;t Permit Root Login</h2>
+
+<pre><code>PermitRootLogin no
+</code></pre>
+
+<h2>2. Specify Which Accounts Can Use SSH</h2>
+
+<pre><code>AllowUsers [user1] [user2]
+</code></pre>
+
+<h2>3. Only Allow Public Key Authentication</h2>
+
+<p>I&rsquo;d already generated an RSA key with <code>ssh-keygen -t rsa</code> on my personal computer. This created
+the files <code>/home/username/.ssh/id_rsa</code> (the private key) and <code>/home/username/.ssh/id_rsa.pub</code> (the
+public key). I checked that my server had the public key in its <code>/home/username/authorized_keys</code>.</p>
+
+<p>Now I just needed to disable password authentication by specifying PasswordAuthentication no and
+restarting the sshd daemon: <code>/etc/init.d/sshd restart</code>.</p>
+
+<h2>4. Use iptables to Throttle Repeated Connections</h2>
+
+<p>Following this <a href="http://blog.andrew.net.au/2005/02/16#ipt_recent_and_ssh_attacks" title="Mitigating against SSH brute force attacks using Netfilter and the recent module">helpful post</a>, I made the following changes to my iptables as root.</p>
+
+<pre><code class="sh Mitigating against SSH brute force attacks using Netfilter and the recent module http://blog.andrew.net.au/2005/02/16#ipt_recent_and_ssh_attacks">iptables -A INPUT -p tcp --dport 22 -m state --state NEW -m recent --set --name SSH
+iptables -N SSH_WHITELIST
+iptables -A INPUT -p tcp --dport 22 -m state --state NEW -j SSH_WHITELIST
+iptables -A INPUT -p tcp --dport 22 -m state --state NEW -m recent --update --seconds 60 --hitcount 4 --rttl --name SSH -j ULOG --ulog-prefix SSH_brute_force
+iptables -A INPUT -p tcp --dport 22 -m state --state NEW -m recent --update --seconds 60 --hitcount 4 --rttl --name SSH -j DROP
+</code></pre>
+
+<p>According to the author Andrew,</p>
+
+<blockquote><p>This will allow three port 22 connections from any given IP address within a 60 second period,
+  and require 60 seconds of no subsequent connection attempts before it will resume allowing
+  connections again. The –rttl option also takes into account the TTL of the datagram when matching
+  packets, so as to endeavor to mitigate against spoofed source addresses&hellip;[The ruleset] has the
+  (arguably) added benefit of not hosing any established SSH connections from the host that has made
+  too many SSH connections in a short period of time, and allows for whitelisting.</p></blockquote>
+
+<p>And install iptables-persistent to retain these rules after reboot. For a different set of iptable
+rules, see <a href="http://blog.bigdinosaur.org/securing-ssh-with-iptables/" title="Securing SSH With Iptables">this post</a>.</p>
+
+<h2>5. Automatically Blacklist IP Addresses With DenyHosts</h2>
+
+<p><a href="http://denyhosts.sourceforge.net/" title="Denyhosts">DenyHosts</a> is a handy script that thwarts attacks by scanning your auth log and automatically
+adding IP addresses to <code>/etc/hosts.deny</code>.</p>
+
+<pre><code>sudo apt-get install denyhosts
+</code></pre>
+
+<h2>6. Change SSH Port Number</h2>
+
+<p>Instead of using standard port 22, use a non-standard port to avoid port scans. Check which ports
+are open and have TCP connections:</p>
+
+<pre><code>netstat -vatn
+</code></pre>
+
+<p><a href="http://en.wikipedia.org/wiki/Port_(computer_networking)" title="Port explained on Wikipedia">Port numbers</a> are divided into three ranges: well-known ports (0–1023), registered ports
+(1024–49151), and dynamic or private ports (49152–65535). Choose one from the third range to not
+conflict with existing protocols. Then restart ssh:</p>
+
+<pre><code>/etc/init.d/ssh restart
+</code></pre>
+
+<p>Log messages like the one below without a subsequent success or error message means someone&rsquo;s
+<a href="http://en.wikipedia.org/wiki/Port_scanner" title="port scanner">port scanning</a> your machine.</p>
+
+<pre><code>localhost sshd[14453]: Connection from xxx.xxx.xxx.xxx port xxxxx
+localhost sshd[14453]: Did not receive identification string from xxx.xxx.xxx.xxx
+</code></pre>
+
+<h2>7. Log More Info</h2>
+
+<p>I wanted keep a closer eye on my auth logs so I set</p>
+
+<pre><code>LogLevel VERBOSE
+</code></pre>
+
+<h2>8. Display an SSH Banner</h2>
+
+<p>I uncommented <code>Banner /etc/issue.net</code> to display a custom message to people who try to login. This
+doesn&rsquo;t add any security and is just for fun. People who are determined to break into my box won&rsquo;t
+give a shit about a no trespassing sign. I just wanted to give the bad guys a chuckle. I could&rsquo;ve
+put up something like this:</p>
+
+<pre><code>***************************************************************************
+                            NOTICE TO USERS
+
+
+This computer system is the private property of its owner, whether
+individual, corporate or government.  It is for authorized use only.
+Users (authorized or unauthorized) have no explicit or implicit
+expectation of privacy.
+
+Any or all uses of this system and all files on this system may be
+intercepted, monitored, recorded, copied, audited, inspected, and
+disclosed to your employer, to authorized site, government, and law
+enforcement personnel, as well as authorized officials of government
+agencies, both domestic and foreign.
+
+By using this system, the user consents to such interception, monitoring,
+recording, copying, auditing, inspection, and disclosure at the
+discretion of such personnel or officials.  Unauthorized or improper use
+of this system may result in civil and criminal penalties and
+administrative or disciplinary action, as appropriate. By continuing to
+use this system you indicate your awareness of and consent to these terms
+and conditions of use. LOG OFF IMMEDIATELY if you do not agree to the
+conditions stated in this warning.
+
+****************************************************************************
+</code></pre>
+
+<p>But I opted for this:</p>
+
+<pre><code>                             ..-:"''         ''"-..
+                          .-'                      '-.
+                        .'              .     .       '.
+                      .'   .          .    .      .    .''.
+                    .'  .    .       .   .   .     .   . ..:.
+                  .' .   . .  .       .   .   ..  .   . ....::.
+                 ..   .   .      .  .    .     .  ..  . ....:IA.
+                .:  .   .    .    .  .  .    .. .  .. .. ....:IA.
+               .: .   .   ..   .    .     . . .. . ... ....:.:VHA.
+               '..  .  .. .   .       .  . .. . .. . .....:.::IHHB.
+              .:. .  . .  . .   .  .  . . . ...:.:... .......:HIHMM.
+             .:.... .   . ."::"'.. .   .  . .:.:.:II;,. .. ..:IHIMMA
+             ':.:..  ..::IHHHHHI::. . .  ...:.::::.,,,. . ....VIMMHM
+            .:::I. .AHHHHHHHHHHAI::. .:...,:IIHHHHHHMMMHHL:. . VMMMM
+           .:.:V.:IVHHHHHHHMHMHHH::..:" .:HIHHHHHHHHHHHHHMHHA. .VMMM.
+           :..V.:IVHHHHHMMHHHHHHHB... . .:VPHHMHHHMMHHHHHHHHHAI.:VMMI
+           ::V..:VIHHHHHHMMMHHHHHH. .   .I":IIMHHMMHHHHHHHHHHHAPI:WMM
+           ::". .:.HHHHHHHHMMHHHHHI.  . .:..I:MHMMHHHHHHHHHMHV:':H:WM
+           :: . :.::IIHHHHHHMMHHHHV  .ABA.:.:IMHMHMMMHMHHHHV:'. .IHWW
+           '.  ..:..:.:IHHHHHMMHV" .AVMHMA.:.'VHMMMMHHHHHV:' .  :IHWV
+            :.  .:...:".:.:TPP"   .AVMMHMMA.:. "VMMHHHP.:... .. :IVAI
+           .:.   '... .:"'   .   ..HMMMHMMMA::. ."VHHI:::....  .:IHW'
+           ...  .  . ..:IIPPIH: ..HMMMI.MMMV:I:.  .:ILLH:.. ...:I:IM
+         : .   .'"' .:.V". .. .  :HMMM:IMMMI::I. ..:HHIIPPHI::'.P:HM.
+         :.  .  .  .. ..:.. .    :AMMM IMMMM..:...:IV":T::I::.".:IHIMA
+         'V:.. .. . .. .  .  .   'VMMV..VMMV :....:V:.:..:....::IHHHMH
+           "IHH:.II:.. .:. .  . . . " :HB"" . . ..PI:.::.:::..:IHHMMV"
+            :IP""HHII:.  .  .    . . .'V:. . . ..:IH:.:.::IHIHHMMMMM"
+            :V:. VIMA:I..  .     .  . .. . .  .:.I:I:..:IHHHHMMHHMMM
+            :"VI:.VWMA::. .:      .   .. .:. ..:.I::.:IVHHHMMMHMMMMI
+            :."VIIHHMMA:.  .   .   .:  .:.. . .:.II:I:AMMMMMMHMMMMMI
+            :..VIHIHMMMI...::.,:.,:!"I:!"I!"I!"V:AI:VAMMMMMMHMMMMMM'
+            ':.:HIHIMHHA:"!!"I.:AXXXVVXXXXXXXA:."HPHIMMMMHHMHMMMMMV
+              V:H:I:MA:W'I :AXXXIXII:IIIISSSSSSXXA.I.VMMMHMHMMMMMM
+                'I::IVA ASSSSXSSSSBBSBMBSSSSSSBBMMMBS.VVMMHIMM'"'
+                 I:: VPAIMSSSSSSSSSBSSSMMBSSSBBMMMMXXI:MMHIMMI
+                .I::. "H:XIIXBBMMMMMMMMMMMMMMMMMBXIXXMMPHIIMM'
+                :::I.  ':XSSXXIIIIXSSBMBSSXXXIIIXXSMMAMI:.IMM
+                :::I:.  .VSSSSSISISISSSBII:ISSSSBMMB:MI:..:MM
+                ::.I:.  ':"SSSSSSSISISSXIIXSSSSBMMB:AHI:..MMM.
+                ::.I:. . ..:"BBSSSSSSSSSSSSBBBMMMB:AHHI::.HMMI
+                :..::.  . ..::":BBBBBSSBBBMMMB:MMMMHHII::IHHMI
+                ':.I:... ....:IHHHHHMMMMMMMMMMMMMMMHHIIIIHMMV"
+                  "V:. ..:...:.IHHHMMMMMMMMMMMMMMMMHHHMHHMHP'
+                   ':. .:::.:.::III::IHHHHMMMMMHMHMMHHHHM"
+                     "::....::.:::..:..::IIIIIHHHHMMMHHMV"
+                       "::.::.. .. .  ...:::IIHHMMMMHMV"
+                         "V::... . .I::IHHMMV"'
+                           '"VHVHHHAHHHHMMV:"'
+</code></pre>
+
+<p>Hopefully this helps some people out there. For further reading check out:</p>
+
+<ul>
+<li><a href="https://help.ubuntu.com/community/SSH/OpenSSH/Configuring" title="Ubuntu documentation on securing SSH">Ubuntu documentation on securing SSH</a></li>
+<li><a href="http://www.la-samhna.de/library/brutessh.html" title="Defending against brute force ssh attacks">More ways to defend against brute force SSH attacks</a></li>
+<li><a href="http://blog.bigdinosaur.org/securing-your-server-with-denyhosts/" title="Securing Your Server With DenyHosts">Securing Your Server With DenyHosts</a></li>
+<li><a href="http://blog.bigdinosaur.org/securing-ssh-with-iptables/" title="Securing SSH With Iptables">Securing SSH With Iptables</a></li>
+<li><a href="https://help.ubuntu.com/community/IptablesHowTo" title="Iptables How To Ubuntu Docs">Iptables How To – Ubuntu Docs</a></li>
+<li><a href="http://www.howtoforge.com/preventing_ssh_dictionary_attacks_with_denyhosts" title="Preventing SSH Dictionary Attacks With DenyHosts">Preventing SSH Dictionary Attacks With DenyHosts</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+</feed>

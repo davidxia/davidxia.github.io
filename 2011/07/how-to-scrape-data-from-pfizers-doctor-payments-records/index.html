@@ -1,0 +1,781 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <title>How to Scrape Data From Pfizer&#8217;s Doctor Payments Records - David Xia</title>
+  <meta name="author" content="David Xia">
+
+  
+  <meta name="description" content="How to Scrape Data From Pfizer's Doctor Payments Records July 24, 2011 | By David Xia Update: If you just want to download the data, click here. I was bored &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="https://www.davidxia.com/2011/07/how-to-scrape-data-from-pfizers-doctor-payments-records/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="David Xia" type="application/atom+xml">
+
+  <meta property="og:site_name" content="David Xia" />
+  <meta property="og:title" content="How to Scrape Data From Pfizer's Doctor Payments Records - David Xia" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://www.davidxia.com/2011/07/how-to-scrape-data-from-pfizers-doctor-payments-records/" />
+  <meta property="og:image" content="https://i.imgur.com/BJPOY0D.jpg" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:description" content="How to Scrape Data From Pfizer's Doctor Payments Records July 24, 2011 | By David Xia Update: If you just want to download the data, click here. I was bored &hellip;" />
+  <meta property="fb:admins" content="122703" />
+
+  <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+  <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+<![endif]-->
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-25283538-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+      google_ad_client: "ca-pub-1777254647176109",
+      enable_page_level_ads: true
+    });
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <div class="navbar" role="navigation">
+    <div class="container">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <h1><a class="navbar-brand" href="/">David Xia</a></h1>
+      </div>
+      <div class="navbar-collapse collapse">
+        <ul class="nav navbar-nav">
+          <li><a href="/about">About</a></li>
+          <li><a href="/work">Work</a></li>
+          <li><a href="/contact">Contact</a></li>
+        </ul>
+      </div><!--/.navbar-collapse -->
+    </div>
+  </div>
+</hgroup>
+
+</header>
+  <div itemscope itemtype="https://schema.org/Brand">
+  <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
+</div>
+
+  <div class="container main">
+    <div class="row">
+      <div class="col-md-8">
+  <article itemscope itemtype="http://schema.org/BlogPosting" class="hentry first" role="article">
+    
+  <header>
+    <span itemprop="name headline">
+      
+        <h2 class="entry-title">How to Scrape Data From Pfizer&#8217;s Doctor Payments Records</h2>
+      
+    </span>
+    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2011/07/how-to-scrape-data-from-pfizers-doctor-payments-records/">
+    
+      <p class="meta">
+        
+  
+  
+
+  
+    
+  
+
+  
+    
+  
+
+
+
+<span itemprop="datePublished" content="July 24, 2011"><time class='entry-date' datetime='2011-07-24T00:00:00-04:00'><span class='date'>July 24, 2011</span></time></span>
+<meta itemprop="dateModified" content="July 24, 2011">
+ | 
+  
+
+
+
+  <span class="byline author vcard">
+    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
+  </span>
+
+
+        
+        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
+  <meta itemprop="name" content="David Xia">
+  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
+    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
+  </div>
+</div>
+
+        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
+  
+    
+    
+    
+  
+  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
+  <meta itemprop="height" content="696">
+  <meta itemprop="width" content="696">
+</span>
+
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><em>Update: If you just want to download the data, <a href="/2011/08/download-pfizer-doctor-payment-data/">click here</a>.</em></p>
+
+<p>I was bored this weekend, so I decided to collect some data from the Internet, aka web scraping.
+Not just any data. I just did a fun tutorial written by <a href="http://www.propublica.org/site/author/dan_nguyen">Dan Nguyen</a>, a news application
+developer at the non-profit investigative journalism unit <a href="propublica.org/">ProPublica</a>. <a href="http://www.propublica.org/nerds/item/scraping-websites#comments">This article</a>
+teaches you how to collect data on Pfizer&rsquo;s disclosure of its payments to doctors as required by a
+<a href="http://en.wikipedia.org/wiki/Pfizer#Bextra_settlement_of_off-label_marketing_investigation">$2.3 billion lawsuit</a> alleging it illegally promoted drugs for unapproved uses.</p>
+
+<!--more-->
+
+
+<p>Why do this if the data&rsquo;s already publicly available? The settlement, the &ldquo;largest health care
+fraud settlement in U.S. history&rdquo; according to ProPublica, required Pfizer to disclose its
+payments to doctors. But the <a href="http://pfizer.com/HCPDisclosureWebApplication/jsp/payments_report.jsp?enPdNm=ALL">website</a> Pfizer setup is only good for the most superficial
+examination. Sure, you can look up doctor&rsquo;s by alphabetical order and see how much and why they
+were paid. But what if you wanted to know <em>who Pfizer paid the most and why</em>? The data is not
+downloadable or easily aggregated for further analysis. To get all the yummy data you&rsquo;ll need to
+bust out your favorite text editor and apply some elbow grease.</p>
+
+<p>I&rsquo;ve updated Nguygen&rsquo;s original Ruby script because Pfizer&rsquo;s webpages have changed causing the
+original to break. I&rsquo;ve simplified the three separate script files into one file. ProPublica
+scraped data from Pfizer&rsquo;s 2010 full year report. As of the date I&rsquo;m blogging this, the unmodified
+script will get data from the company&rsquo;s 2011 Q1 report. To run the script, you&rsquo;ll need a computer
+with <a href="http://www.ruby-lang.org/en/documentation/quickstart/">Ruby</a> and the <a href="http://nokogiri.org/">Nokogiri</a> gem installed.</p>
+
+<p><strong>Objective</strong></p>
+
+<p>Download all of Pfizer&rsquo;s doctor payment disclosure data by individual doctor names.</p>
+
+<p><strong>Two Steps to Data</strong></p>
+
+<ol>
+<li>Copy the scraper script below.</li>
+<li>Run <code>ruby pfizer_payment_scraper.rb</code> in your command line.</li>
+</ol>
+
+
+<p><strong>Explanation of the Script</strong></p>
+
+<ol>
+<li>Get all the pages <a href="http://pfizer.com/HCPDisclosureWebApplication/jsp/payments_report.jsp?enPdNm=ALL">here</a> from page 1 to page 9,551.</li>
+<li>Extract links to individual doctor pages.</li>
+<li>Scrape data from individual doctor pages.</li>
+</ol>
+
+
+<p><strong>How to Get Previous Years&#8217; Data</strong></p>
+
+<p>Simply change the <code>BASE_LIST_URL</code> constant. Add an extra URL query parameter on line 43:
+<code>payments_report.jsp?report=22&amp;enPdNm=All&amp;iPageNo=</code></p>
+
+<p><code>report=22</code> will get you 2010 and <code>report=21</code> will get 2009. Be sure to update <code>LAST_PAGE_NUMBER</code>
+to the correct number of pages by clicking &ldquo;Last&rdquo; on their website. E.g. for 2010 there are 19,994
+pages.</p>
+
+<p>Nguygen wrote a <a href="http://www.propublica.org/nerds/item/the-coders-cause-in-dollars-for-docs">related article</a> documenting the technical motivation or &ldquo;coder&rsquo;s cause&rdquo;
+behind ProPublica&rsquo;s <a href="http://projects.propublica.org/docdollars/">Dollars for Docs</a> project and other cool ways to get the delicious
+digital data you covet.</p>
+
+<p><em>This is also my first time using any sort of license. I just thought, &ldquo;What they hell? It looks
+cool. Let&rsquo;s slap it on.&rdquo; I&rsquo;ve <a href="http://www.quora.com/Open-Source/What-are-the-key-differences-between-the-GNU-General-Public-license-and-the-MIT-License?q=general%20public%20license">read only a bit</a> about the difference between the
+<a href="http://www.gnu.org/licenses/gpl-faq.html">GNU General Public License</a> and the <a href="http://www.opensource.org/licenses/mit-license.php">MIT license</a>. I went with the GPL because it ensures
+derivative works are also in the public domain. Seems like this would prevent people from taking
+the scraper and trying to make money off of it. Cuz that would be contrary to the whole point of
+making this data freely available, right? Let me know if I picked the wrong one.</em></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+<span class='line-number'>80</span>
+<span class='line-number'>81</span>
+<span class='line-number'>82</span>
+<span class='line-number'>83</span>
+<span class='line-number'>84</span>
+<span class='line-number'>85</span>
+<span class='line-number'>86</span>
+<span class='line-number'>87</span>
+<span class='line-number'>88</span>
+<span class='line-number'>89</span>
+<span class='line-number'>90</span>
+<span class='line-number'>91</span>
+<span class='line-number'>92</span>
+<span class='line-number'>93</span>
+<span class='line-number'>94</span>
+<span class='line-number'>95</span>
+<span class='line-number'>96</span>
+<span class='line-number'>97</span>
+<span class='line-number'>98</span>
+<span class='line-number'>99</span>
+<span class='line-number'>100</span>
+<span class='line-number'>101</span>
+<span class='line-number'>102</span>
+<span class='line-number'>103</span>
+<span class='line-number'>104</span>
+<span class='line-number'>105</span>
+<span class='line-number'>106</span>
+<span class='line-number'>107</span>
+<span class='line-number'>108</span>
+<span class='line-number'>109</span>
+<span class='line-number'>110</span>
+<span class='line-number'>111</span>
+<span class='line-number'>112</span>
+<span class='line-number'>113</span>
+<span class='line-number'>114</span>
+<span class='line-number'>115</span>
+<span class='line-number'>116</span>
+<span class='line-number'>117</span>
+<span class='line-number'>118</span>
+<span class='line-number'>119</span>
+<span class='line-number'>120</span>
+<span class='line-number'>121</span>
+<span class='line-number'>122</span>
+<span class='line-number'>123</span>
+<span class='line-number'>124</span>
+<span class='line-number'>125</span>
+<span class='line-number'>126</span>
+<span class='line-number'>127</span>
+<span class='line-number'>128</span>
+<span class='line-number'>129</span>
+<span class='line-number'>130</span>
+<span class='line-number'>131</span>
+<span class='line-number'>132</span>
+<span class='line-number'>133</span>
+<span class='line-number'>134</span>
+<span class='line-number'>135</span>
+<span class='line-number'>136</span>
+<span class='line-number'>137</span>
+<span class='line-number'>138</span>
+<span class='line-number'>139</span>
+<span class='line-number'>140</span>
+<span class='line-number'>141</span>
+<span class='line-number'>142</span>
+<span class='line-number'>143</span>
+<span class='line-number'>144</span>
+<span class='line-number'>145</span>
+<span class='line-number'>146</span>
+<span class='line-number'>147</span>
+<span class='line-number'>148</span>
+<span class='line-number'>149</span>
+<span class='line-number'>150</span>
+<span class='line-number'>151</span>
+<span class='line-number'>152</span>
+<span class='line-number'>153</span>
+<span class='line-number'>154</span>
+<span class='line-number'>155</span>
+<span class='line-number'>156</span>
+<span class='line-number'>157</span>
+<span class='line-number'>158</span>
+<span class='line-number'>159</span>
+<span class='line-number'>160</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1">#</span>
+</span><span class='line'><span class="c1"># Pfizer doctor payment records web scraper</span>
+</span><span class='line'><span class="c1"># Copyright (C) 2011 David Xia david@davidxia.com</span>
+</span><span class='line'><span class="c1">#</span>
+</span><span class='line'><span class="c1"># This program is free software; you can redistribute it and/or</span>
+</span><span class='line'><span class="c1"># modify it under the terms of the GNU General Public License</span>
+</span><span class='line'><span class="c1"># as published by the Free Software Foundation; either version 2</span>
+</span><span class='line'><span class="c1"># of the License, or (at your option) any later version.</span>
+</span><span class='line'><span class="c1">#</span>
+</span><span class='line'><span class="c1"># This program is distributed in the hope that it will be useful,</span>
+</span><span class='line'><span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+</span><span class='line'><span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+</span><span class='line'><span class="c1"># GNU General Public License for more details.</span>
+</span><span class='line'><span class="c1">#g</span>
+</span><span class='line'><span class="c1"># You should have received a copy of the GNU General Public License</span>
+</span><span class='line'><span class="c1"># along with this program; If not, see &lt;http: //www.gnu.org/licenses/&gt;.</span>
+</span><span class='line'><span class="c1">#g</span>
+</span><span class='line'><span class="c1"># davidxia.com</span>
+</span><span class='line'><span class="c1">#</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># We call the necessary Ruby modules that allow us to</span>
+</span><span class='line'><span class="c1"># retrieve webpages and parse the HTML.</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;open-uri&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;rubygems&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;nokogiri&#39;</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># A helper function to convert tabs, carriage returns, and nbsp into spaces.</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">String</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">astrip</span>
+</span><span class='line'>    <span class="nb">self</span><span class="o">.</span><span class="n">gsub</span><span class="p">(</span><span class="sr">/([302|240|s|n|t])|(&amp;nbsp;?){1,}/</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="c1">###############################################################################</span>
+</span><span class='line'><span class="c1">## We set constants here for file and directory names.</span>
+</span><span class='line'><span class="c1">###############################################################################</span>
+</span><span class='line'><span class="c1"># This is the base address of Pfizer&#39;s list of payment records.</span>
+</span><span class='line'><span class="c1"># Appending the &quot;iPageNo&quot; parameter will get us from page to page.</span>
+</span><span class='line'><span class="no">BASE_LIST_URL</span> <span class="o">=</span> <span class="s1">&#39;http://pfizer.com/HCPDisclosureWebApplication/jsp/&#39;</span><span class="n">g</span>
+</span><span class='line'>  <span class="o">+</span><span class="s1">&#39;payments_report.jsp?report=32&amp;enPdNm=All&amp;iPageNo=&#39;</span>
+</span><span class='line'><span class="c1"># This is the base address of Pfizer&#39;s disclosure website</span>
+</span><span class='line'><span class="no">BASE_URL</span> <span class="o">=</span> <span class="s1">&#39;http://pfizer.com/HCPDisclosureWebApplication/jsp/&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># We got this number from going to the last page on Pfizer&#39;s site.</span>
+</span><span class='line'><span class="no">LAST_PAGE_NUMBER</span> <span class="o">=</span> <span class="mi">9551</span>
+</span><span class='line'><span class="c1"># Store links to individual doctors in this file.</span>
+</span><span class='line'><span class="no">DOC_URL_FILE</span> <span class="o">=</span> <span class="s1">&#39;doc-pages-urls.txt&#39;</span>
+</span><span class='line'><span class="c1"># Since a doctor&#39;s name could appear on different pages, we use a temporary array</span>
+</span><span class='line'><span class="c1"># to hold all the links as we iterate through each page and then call its</span>
+</span><span class='line'><span class="c1"># uniq method to filter out repeated URLs before writing to file.</span>
+</span><span class='line'><span class="n">all_links</span> <span class="o">=</span> <span class="o">[]</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># The final file to which we save aggregated data.</span>
+</span><span class='line'><span class="no">COMPILED_FILE_NAME</span> <span class="o">=</span> <span class="s1">&#39;all-payments.txt&#39;</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="c1">###############################################################################</span>
+</span><span class='line'><span class="c1">## Loop through every Pfizer record page and extract unique doctor links.</span>
+</span><span class='line'><span class="c1">###############################################################################</span>
+</span><span class='line'><span class="c1"># Go from page 1 to 19994</span>
+</span><span class='line'><span class="k">for</span> <span class="n">page_number</span> <span class="k">in</span> <span class="mi">1</span><span class="o">.</span><span class="n">.</span><span class="no">LAST_PAGE_NUMBER</span>
+</span><span class='line'>  <span class="k">begin</span>
+</span><span class='line'>    <span class="nb">puts</span> <span class="s2">&quot;Parsing page </span><span class="si">#{</span><span class="n">page_number</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>    <span class="n">n_page</span> <span class="o">=</span> <span class="no">Nokogiri</span><span class="o">::</span><span class="no">HTML</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">#{</span><span class="no">BASE_LIST_URL</span><span class="si">}#{</span><span class="n">page_number</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))</span>
+</span><span class='line'>    <span class="n">all_links</span> <span class="o">+=</span> <span class="n">n_page</span><span class="o">.</span><span class="n">css</span><span class="p">(</span><span class="s1">&#39;table#hcpPayments td:nth-child(4) a&#39;</span><span class="p">)</span>
+</span><span class='line'>      <span class="o">.</span><span class="n">map</span><span class="p">{</span><span class="o">|</span><span class="n">link</span><span class="o">|</span> <span class="n">link</span><span class="o">[</span><span class="s1">&#39;href&#39;</span><span class="o">]</span> <span class="p">}</span><span class="o">.</span><span class="n">select</span><span class="p">{</span><span class="o">|</span><span class="n">href</span><span class="o">|</span> <span class="n">href</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s1">&#39;hcpDisplayName&#39;</span><span class="p">)</span> <span class="o">!=</span> <span class="kp">nil</span><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1"># Wait 2 seconds before hitting Pfizer servers so they won&#39;t think you&#39;re</span>
+</span><span class='line'>    <span class="c1"># attacking or DOSing their boxes.</span>
+</span><span class='line'>    <span class="nb">sleep</span> <span class="mi">2</span>
+</span><span class='line'>  <span class="k">rescue</span>
+</span><span class='line'>    <span class="nb">puts</span> <span class="s2">&quot;Couldn&#39;t get page </span><span class="si">#{</span><span class="n">page_number</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">File</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="no">DOC_URL_FILE</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">){</span><span class="o">|</span><span class="n">f</span><span class="o">|</span> <span class="n">f</span><span class="o">.</span><span class="n">puts</span> <span class="n">all_links</span><span class="o">.</span><span class="n">uniq</span><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="c1">###############################################################################</span>
+</span><span class='line'><span class="c1">## Now we get the data from the pages of individual doctors and save to a file.</span>
+</span><span class='line'><span class="c1">###############################################################################</span>
+</span><span class='line'><span class="n">compiled_file</span> <span class="o">=</span> <span class="no">File</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="no">COMPILED_FILE_NAME</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+</span><span class='line'><span class="no">File</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="no">DOC_URL_FILE</span><span class="p">)</span><span class="o">.</span><span class="n">readlines</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">url</span><span class="o">|</span>
+</span><span class='line'>  <span class="n">doc_name</span> <span class="o">=</span> <span class="n">url</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sr">/hcpDisplayName=(.+)/</span><span class="p">)</span><span class="o">[</span><span class="mi">1</span><span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">begin</span>
+</span><span class='line'>    <span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="o">.</span><span class="n">gsub</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;%20&#39;</span><span class="p">)</span>
+</span><span class='line'>    <span class="nb">puts</span> <span class="s2">&quot;Retrieving </span><span class="si">#{</span><span class="n">doc_name</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>    <span class="n">html</span> <span class="o">=</span> <span class="no">Nokogiri</span><span class="o">::</span><span class="no">HTML</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">#{</span><span class="no">BASE_URL</span><span class="si">}#{</span><span class="n">url</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">css</span><span class="p">(</span><span class="s1">&#39;#hcpPayments&#39;</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">rescue</span> <span class="no">Exception</span><span class="o">=&gt;</span><span class="n">e</span>
+</span><span class='line'>    <span class="nb">puts</span> <span class="s2">&quot;Error trying to retrieve page </span><span class="si">#{</span><span class="n">url</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>    <span class="nb">puts</span> <span class="s2">&quot;Sleeping...&quot;</span>
+</span><span class='line'>    <span class="nb">sleep</span> <span class="mi">100</span>
+</span><span class='line'>    <span class="k">retry</span> <span class="c1"># go back to the begin clause</span>
+</span><span class='line'>  <span class="k">else</span>
+</span><span class='line'>    <span class="c1"># All paid entities are in rows in which the first cell is filled.</span>
+</span><span class='line'>    <span class="c1"># Each entity&#39;s associated payments have a blank first cell.</span>
+</span><span class='line'>    <span class="n">rows</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">css</span><span class="p">(</span><span class="s1">&#39;tr&#39;</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">if</span> <span class="n">rows</span><span class="o">.</span><span class="n">length</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="n">g</span>
+</span><span class='line'>      <span class="n">entity_paid</span><span class="p">,</span><span class="n">city</span><span class="p">,</span><span class="n">state</span> <span class="o">=</span> <span class="kp">nil</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="c1"># Iterate through each row. Skip the row 0, the header row.</span>
+</span><span class='line'>      <span class="n">rows</span><span class="o">[</span><span class="mi">1</span><span class="o">.</span><span class="n">.</span><span class="o">-</span><span class="mi">1</span><span class="o">].</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">row</span><span class="o">|</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1"># Rows that have a name in the first cell (entity paid)</span>
+</span><span class='line'>        <span class="c1"># denote distict entities that were paid.</span>
+</span><span class='line'>        <span class="n">cells</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">css</span><span class="p">(</span><span class="s1">&#39;td&#39;</span><span class="p">)</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">!</span><span class="n">cells</span><span class="o">[</span><span class="mi">0</span><span class="o">].</span><span class="n">text</span><span class="o">.</span><span class="n">astrip</span><span class="o">.</span><span class="n">empty?</span>
+</span><span class='line'>          <span class="c1"># We have a new entity, city, and state here.</span>
+</span><span class='line'>          <span class="n">entity_paid</span><span class="p">,</span><span class="n">city</span><span class="p">,</span><span class="n">state</span> <span class="o">=</span> <span class="n">cells</span><span class="o">[</span><span class="mi">0</span><span class="o">.</span><span class="n">.</span><span class="mi">2</span><span class="o">].</span><span class="n">map</span><span class="p">{</span><span class="o">|</span><span class="n">c</span><span class="o">|</span> <span class="n">c</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">astrip</span><span class="p">}</span>
+</span><span class='line'>        <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1"># The fourth column should always have at least</span>
+</span><span class='line'>        <span class="c1"># one link that corresponds to the doctor&#39;s name.</span>
+</span><span class='line'>        <span class="n">doc_link</span> <span class="o">=</span> <span class="n">cells</span><span class="o">[</span><span class="mi">3</span><span class="o">].</span><span class="n">css</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span><span class="n">g</span>
+</span><span class='line'>          <span class="o">.</span><span class="n">select</span><span class="p">{</span><span class="o">|</span><span class="n">a</span><span class="o">|</span> <span class="n">a</span><span class="o">[</span><span class="s1">&#39;href&#39;</span><span class="o">]==</span><span class="s2">&quot;payments_report.jsp?hcpDisplayName=</span><span class="si">#{</span><span class="n">doc_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="n">doc_link</span><span class="o">.</span><span class="n">length</span> <span class="o">==</span> <span class="mi">1</span>
+</span><span class='line'>          <span class="n">role</span> <span class="o">=</span> <span class="n">cells</span><span class="o">[</span><span class="mi">3</span><span class="o">].</span><span class="n">css</span><span class="p">(</span><span class="s1">&#39;span&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+</span><span class='line'>          <span class="c1"># This is a cell that contains a doctor&#39;s name and a payment.</span>
+</span><span class='line'>          <span class="c1"># It should also contain exactly one link that describes</span>
+</span><span class='line'>          <span class="c1"># the service provided in a tooltip.</span>
+</span><span class='line'>          <span class="n">service_link</span> <span class="o">=</span> <span class="n">cells</span><span class="o">[</span><span class="mi">3</span><span class="o">].</span><span class="n">css</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span><span class="n">g</span>
+</span><span class='line'>            <span class="o">.</span><span class="n">select</span><span class="p">{</span><span class="o">|</span><span class="n">a</span><span class="o">|</span> <span class="n">a</span><span class="o">.</span><span class="n">attributes</span><span class="o">[</span><span class="s1">&#39;onmouseover&#39;</span><span class="o">]</span><span class="n">g</span>
+</span><span class='line'>            <span class="o">&amp;&amp;</span> <span class="n">a</span><span class="o">.</span><span class="n">attributes</span><span class="o">[</span><span class="s1">&#39;onmouseover&#39;</span><span class="o">].</span><span class="n">value</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sr">/showTooltip/</span><span class="p">)}</span>
+</span><span class='line'>
+</span><span class='line'>          <span class="k">raise</span> <span class="s2">&quot;Not exactly one service link for payee </span><span class="si">#{</span><span class="n">entity_paid</span><span class="si">}</span><span class="s2">: </span><span class="si">#{</span><span class="n">url</span><span class="si">}</span><span class="s2">&quot;</span><span class="n">g</span>
+</span><span class='line'>            <span class="k">if</span> <span class="n">service_link</span><span class="o">.</span><span class="n">length</span> <span class="o">!=</span> <span class="mi">1</span>
+</span><span class='line'>
+</span><span class='line'>          <span class="c1"># Now capture the cash or non-cash amounts.</span>
+</span><span class='line'>          <span class="k">if</span> <span class="n">cells</span><span class="o">[</span><span class="mi">4</span><span class="o">].</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span> <span class="o">!=</span> <span class="s1">&#39;---&#39;</span>
+</span><span class='line'>            <span class="n">amount</span> <span class="o">=</span> <span class="n">cells</span><span class="o">[</span><span class="mi">4</span><span class="o">].</span><span class="n">text</span>
+</span><span class='line'>            <span class="n">payment_type</span> <span class="o">=</span> <span class="s1">&#39;cash&#39;</span>
+</span><span class='line'>          <span class="k">else</span>
+</span><span class='line'>            <span class="n">amount</span> <span class="o">=</span> <span class="n">cells</span><span class="o">[</span><span class="mi">5</span><span class="o">].</span><span class="n">text</span>
+</span><span class='line'>            <span class="n">payment_type</span> <span class="o">=</span> <span class="s1">&#39;non-cash&#39;</span>
+</span><span class='line'>          <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>          <span class="c1"># Write this row to the file</span>
+</span><span class='line'>          <span class="n">compiled_file</span><span class="o">.</span><span class="n">puts</span><span class="p">(</span><span class="o">[</span><span class="n">doc_link</span><span class="o">[</span><span class="mi">0</span><span class="o">].</span><span class="n">text</span><span class="p">,</span><span class="n">entity_paid</span><span class="p">,</span><span class="n">city</span><span class="p">,</span><span class="n">state</span><span class="p">,</span>
+</span><span class='line'>            <span class="n">service_link</span><span class="o">[</span><span class="mi">0</span><span class="o">].</span><span class="n">text</span><span class="p">,</span><span class="n">role</span><span class="p">,</span><span class="n">amount</span><span class="p">,</span><span class="n">payment_type</span><span class="o">]</span><span class="n">g</span>
+</span><span class='line'>            <span class="o">.</span><span class="n">map</span><span class="p">{</span><span class="o">|</span><span class="n">t</span><span class="o">|</span> <span class="n">t</span><span class="o">.</span><span class="n">astrip</span><span class="p">}</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;; &#39;</span><span class="p">))</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">else</span>
+</span><span class='line'>          <span class="c1">## This means that none or more than one doctors&#39; name was found.</span>
+</span><span class='line'>          <span class="c1">## So the cell was either blank or contained an unexpected name.</span>
+</span><span class='line'>          <span class="c1">## You should write some test conditions here and log the records</span>
+</span><span class='line'>          <span class="c1">## that don&#39;t fit your assumptions about the data.</span>
+</span><span class='line'>        <span class="k">end</span> <span class="c1"># end of if doc_link.length==1</span>
+</span><span class='line'>      <span class="k">end</span> <span class="c1"># end of rows.each</span>
+</span><span class='line'>    <span class="k">end</span> <span class="c1"># end of if rows.length &gt; 0</span>
+</span><span class='line'>  <span class="k">ensure</span>
+</span><span class='line'>    <span class="nb">sleep</span> <span class="mi">4</span>
+</span><span class='line'>  <span class="k">end</span> <span class="c1"># end of begin</span>
+</span><span class='line'><span class="k">end</span> <span class="c1"># end of File.open(DOC_URL_FILE).readlines</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">compiled_file</span><span class="o">.</span><span class="n">close</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+</div>
+
+
+    <ul class="post-meta">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </ul>
+    <footer>
+      <p class="meta">
+        
+
+<span class="categories">
+  
+    Categories: <a class='category' href='/categories/current-events/'>Current Events</a>, <a class='category' href='/categories/technology/'>Technology</a>
+  
+</span>
+
+
+      </p>
+      
+        <div class="sharing">
+  
+    <a id="custom-tweet-button" title="tweet about How to Scrape Data From Pfizer's Doctor Payments Records" href="https://twitter.com/share?url=https%3A%2F%2Fwww.davidxia.com%2F2011%2F07%2Fhow-to-scrape-data-from-pfizers-doctor-payments-records%2F&text=How%20to%20Scrape%20Data%20From%20Pfizer's%20Doctor%20Payments%20Records&via=davidxia_" target="_blank" rel="nofollow">tweet</a>
+  
+  
+    <a id="custom-google-share-button" title="share How to Scrape Data From Pfizer's Doctor Payments Records" href="https://plus.google.com/share?url=https%3A%2F%2Fwww.davidxia.com%2F2011%2F07%2Fhow-to-scrape-data-from-pfizers-doctor-payments-records%2F" target="_blank" rel="nofollow">Google+</a>
+  
+  
+    <a id="custom-facebook-share-button" title="share How to Scrape Data From Pfizer's Doctor Payments Records on Facebook" href="http://www.facebook.com/sharer.php?u=https%3A%2F%2Fwww.davidxia.com%2F2011%2F07%2Fhow-to-scrape-data-from-pfizers-doctor-payments-records%2F&t=How%20to%20Scrape%20Data%20From%20Pfizer's%20Doctor%20Payments%20Records" target="_blank" rel="nofollow">facebook</a>
+  
+</div>
+
+      
+      <div class="meta np-page-links-div">
+        
+          <div class="basic-alignment left col-md-6">
+            <a class="np-page-link" href="/2011/07/92-confirmed-dead-in-norway-attacks/" title="Previous Post: 92 Confirmed Dead in Norway Attacks">&larr; 92 Confirmed Dead in Norway Attacks</a>
+          </div>
+        
+        
+          <div class="basic-alignment right col-md-6">
+            <a class="np-page-link" href="/2011/07/norway-attacker-breiviks-manifesto-and-video/" title="Next Post: Norway Attacker Breivik's Manifesto and Video">Norway Attacker Breivik&#8217;s Manifesto and Video &rarr;</a>
+          </div>
+        
+        <div class="clear"></div>
+      </div>
+    </footer>
+  </article>
+  
+</div>
+
+<div class="col-md-4">
+  <aside class="well sidebar-nav">
+    
+      
+<section>
+  <h3>About</h3>
+  <p>I&#8217;m David Xia. I write software and occasionally prose.</p>
+</section>
+
+
+<!-- side nav ad -->
+<ins class="adsbygoogle"
+     style="display:inline-block;width:300px;height:250px"
+     data-ad-client="ca-pub-1777254647176109"
+     data-ad-slot="8066618875"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+
+<section>
+  <h3>Elsewhere</h3>
+  <span itemscope itemtype="http://schema.org/Person">
+  <ul>
+    
+    <li><a itemprop="sameAs" href="https://twitter.com/davidxia_" rel="me" title="David Xia’s " target="_self">Twitter</a></li>
+    
+    <li><a itemprop="sameAs" href="https://www.facebook.com/david.xia2" rel="me" title="David Xia’s " target="_self">Facebook</a></li>
+    
+    <li><a itemprop="sameAs" href="https://www.snapchat.com/add/david.xia2" rel="me" title="David Xia’s " target="_self">Snapchat</a></li>
+    
+    <li><a itemprop="sameAs" href="https://github.com/davidxia2" rel="me" title="David Xia’s " target="_self">GitHub</a></li>
+    
+    <li><a itemprop="sameAs" href="https://keybase.io/davidxia" rel="me" title="David Xia’s " target="_self">Keybase</a></li>
+    
+    <li><a itemprop="sameAs" href="https://www.instagram.com/david.xia/" rel="me" title="David Xia’s " target="_self">Instagram</a></li>
+    
+    <li><a itemprop="sameAs" href="https://www.youtube.com/user/dx314152653" rel="me" title="David Xia’s " target="_self">Youtube</a></li>
+    
+    <li><a itemprop="sameAs" href="https://www.linkedin.com/in/davidweixia" rel="me" title="David Xia’s " target="_self">LinkedIn</a></li>
+    
+    <li><a itemprop="sameAs" href="https://plus.google.com/111695463592724886678?rel=author" rel="me" title="David Xia’s " target="_self">Google+</a></li>
+    
+    <li><a itemprop="sameAs" href="https://vimeo.com/davidxia" rel="me" title="David Xia’s " target="_self">Vimeo</a></li>
+    
+    <li><a itemprop="sameAs" href="https://stackoverflow.com/users/553994/david-xia" rel="me" title="David Xia’s " target="_self">StackOverflow</a></li>
+    
+  </ul>
+  </span>
+</section>
+
+<section>
+  <h3>Wise Words</h3>
+  <p id="rquote"></p>
+  <p id="rquote_source"></p>
+  <script text="javascript">
+    var quotesObjs = [{"quote":"job = just over broke"},{"quote":"ISAF = I suck at fighting, I saw Americans fighting","source":"American troops in Afghanistan"},{"quote":"army = ain’t ready for Marines yet","source":"US Army"},{"quote":"Here’s to the crazy ones. The rebels. The troublemakers. The ones who see things differently. While some may see them as the crazy ones, we see genius. Because the people who are crazy enough to think they can change the world, are the ones who do.","source":"Apple's Think Different ad"},{"quote":"The cure for boredom is curiosity. There is no cure for curiosity.","source":"Dorothy Parker"},{"quote":"Unfettered by that, they proceeded to indulge themselves in sensual pleasures like sheep.","source":"Al-Ghazali, The Rescuer From Error"},{"quote":"More confusion – more nonsense, – and the nonsense, as usual, dangerous nonsense.","source":"Jeremy Bentham, Anarchical Fallacies"},{"quote":"Marriage is the grave of confidence and love.","source":"Olympe de Gouges in The Rights of Woman on the contemporary sad state of marriage"},{"quote":"Christian troops, we are told, are excellent. I deny this. Is someone going to show me some?","source":"Jean-Jacques Rousseau, On the Social Contract (Book IV, Ch VIII)"},{"quote":"Being powerful is like being a lady. If you have to tell people you are, you aren’t.","source":"Margaret Thatcher"},{"quote":"Weniger, aber besser (Less, but better)","source":"Dieter Rams"},{"quote":"There are two major products that came out of Berkeley: LSD and UNIX. We don't believe this to be a coincidence.","source":"Jeremy S. Anderson"},{"quote":"[Linux] is not some crazy drug-induced microkernel...","source":"Linus Torvalds, Linux Kernel Mailing List"},{"quote":"Good design is as little design as possible.","source":"Dieter Rams"},{"quote":"I don’t care to belong to any club that will have me as a member.","source":"Groucho Marx"},{"quote":"Part of the secret of a success in life is to eat what you like and let the food fight it out inside.","source":"Mark Twain"},{"quote":"Before you speak, ask yourself: Is it necessary? Is it true? Does it improve upon the silence?","source":"Shirdi Sai Baba"},{"quote":"It is not the critic who counts; not the man who points out how the strong man stumbles, or where the doer of deeds could have done them better. The credit belongs to the man who is actually in the arena, whose face is marred by dust and sweat and blood.","source":"Theodore Roosevelt"},{"quote":"Above all else, try something.","source":"Franklin Roosevelt"},{"quote":"If you are going through hell, keep going.","source":"Winston Churchill"},{"quote":"Workers work hard enough to not be fired, and owners pay just enough so that workers don't quit."},{"quote":"Bulls make money, and bears make money; but pigs get slaughtered.","source":"the Street"},{"quote":"Profits are made when something is bought; not when it is sold."},{"quote":"In this world nothing is certain but death and taxes.","source":"Benjamin Franklin"},{"quote":"The only difference between death and taxes is that on occasion death is relatively painless."},{"quote":"The only man never to be redeemed is the man without passion.","source":"Atlas Shrugged"},{"quote":"I believe a lecture should be like a woman's skirt. Long enough to cover the subject, short enough to keep it interesting.","source":"René Morel"},{"quote":"It is easy in the world to live after the world's opinion; it is easy in solitude to live after our own; but the great man is he who in the midst of the crowd keeps with perfect sweetness the independence of solitude.","source":"Ralph Waldo Emerson"},{"quote":"The happiness of those who want to be popular depends on others; the happiness of those who seek pleasure fluctuates with moods outside their control; but the happiness of the wise grows out of their own free acts.","source":"Marcus Aurelius"},{"quote":"The difference between raising boys and girls is that with boys, you have to worry about one penis. With girls, you have to worry about all the penises.","source":"Anonymous"},{"quote":"Some pretend to be rich, yet have nothing; others pretend to be poor, yet have great wealth.","source":"Proverbs 13:7"},{"quote":"I returned, and saw under the sun, that the race is not to the swift, nor the battle to the strong, neither bread to the wise, nor yet riches to men of understanding, nor yet favor to men of skill; but time and chance happeneth to them all.","source":"Ecclesiastes 9:11"},{"quote":"A banker is a fellow who lends you his umbrella when the sun is shining, but wants it back the minute it begins to rain.","source":"Mark Twain"},{"quote":"No group of professionals meets except to conspire against the public at large.","source":"Mark Twain"},{"quote":"If you simplify your English, you are freed from the worst follies of orthodoxy. Political language...is designed to make lies sound truthful and murder respectable, and to give an appearance of solidity to pure wind.","source":"George Orwell in Politics and the English Language"},{"quote":"Neither can his mind be thought to be in tune, whose words do jarre, nor his reason in frame, whose sentence is preposterous.","source":"Ben Jonson"},{"quote":"A lack of visual clarity in arranging evidence is a sign of lack of intellectual clarity in reasoning about evidence.","source":"Tufte in Visual Explanations"},{"quote":"For the love of money is the root of all evil: which while some coveted after, they have erred from the faith, and pierced themselves through with many sorrows.","source":"St. Paul in his First Letter to Timothy"}];
+    quoteObj = quotesObjs[Math.floor(Math.random() * quotesObjs.length)];
+    document.getElementById('rquote').innerHTML = quoteObj.quote;
+    document.getElementById('rquote_source').innerHTML = quoteObj.source;
+  </script>
+</section>
+
+<section>
+  <h3>RSS Links</h3>
+  <p><a href="/atom.xml">All posts</a></p>
+</section>
+
+<section class="last">
+  <h3>Categories</h3>
+  <ul id="categories">
+    <li class='category'><a href='/categories/business/'>Business (9)</a></li>
+<li class='category'><a href='/categories/career/'>Career (16)</a></li>
+<li class='category'><a href='/categories/china/'>China (13)</a></li>
+<li class='category'><a href='/categories/chinese-culture/'>Chinese Culture (12)</a></li>
+<li class='category'><a href='/categories/columbia-university/'>Columbia University (27)</a></li>
+<li class='category'><a href='/categories/computer-science/'>Computer Science (7)</a></li>
+<li class='category'><a href='/categories/current-events/'>Current Events (43)</a></li>
+<li class='category'><a href='/categories/design/'>Design (6)</a></li>
+<li class='category'><a href='/categories/economy/'>Economy (11)</a></li>
+<li class='category'><a href='/categories/electronics/'>Electronics (3)</a></li>
+<li class='category'><a href='/categories/food-and-drink/'>Food & Drink (12)</a></li>
+<li class='category'><a href='/categories/friends/'>Friends (15)</a></li>
+<li class='category'><a href='/categories/information-security/'>Information Security (8)</a></li>
+<li class='category'><a href='/categories/internet/'>Internet (28)</a></li>
+<li class='category'><a href='/categories/journalism/'>Journalism (13)</a></li>
+<li class='category'><a href='/categories/math/'>Math (10)</a></li>
+<li class='category'><a href='/categories/nature-and-outdoors/'>Nature & Outdoors (12)</a></li>
+<li class='category'><a href='/categories/new-york-city/'>New York City (17)</a></li>
+<li class='category'><a href='/categories/personal/'>Personal (55)</a></li>
+<li class='category'><a href='/categories/photography/'>Photography (3)</a></li>
+<li class='category'><a href='/categories/programming-and-software/'>Programming & Software (44)</a></li>
+<li class='category'><a href='/categories/spy-shit/'>Spy Shit (5)</a></li>
+<li class='category'><a href='/categories/startups-and-entrepreneurism/'>Startups & Entrepreneurism (4)</a></li>
+<li class='category'><a href='/categories/swimming/'>Swimming (2)</a></li>
+<li class='category'><a href='/categories/technology/'>Technology (32)</a></li>
+<li class='category'><a href='/categories/travel/'>Travel (28)</a></li>
+<li class='category'><a href='/categories/tv-and-movies/'>Tv & Movies (20)</a></li>
+<li class='category'><a href='/categories/uncategorized/'>Uncategorized (22)</a></li>
+<li class='category'><a href='/categories/wellesley/'>Wellesley (6)</a></li>
+<li class='category'><a href='/categories/woodworking/'>Woodworking (3)</a></li>
+<li class='category'><a href='/categories/writing-and-literature/'>Writing & Literature (17)</a></li>
+
+  </ul>
+</section>
+
+    
+  </aside>
+</div>
+
+
+    </div>
+    <footer class="page-footer" role="contentinfo"><script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="/javascripts/bootstrap.min.js"></script>
+<script src="/javascripts/davidxia.min.js"></script>
+
+<p class="copyright-info">
+  https://www.davidxia.com and all contents copyright 2009-2018 by David Xia,
+  unless otherwise noted. Contents under
+  <a href="http://creativecommons.org/licenses/by-nc-sa/3.0/">Creative Commons License</a>
+</p>
+
+</footer>
+    
+
+<script type="text/javascript">
+      var disqus_shortname = 'davidxia';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+  </div>
+</body>
+</html>

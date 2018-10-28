@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Startups & Entrepreneurism | David Xia]]></title>
+  <link href="https://www.davidxia.com/categories/startups-and-entrepreneurism/atom.xml" rel="self"/>
+  <link href="https://www.davidxia.com/"/>
+  <updated>2018-10-28T12:11:58-04:00</updated>
+  <id>https://www.davidxia.com/</id>
+  <author>
+    <name><![CDATA[David Xia]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[What Do Venture Capitalists Do All Day?]]></title>
+    <link href="https://www.davidxia.com/2012/01/what-do-venture-capitalists-do-all-day/"/>
+    <updated>2012-01-07T00:00:00-05:00</updated>
+    <id>https://www.davidxia.com/2012/01/what-do-venture-capitalists-do-all-day</id>
+    <content type="html"><![CDATA[<p>I just listened to a great episode of Stanford Technology Ventures Program&rsquo;s Entrepreneurship
+podcast. <a href="http://ecorner.stanford.edu/authorMaterialInfo.html?mid=2787">This one</a> has Kleiner Perkins Caufield &amp; Byers partner Dana Mead explaining what
+venture capitalists do as an industry, as individuals in their day to day life, and how he decides
+where to invest.</p>
+
+<!--more-->
+
+
+<p>Mead&rsquo;s talk is very informative. Here are some of my biggest takeaways. He said <a href="http://ecorner.stanford.edu/authorMaterialInfo.html?mid=2841">VC were
+originally</a> a small, boutique industry but are now an asset class. The change from 1980 to 2006
+has been more than a ten-fold increase. Mead said this was driven by university endowments,
+Stanford and Yale in particular, putting part of their portfolios into venture capital. Stanford&rsquo;s
+Mike McCaffrey and Yale&rsquo;s Chief Investment Officer <a href="http://en.wikipedia.org/wiki/David_F._Swensen">David Swensen</a>. He doesn&rsquo;t go into why this
+was the case, and I&rsquo;m curious whether this model of investing produces better long-term returns
+than other methodologies.</p>
+
+<table>
+  <tr>
+    <th></th>
+    <th>1980</th>
+    <th>2006</th>
+  </tr>
+  <tr>
+    <td>VC firms</td>
+    <td>89</td>
+    <td>798</td>
+  </tr>
+  <tr>
+    <td>VC professionals</td>
+    <td>1388</td>
+    <td>9257</td>
+  </tr>
+  <tr>
+    <td>VC capital raised</td>
+    <td>$2.1B</td>
+    <td>$29.9B</td>
+  </tr>
+  <tr>
+    <td>VC capital under mgmt</td>
+    <td>$3.7B</td>
+    <td>$235.8B</td>
+  </tr>
+  <tr>
+    <td>avg VC capital under mgmt</td>
+    <td>$29.4M</td>
+    <td>$175.6M</td>
+  </tr>
+</table>
+
+
+<p>Source: Mead&rsquo;s talk</p>
+
+<iframe class="fill-width" width="540" height="304" src="https://www.youtube.com/embed/A9oojO6ztKk"
+  frameborder="0" allowfullscreen></iframe>
+
+
+<p>The other takeaway, which I hope provides insight to some of my friends who are interested in VC,
+is a <a href="http://youtu.be/A9oojO6ztKk?t=11m53s">breakdown of the common paths</a> to being a VC partner.</p>
+
+<table>
+  <tr>
+    <th>2-4 yrs practical experience</th>
+    <th>10 yrs operating exp</th>
+    <th>20+ yrs operating exp</th>
+  </tr>
+  <tr>
+    <td>M.D./PhD</td>
+    <td>M.D./PhD</td>
+    <td>M.D./PhD</td>
+  </tr>
+  <tr>
+    <td>PhD</td>
+    <td>PhD</td>
+    <td>PhD</td>
+  </tr>
+  <tr>
+    <td>MBA</td>
+    <td>MBA</td>
+    <td>MBA</td>
+  </tr>
+  <tr>
+    <td>MS</td>
+    <td>MS</td>
+    <td>MS</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td>Dir/GM level</td>
+    <td>CEO/CFO level</td>
+  </tr>
+</table>
+
+
+<p>And my last takeaway was Mead&rsquo;s explanation of <a href="http://youtu.be/A9oojO6ztKk?t=14m38s">what KP VCs do on a daily basis</a>. In order of
+time spent:</p>
+
+<ol>
+<li><strong>10%</strong> discovering, evaluating, and investing in new ventures</li>
+<li><strong>20%</strong> networking with talent, other VCs, company execs</li>
+<li><strong>70%</strong> supporting portfolio companies in recruiting, raising money, strategy</li>
+</ol>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[A Difference Between New York and Silicon Valley Startups?]]></title>
+    <link href="https://www.davidxia.com/2011/12/a-difference-between-new-york-and-silicon-valley-startups/"/>
+    <updated>2011-12-20T00:00:00-05:00</updated>
+    <id>https://www.davidxia.com/2011/12/a-difference-between-new-york-and-silicon-valley-startups</id>
+    <content type="html"><![CDATA[<p>I just talked with a Silicon Valley friend who&rsquo;s written code since middle school and has lots of
+startup experience. This friend recently moved to New York and told me the differences between New
+York and Silicon Valley startup mentality.</p>
+
+<!--more-->
+
+
+<p>The thing that struck me most was his description of how the average Silicon Valley startup
+perceives itself and how that differs a lot from the average New York startup. Here&rsquo;s his lengthy
+description boiled down. This is grossly generalized. I&rsquo;m sure not <em>every</em> startup in New York is
+A and every West Coast startup is like B. I&rsquo;m only reporting back what I heard hoping this may
+provide my East Coast peers with food for thought.</p>
+
+<p>New York startups think they&rsquo;re hot shit. They think they&rsquo;re God&rsquo;s gift to Earth. This might be
+because NY tech startup culture is still in its nascent stages and that there are relatively few
+of them compared to Silicon Valley. I&rsquo;m not familiar with the West coast startup scene, but I see
+the tendency of some New York startup founders and employees treating startup work as more of a
+lifestyle than a business endeavor. I know from personal experience that this is a tempting
+pitfall. Who doesn&rsquo;t want to go to exclusive, niche parties and treat working at a startup as a
+glamorous job.</p>
+
+<p>Good candidates interviewing for West Coast startups do their due diligence and interview their
+prospective employers as much as they are interviewed themselves. Some New York startups are put
+off by candidates asking tough questions or suggesting business/tech improvements. They think &ldquo;who
+are you to tell me how to run my business?&rdquo; or even worse, &ldquo;you should feel glad to work at our
+hot startup.&rdquo; In Silicon Valley there are so many seemingly legit startups that candidates learn
+to cut through the bullshit and swagger and ask the hard questions that will show where&rsquo;s the best
+place they can work. To me, a candidate that interviews me as much as I interview them and one
+that asks hard questions that make me confront the reality of my business instead of just being a
+yes-man is a candidate I&rsquo;ll respect and want on my team.</p>
+
+<p>I&rsquo;m glad I learned of this contrast between West Coast and New York startups. And I wanted to
+share it for what it&rsquo;s worth. It&rsquo;s antithetical for a startup to think of itself as hot shit.
+Sure, it&rsquo;s important to be proud of what one&rsquo;s accomplished, but becoming arrogant and complacent
+is something else. Startups are underdogs. We need to be scrappy and err on the side of
+overestimating our competitors. To do the opposite and end up being wrong could mean the death of
+our startup.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[What I Learned From Chris Dixon's Skillshare Class]]></title>
+    <link href="https://www.davidxia.com/2011/10/what-i-learned-from-chris-dixons-skillshare-class/"/>
+    <updated>2011-10-28T00:00:00-04:00</updated>
+    <id>https://www.davidxia.com/2011/10/what-i-learned-from-chris-dixons-skillshare-class</id>
+    <content type="html"><![CDATA[<p>I attended <a href="http://www.skillshare.com/profile/Chris-Dixon/4187381">Chris Dixon&rsquo;s</a> Skillshare class &ldquo;<a href="http://www.skillshare.com/Planting-the-Seed-How-to-Raise-Your-First-Round/1124114253">How to Raise Your First Round</a>&rdquo; earlier this
+week. It was my first time meeting the entrepreneur and investor. I learned a lot from his class.
+Here&rsquo;s a summary.</p>
+
+<!--more-->
+
+
+<p><strong>Whether to Raise Money</strong></p>
+
+<p>Avoid taking money if you can. Some businesses are not suitable for VC funding. This includes mom
+and pop stores and companies that can&rsquo;t scale up to have revenue in at least the hundreds of
+millions.</p>
+
+<p>I asked whether our current culture of celebrating fundraising as a mark of success is a recent
+trend or had existed before. A former journalist sitting in front of me quipped that
+congratulating someone on raising money is like saying &ldquo;Congrats on your student loan.&rdquo; Dixon
+liked this analogy.</p>
+
+<p><strong>How Much to Raise</strong></p>
+
+<p>Raise enough money to reach the company&rsquo;s next milestone. Then add fifty percent for a margin of
+error. The type of milestone depends on the type of startup. Potential milestones for technology
+security, B2B software, and consumer Internet companies are building the technology itself,
+closing five customers, and hitting 100,000 users, respectively. Running out of money puts
+companies in an awkward position of having to raise a bridge round. Raising too much dilutes the
+team&rsquo;s equity and inflates investors&#8217; expectations.</p>
+
+<p>Dixon thought it was &ldquo;unfortunate&rdquo; that the amount raised is often heavily influenced by the
+external early stage investing market.</p>
+
+<p><strong>The Right Way to Pitch an Early Stage Company</strong></p>
+
+<p>For the first round, pitch the upside of your business not the average scenario. Pitch with
+showmanship and bravado. Frame the product in a compelling narrative that answers questions like
+&ldquo;why now?&rdquo; Appeal to investors&#8217; emotions as much as their rationality if your company is at an
+early stage.</p>
+
+<p>The pitch deck should have about eight slides. Show how the team has extensive knowledge and
+experience in the industries related to its product.</p>
+
+<p>When I asked him how the early state investing climate is correlated with the macroeconomy, Dixon
+said he thought it was weird how right now the two seem to have &ldquo;decoupled.&rdquo; He added that he
+didn&rsquo;t know how much longer it would last. &ldquo;You can&rsquo;t keep selling iPads to people who don&rsquo;t have
+jobs.&rdquo;</p>
+
+<p><strong>Personal Career Development</strong></p>
+
+<p>Some people in the packed room asked about personal career decisions. One woman wondered if her
+friends&#8217; advice to break into the startup world by first working in larger corporations was right.
+Dixon answered that the most direct path to working in a startup or becoming an entrepreneur is to
+just go for it without taking detours through tangentially related fields.</p>
+
+<p><strong>Do not:</strong></p>
+
+<ul>
+<li>Bring bankers or lawyers to the VC meeting.</li>
+<li>Mention your law firm in your deck</li>
+</ul>
+
+
+<p><strong>VC Translations</strong></p>
+
+<ul>
+<li>&ldquo;Come back in a month&rdquo; = not interested</li>
+<li>&ldquo;It&rsquo;s a small idea&rdquo; = not interested</li>
+<li>Investors often ask &ldquo;who else is investing?&rdquo; because the opinions of other investors counts a lot.</li>
+</ul>
+
+
+<p><strong>How to Save Money on Legal Services</strong></p>
+
+<p>Use boilerplate legal documents to save money on legal fees. Law firms often discount their fees
+for young companies in the hopes of return business and market rates in the future. Stipulate a
+cap on legal fees because lawyers will always max it out.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[The Wild, Wild West of Startups]]></title>
+    <link href="https://www.davidxia.com/2011/08/the-wild-wild-west-of-startups/"/>
+    <updated>2011-08-03T00:00:00-04:00</updated>
+    <id>https://www.davidxia.com/2011/08/the-wild-wild-west-of-startups</id>
+    <content type="html"><![CDATA[<p>The tech startup industry is more of a <a href="http://en.wikipedia.org/wiki/Perfect_competition">perfect competition</a> than industries like airplane
+manufacturing or steel-making. It&rsquo;s the wild, wild west of our age. Low barriers to entry. Lots of
+competitors. Lots of hype and perceived glory.</p>
+
+<p>If someone tells you they&rsquo;re quitting his/her job to found a startup, and you don&rsquo;t really
+understand what that means, pretend you&rsquo;re in the 1800s and that person has just told you they&rsquo;re
+going West because gold was just discovered in the <a href="http://en.wikipedia.org/wiki/Klondike_Gold_Rush">Klondike</a>.</p>
+
+<!--more-->
+
+
+<p>It&rsquo;s one of today&rsquo;s frontier industries. With the disappearance of America&rsquo;s geographic frontier,
+enterprising people venture into other types of new territory to stake their claims. It&rsquo;s a long,
+hard road. I&rsquo;ve heard war stories of people sleeping on their friends floor, sleeping in the
+office, living on shoestring budgets in pursuit of a dream. Despite setbacks, we think that we&rsquo;ll
+strike gold or our pan will reveal an ingot the next time. Success is just around the corner.
+We&rsquo;re hopeful, we&rsquo;re delusional.</p>
+
+<p>This sort of opportunity attracts all types of people. There are snake oil salesmen, wannabes, and
+have-beens. But there are also real pioneers and frontiersmen.</p>
+]]></content>
+  </entry>
+  
+</feed>

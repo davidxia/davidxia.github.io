@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: New York City | David Xia]]></title>
+  <link href="https://www.davidxia.com/categories/new-york-city/atom.xml" rel="self"/>
+  <link href="https://www.davidxia.com/"/>
+  <updated>2018-10-28T12:11:58-04:00</updated>
+  <id>https://www.davidxia.com/</id>
+  <author>
+    <name><![CDATA[David Xia]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[How to Test Your Home's Water for Lead]]></title>
+    <link href="https://www.davidxia.com/2017/02/how-to-test-your-homes-water-for-lead/"/>
+    <updated>2017-02-20T19:37:52-05:00</updated>
+    <id>https://www.davidxia.com/2017/02/how-to-test-your-homes-water-for-lead</id>
+    <content type="html"><![CDATA[<p>I read the <em>New York Times</em> article <a href="https://www.nytimes.com/interactive/2016/03/24/nyregion/how-nyc-gets-its-water-new-york-101.html">&ldquo;How New York Gets Its Water&rdquo;</a> a while ago. The end of the
+article described how you could order a free lead testing kit.</p>
+
+<blockquote><p>The <a href="https://www.epa.gov/sites/production/files/2015-11/documents/2005_09_14_faq_fs_homewatertesting.pdf">EPA offers some guidance</a> on how and when to obtain an in-home testing kit through your local
+water supplier. In New York City, residents can obtain one <a href="http://www1.nyc.gov/nyc-resources/service/1266/water-lead-test-kit-request">at no cost through 311</a>.</p>
+
+<p>For more information, visit <a href="www.epa.gov/safewater/lead">www.epa.gov/safewater/lead</a>, or call the Safe Drinking Water Hotline
+at 1-800-426-4791.</p></blockquote>
+
+<p>I read this article in the aftermath of the <a href="https://en.wikipedia.org/wiki/Flint_water_crisis">Flint water crisis</a> and wanted to test my
+apartment&rsquo;s drinking water. I filled out the online form, received a package in the mail containing
+two large plastic bottles, a pre-paid mailing label, and detailed instructions. The instructions
+said to fill one bottle with water after not using any faucet in my apartment for six hours. I
+filled the second bottle with water after having run the tap. After dropping the bottles now full
+of water into a mailbox, NYC&rsquo;s Nureau of Water Supply sent me the results only week or so later.</p>
+
+<blockquote><p>We have received the results of your recent tap water lead test. Both samples were under the
+federal action level of 15 micrograms per liter (μg/L). Your specific results were:</p>
+
+<p>First draw: 0 μg/L
+1-2 minute flush: 0 μg/L</p></blockquote>
+
+<p><img class="center <a" src="href="https://i.imgur.com/uxwBi0bl.jpg">https://i.imgur.com/uxwBi0bl.jpg</a>&#8221;></p>
+
+<p><img class="center <a" src="href="https://i.imgur.com/98MoXGNl.jpg">https://i.imgur.com/98MoXGNl.jpg</a>&#8221;></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[My First Sailing Class]]></title>
+    <link href="https://www.davidxia.com/2016/07/my-first-sailing-class/"/>
+    <updated>2016-07-24T13:37:56-04:00</updated>
+    <id>https://www.davidxia.com/2016/07/my-first-sailing-class</id>
+    <content type="html"><![CDATA[<p>Last weekend a bunch of Spotify collleagues and I took our first sailing classes at Manhattan Yacht
+Club in Jersey City. I could get used to this sport. The sun was brutal though. I&rsquo;ll never get used
+to that.</p>
+
+<iframe class="fill-width" width="540" height="405" src="https://www.youtube.com/embed/8hPEr4sa-YM" frameborder="0" allowfullscreen></iframe>
+
+
+
+
+<!-- more -->
+
+
+<p><img class="center <a" src="href="https://i.imgur.com/g6jwSpXl.jpg">https://i.imgur.com/g6jwSpXl.jpg</a>&#8221; width=&#8221;480&#8221; height=&#8221;640&#8221;></p>
+
+<p><div class='image center <a'><img  src="href="https://i.imgur.com/rbyvOtml.jpg">https://i.imgur.com/rbyvOtml.jpg</a>&#8221; width=&#8221;480&#8221; height=&#8221;640&#8221; title=&#8221;I had to wear a hot and stuffy life vest on a 90-degree day.&#8221; ><div class='caption'>I had to wear a hot and stuffy life vest on a 90-degree day.</div></div></p>
+
+<p><div class='image center <a'><img  src="href="https://i.imgur.com/5cHxUtKl.jpg">https://i.imgur.com/5cHxUtKl.jpg</a>&#8221; width=&#8221;480&#8221; height=&#8221;640&#8221; title=&#8221;A great view of lower Manhattan.&#8221; ><div class='caption'>A great view of lower Manhattan.</div></div></p>
+
+<p><div class='image center <a'><img  src="href="https://i.imgur.com/ivnVCYXl.jpg">https://i.imgur.com/ivnVCYXl.jpg</a>&#8221; width=&#8221;480&#8221; height=&#8221;640&#8221; title=&#8221;Sailing close to the Statue of Liberty.&#8221; ><div class='caption'>Sailing close to the Statue of Liberty.</div></div></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[My QCon NYC 2016 Slides - Reach Production Faster With Containers in Testing]]></title>
+    <link href="https://www.davidxia.com/2016/06/my-qcon-nyc-2016-slides/"/>
+    <updated>2016-06-20T17:15:49-04:00</updated>
+    <id>https://www.davidxia.com/2016/06/my-qcon-nyc-2016-slides</id>
+    <content type="html"><![CDATA[<p>Here are the slides from my <a href="https://qconnewyork.com/ny2016/presentation/reaching-production-faster-with-containers-in-testing">QCon NYC 2016 talk titled &ldquo;Reach Production Faster with Containers in
+Testing.&rdquo;</a> in various formats. <span xmlns:dct="http://purl.org/dc/terms/" property="dct:title">All formats of &ldquo;Reach Production Faster with Containers in Testing&rdquo;</span> by <a xmlns:cc="http://creativecommons.org/ns#" href="https://www.davidxia.com/2016/06/my-qcon-nyc-2016-slides-reach-production-faster-with-containers-in-testing/" property="cc:attributionName" rel="cc:attributionURL">David Xia</a> are licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.</p>
+
+<iframe src="//www.slideshare.net/slideshow/embed_code/key/p1uEfRmocwplbk" width="595" height="485" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" style="border:1px solid #CCC; border-width:1px; margin-bottom:5px; max-width: 100%;" allowfullscreen> </iframe>
+
+
+<p> <div style="margin-bottom:5px"> <strong> <a href="//www.slideshare.net/DavidXia/qcon-nyc-2016-reach-production-faster-with-containers-in-testing" title="QCon NYC 2016: Reach Production Faster with Containers in Testing" target="_blank">QCon NYC 2016: Reach Production Faster with Containers in Testing</a> </strong> from <strong><a href="//www.slideshare.net/DavidXia" target="_blank">David Xia</a></strong> </div></p>
+
+<p>More formats here:</p>
+
+<ul>
+<li><a href="https://drive.google.com/file/d/0By_v8MtsRMKkSloyT3gxalRuYjQ/view?usp=sharing">PDF</a></li>
+<li><a href="https://drive.google.com/file/d/0By_v8MtsRMKkSm9BVW5uWFR5TFk/view?usp=sharing">Keynote</a></li>
+<li><a href="https://drive.google.com/file/d/0By_v8MtsRMKkRkpQWk5paUZOUW8/view?usp=sharing">PowerPoint</a></li>
+</ul>
+
+
+<p><img class="center <a" src="href="https://i.imgur.com/w0P47Ugl.jpg">https://i.imgur.com/w0P47Ugl.jpg</a>&#8221; width=&#8221;640&#8221; height=&#8221;619&#8221;></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Confessions of a Noob Landlord IV - How to Buy a Co-op Unit]]></title>
+    <link href="https://www.davidxia.com/2016/06/confessions-of-a-noob-landlord-iv-how-to-buy-a-co-op-unit/"/>
+    <updated>2016-06-15T06:57:03-04:00</updated>
+    <id>https://www.davidxia.com/2016/06/confessions-of-a-noob-landlord-iv-how-to-buy-a-co-op-unit</id>
+    <content type="html"><![CDATA[<p><em>This is a story of I jumped through countless complex bureaucratic, legal, and financial hurdles of
+Murphy&rsquo;s Law and emerged with less liquidity and more debt. OK. I&rsquo;m being facetious, but what
+happened to me is the easiest and most straightforward way to buy a property. Seriously.
+The events below transpired in New York City. The buying process may be different in other areas,
+but the most of the process such as contract of sale and mortgage application is the same across
+the U.S.</em></p>
+
+<p><div class='image center <a'><img  src="href="https://upload.wikimedia.org/wikipedia/commons/8/8d/Cary_Grant_Myrna_Loy_Mr_Blandings_Builds_His_Dream_House_1948.JPG">https://upload.wikimedia.org/wikipedia/commons/8/8d/Cary_Grant_Myrna_Loy_Mr_Blandings_Builds_His_Dream_House_1948.JPG</a>&#8221; width=&#8221;640&#8221; height=&#8221;772&#8221; title=&#8221;By RKO radio pictures (eBay item photo front photo back) [Public domain], via Wikimedia Commons. Promotional photo of Cary Grant and Myrna Loy for the film Mr. Blandings Builds His Dream House (1948)&#8221; ><div class='caption'>By RKO radio pictures (eBay item photo front photo back) [Public domain], via Wikimedia Commons. Promotional photo of Cary Grant and Myrna Loy for the film Mr. Blandings Builds His Dream House (1948)</div></div></p>
+
+<ul>
+<li>My mother found an affordable co-op unit for sale while browsing StreetEasy on her iPad
+during Christmas vacation in 2015.</li>
+<li>We noticed the listing was made by the seller himself. I emailed him that night.</li>
+<li>The seller promptly called me. I scheduled a viewing of the unit which is at the top
+of a six-floor walk-up.</li>
+<li>My parents and I climbed the six flights of stairs and met the seller who was a nice man named
+Alan. We walked around and inspected his unit.</li>
+<li>We asked Alan about the apartment&rsquo;s condition, the co-op&rsquo;s financials and rules, the property
+manager, etc.</li>
+<li>We sat down with Alan, chatted, and negotiated. My mother pointed out neither party has a broker
+which is good because brokers take a 6% commission. We felt out Alan on how many offers he&rsquo;s
+received and what they are.</li>
+<li>My mother verbally offered Alan 94% of the listing price. He said he&rsquo;ll see. My mom seemed
+confident he&rsquo;d take it. I was impressed by her ability to knock off over $20K right off the bat.</li>
+</ul>
+
+
+<!--more-->
+
+
+<ul>
+<li>My parents and I started looking for a mortgage broker and an attorney who&rsquo;s good with co-op
+purchases. (They were professional and competent. Contact me if you want a referral.)</li>
+<li>We decided how much money we wanted to borrow and how long. I settled on a 15-year mortgage at a
+great interest rate of 2.875%. I minimized closing and discount points in order to pay less money
+up front.</li>
+<li>My mortgage broker Deborah started collecting relevant documents from me to start the mortgage
+approval process. These include but aren&rsquo;t limited to bank statements, pay stubs (W2), federal
+income tax returns (1040). I didn&rsquo;t have to use a mortgage broker and could&rsquo;ve shopped around
+myself simply by applying online at various commercial banks&#8217; websites. But I&rsquo;m pretty busy,
+and the broker&rsquo;s fee would be paid by the lender in my case.</li>
+<li>Alan accepted our verbal offer and sent over a contract of sale. This document is a major
+checkpoint. It stated what, when, and how we would exchange property and money. Once I signed it
+and included a contract deposit (10% of the purchase price), it meant Alan and I were in a
+legally binding agreement and that he wasn&rsquo;t considering any other offers.
+
+<ul>
+<li>If I reneged, Alan could keep my contract deposit.</li>
+<li>I&rsquo;m not sure what legal recourse or damages I could pursue if Alan reneged. The contract
+vaguely stated:
+
+<blockquote><p>In the event of a default or misrepresentation by Seller, Purchaser shall have such remedies
+as Purchaser is entitled to at law or in equity, including specific performance, because
+the Unit and possession thereof cannot be duplicated.</p></blockquote></li>
+</ul>
+</li>
+<li>Our respective attorneys went back and forth modifying the contract of sale with riders that
+protected each of us, respectively. For example, my attorney Andrew added a clause stipulating
+the wall Alan built to divide the bedroom into two bedrooms was approved by the co-op board and
+I would get a written approval letter at closing. Alan&rsquo;s attorney Michael added a clause stating
+I couldn&rsquo;t back out of the sale if the maintenance increased after I&rsquo;d signed the contract.</li>
+<li>I signed the contract on January 25, 2016. And I expected a counter-signed copy back shortly.</li>
+<li>So I waited.</li>
+<li>And waited.</li>
+<li>And waited&hellip;</li>
+<li>It seems that the more sellers there are on the contract, the more likely it there are to be
+issues. In my case, there were a total of three sellers. Two of them were individuals:
+Alan and his ex-wife. The third seller was the estate of Alan&rsquo;s deceased father. This estate
+had two executors: Alan and his sister.</li>
+<li>If you&rsquo;re not confused yet, you will be.</li>
+<li>Alan told me his ex-wife wasn&rsquo;t being cooperative with the sale but that a court order would
+help convince her as a last resort.</li>
+<li>Meanwhile, my mortgage broker Deborah was busy securing a lender for me. I also needed to have
+the unit appraised which depended on the contract being fully signed.</li>
+<li>On February 4, Deborah tells me the co-op has an insurance policy that&rsquo;s shared with other
+buildings. She said most lenders won&rsquo;t underwrite a mortgage in a building with a pooled policy.
+She said she&rsquo;ll try other lenders.</li>
+<li>After an entire month (March 5 to be precise), Alan successfully compelled his ex-wife to sign
+with the issuance of a court order. This allowed me to schedule the appraisal.</li>
+<li>Meanwhile, I still hadn&rsquo;t secured the mortgage. Guaranteed Rate, Citi, Chase, Wells and various
+portfolio lenders all refused. With each lender that turned me down because of
+the co-op insurance policy, the more likely it seemed that Deborah and I would have to somehow
+convince the co-op board to buy a new individual policy. The property management company would
+also have to complete lots of paperwork. I&rsquo;ve never met the board, and the management company
+seemed like a tangled bureaucracy. I was seriously questioning how I&rsquo;d be able to pull this off.</li>
+<li><em>To be continued&hellip;</em></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[It Always Feels Good to Return to New York City]]></title>
+    <link href="https://www.davidxia.com/2016/04/it-always-feels-good-to-return-to-new-york-city/"/>
+    <updated>2016-04-04T17:41:45-04:00</updated>
+    <id>https://www.davidxia.com/2016/04/it-always-feels-good-to-return-to-new-york-city</id>
+    <content type="html"><![CDATA[<p>Sunday March 27 was my first day back in New York City after vacationing in the UK for ten days.
+I stepped into a subway car and noticed
+everyone was crowded around the entrance so I pushed my way into the less populated mid-section.
+I soon realized why people were avoiding that area. A skinny, middle-aged man was trying to get the
+attention of two young women sitting next to him. I don&rsquo;t remember what he was saying, but it was
+obvious they felt uncomfortable and didn&rsquo;t want to talk. After they got off, he looked around and
+asked,</p>
+
+<p>&ldquo;What is going on? Why are all the women standing?</p>
+
+<p>&ldquo;I crashed my jaguar. Now look at my knees. This one&rsquo;s bigger than that one. But I still get up to
+give the women a seat. No woman should be on her feet. A man that hits his woman ain&rsquo;t worth shit.&rdquo;</p>
+
+<p>Most people were trying their best to ignore him. I couldn&rsquo;t help but laugh a bit. He then tried
+to strike up a conversation with some other men around him. I missed the beginning but was able
+to overhear this:</p>
+
+<p>&ldquo;I&rsquo;ll kill them. I&rsquo;ll do it for nothing. I don&rsquo;t want you to pay $100,000 for your daughter to go
+to Harvard and then get raped by a rich motherfucker. I hate rapists and pedophiles so I&rsquo;ll do it
+for free!&rdquo;</p>
+
+<p>I got off at my stop and started reading the <em>New York Times</em> on my phone.</p>
+
+<p><blockquote><p>Donald J. Trump and Senator Ted Cruz of Texas traded insults on Easter Sunday morning over recent
+smears against their wives, while Mr. Trump ruled out creating internment camps for American
+Muslims and said he would study a proposal to allow delegates to bring guns to the Republican
+National Convention.</p><footer><strong>New York Times <a href="http://www.nytimes.com/politics/first-draft/2016/03/27/donald-trump-and-ted-cruz-continue-clash-over-spouses/">http://www.nytimes.com/politics/first-draft/2016/03/27/donald-trump-and-ted-cruz-continue-clash-over-spouses/</a></strong></footer></blockquote></p>
+
+<p>Ah, it&rsquo;s good to be back.</p>
+]]></content>
+  </entry>
+  
+</feed>

@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Electronics | David Xia]]></title>
+  <link href="https://www.davidxia.com/categories/electronics/atom.xml" rel="self"/>
+  <link href="https://www.davidxia.com/"/>
+  <updated>2018-10-28T12:11:58-04:00</updated>
+  <id>https://www.davidxia.com/</id>
+  <author>
+    <name><![CDATA[David Xia]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Setting Up My New Home Server]]></title>
+    <link href="https://www.davidxia.com/2013/01/setting-up-my-new-home-server/"/>
+    <updated>2013-01-10T00:00:00-05:00</updated>
+    <id>https://www.davidxia.com/2013/01/setting-up-my-new-home-server</id>
+    <content type="html"><![CDATA[<h2>Hardware and OS</h2>
+
+<p>I was inspired by this <a href="http://arstechnica.com/gadgets/2012/11/how-to-set-up-a-safe-and-secure-web-server/" title="How to set up a safe and secure Web server">Ars Technica article</a> to own hardware after renting one in the cloud
+for a while. So I ordered a <a href="http://www.amazon.com/gp/product/B00556F8BU/ref=as_li_ss_tl?ie=UTF8&amp;tag=easiamus00-20&amp;linkCode=as2&amp;camp=1789&amp;creative=390957&amp;creativeASIN=B00556F8BU">Foxconn NTA350</a><img src="https://www.assoc-amazon.com/e/ir?t=easiamus00-20&amp;l=as2&amp;o=1&amp;a=B00556F8BU" alt="" />, <a href="http://www.amazon.com/gp/product/B002YU83YO/ref=as_li_ss_tl?ie=UTF8&amp;tag=easiamus00-20&amp;linkCode=as2&amp;camp=1789&amp;creative=390957&amp;creativeASIN=B002YU83YO">4GB of RAM</a><img src="https://www.assoc-amazon.com/e/ir?t=easiamus00-20&amp;l=as2&amp;o=1&amp;a=B002YU83YO" alt="" />, and
+<a href="http://www.amazon.com/gp/product/B004W2JKWG/ref=as_li_ss_tl?ie=UTF8&amp;tag=easiamus00-20&amp;linkCode=as2&amp;camp=1789&amp;creative=390957&amp;creativeASIN=B004W2JKWG">64 GB SSD</a><img src="https://www.assoc-amazon.com/e/ir?t=easiamus00-20&amp;l=as2&amp;o=1&amp;a=B004W2JKWG" alt="" /> for $270.</p>
+
+<p>Once my new toy arrived, I named him Jarvis and installed Ubuntu 12.04 server edition including
+the DNS, OpenSSH, SMTP, and LAMP packages.</p>
+
+<!--more-->
+
+
+<h2>Personal Environment</h2>
+
+<p>I&rsquo;m picky about my personal environment. Everything from keybindings to colors has to be just
+right for me to feel at home.</p>
+
+<ul>
+<li>ran my <a href="https://github.com/davidxia/bootstrap_dotfiles/">dotfiles bootstrap script</a></li>
+<li>created the best message of the day (motd) ever with <a href="http://www.mewbies.com/how_to_customize_your_console_login_message_tutorial.htm">this tutorial</a></li>
+<li>in order to do that I needed to install hddtemp, lm-sensors (and configure it with <code>sudo
+sensors-detect</code>, fortune (fortune-mod on Ubuntu), and cowsay</li>
+</ul>
+
+
+<p><img class="center <a" src="href="https://lh4.googleusercontent.com/-QXSuwFFOFJ0/UO95Yd3bGrI/AAAAAAAAAVg/QvgptZL2SI4/s640/motd.jpg">https://lh4.googleusercontent.com/-QXSuwFFOFJ0/UO95Yd3bGrI/AAAAAAAAAVg/QvgptZL2SI4/s640/motd.jpg</a>&#8221; width=&#8221;540&#8221; height=&#8221;532&#8221; title=&#8221;my motd&#8221; ></p>
+
+<h2>Dynamic DNS</h2>
+
+<p>I&rsquo;m hosting out of my apartment with an IP that&rsquo;s potentially dynamic. I went with <a href="http://zoneedit.com/" title="Zone Edit">ZoneEdit</a>
+as my dynamic DNS provider ($1/mo/domain) and installed <a href="https://help.ubuntu.com/community/DynamicDNS#ddclient" title="Ubuntu ddclient">Ubuntu&rsquo;s ddclient</a> which
+periodically updates ZoneEdit with its IP.</p>
+
+<h2>Security</h2>
+
+<p>Ubuntu 12.04 gives me the option to encrypt my home directory. For a while I didn&rsquo;t understand why
+I couldn&rsquo;t SSH into Jarvis. Then I figured out that the machine wasn&rsquo;t be able to read my
+<code>.ssh/authorized_keys</code> files since they were encrypted. So I <a href="http://stephen.rees-carter.net/2012/03/encrypted-home-directories-ssh-key-authentication/">moved my authorized_keys</a> from the
+usual <code>.ssh/authorized_keys</code> path to an unencrypted area <code>/home/.ssh/david</code>.</p>
+
+<ul>
+<li>copied over my usual .ssh/config and .ssh/authorized_keys file</li>
+<li>generated a public key pair</li>
+<li><a href="http://stephen.rees-carter.net/2012/03/encrypted-home-directories-ssh-key-authentication/">modified /etc/ssh/sshd_config</a>: change default port, no root login, key only auth, etc</li>
+<li>installed denyhosts according to <a href="http://blog.bigdinosaur.org/securing-your-server-with-denyhosts" title="securing your server with denyhosts">Securing Your Server with Denyhosts</a></li>
+<li>copied over my previous collection of blacklisted hosts to /etc/hosts.deny</li>
+<li>added iptable rules according to <a href="http://blog.bigdinosaur.org/securing-ssh-with-iptables/" title="Securing SSH with iptables">Securing SSH with iptables</a> and installed
+iptables-persistent to persist them after reboot</li>
+</ul>
+
+
+<p>People who&rsquo;ve tried to hack me but failed.</p>
+
+<pre><code>sshd: 106.187.52.187
+sshd: 117.34.88.152
+sshd: 150.101.188.250
+sshd: 62.75.215.8
+sshd: 223.4.88.39
+sshd: 76.74.236.19
+sshd: 79.189.102.226
+sshd: 74.63.209.195
+sshd: 189.1.162.182
+sshd: 176.53.8.8
+sshd: 89.238.183.188
+sshd: 118.217.12.34
+sshd: 202.29.95.141
+sshd: 85.214.107.171
+sshd: 218.201.210.215
+sshd: 66.65.122.235
+sshd: 91.205.189.27
+sshd: 150.140.134.169
+sshd: 85.219.190.10
+sshd: 91.221.67.149
+sshd: 221.7.11.112
+sshd: 118.97.116.3
+sshd: 122.255.4.178
+sshd: 175.45.42.37
+sshd: 99.185.86.198
+sshd: 62.129.241.146
+sshd: 180.148.0.163
+sshd: 50.137.50.191
+sshd: 173.76.29.185
+sshd: 152.179.155.2
+sshd: 130.132.200.149
+sshd: 128.36.194.119
+</code></pre>
+
+<h2>Web Server</h2>
+
+<p>I installed nginx with the commands below (also in the Ars article).</p>
+
+<pre><code>install python-software-properties
+add-apt-repository ppa:nginx/development
+aptitude upgrade
+add-apt-repository ppa:nginx/development
+</code></pre>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Are You Making a Bomb?]]></title>
+    <link href="https://www.davidxia.com/2011/06/are-you-making-a-bomb/"/>
+    <updated>2011-06-21T00:00:00-04:00</updated>
+    <id>https://www.davidxia.com/2011/06/are-you-making-a-bomb</id>
+    <content type="html"><![CDATA[<p>It was only a matter of time before the RadioShack sales rep asked me. I&rsquo;d just brought $40 worth
+of electronic components to his checkout counter. Eleven small plastic bags filled with resistors,
+transistors, diodes, etc.</p>
+
+<p>&ldquo;Whoa. Are you making a bomb?&rdquo; he asked.</p>
+
+<p>&ldquo;No. I think I&rsquo;d need more parts than this.&rdquo;</p>
+
+<p>&ldquo;Seriously. What are you making?&rdquo;</p>
+
+<p>&ldquo;I&rsquo;m doing the projects in this electronics book I&rsquo;m reading. Besides, I think I&rsquo;d need, like,
+some fertilizer.&rdquo;</p>
+
+<p>&ldquo;Oh, you making a ghetto bomb.&rdquo; he responded. &ldquo;See. Just the fact that you know that&hellip;&rdquo;</p>
+
+<p>&ldquo;Really? I thought that was common knowledge.&rdquo;</p>
+
+<p>&ldquo;Naw.&rdquo;</p>
+
+<p>&ldquo;Well, it was something I heard in chemistry class.&rdquo;</p>
+
+<p>&ldquo;Everybody slept right through that shit.&rdquo;</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[My First Soldering Iron]]></title>
+    <link href="https://www.davidxia.com/2011/06/my-first-soldering-iron/"/>
+    <updated>2011-06-20T00:00:00-04:00</updated>
+    <id>https://www.davidxia.com/2011/06/my-first-soldering-iron</id>
+    <content type="html"><![CDATA[<p>Christmas comes early this year. Yesterday I drove to Sears and bought myself a new toy – an $8,
+30 watt, 700°F soldering iron. I know nothing about different types of solder, other than not to
+breathe the fumes, so I just bought the cheapest type ($4) to get me started: lead-free 96% tin,
+4% silver solder with rosin flux core.</p>
+
+<p>I&rsquo;ve recently become interested in electronics because it&rsquo;s cool to make home-made gadgets, but
+mostly because I re-watched <em>Iron Man</em> several days ago.</p>
+
+<p>The packaging of both the solder and iron is marked with warnings. The solder packaging states,
+&ldquo;May be fatal is swallowed.&rdquo; The iron&rsquo;s case reads, &ldquo;When used for soldering, this product
+produces chemicals known to the state of California to cause cancer and birth defects or other
+reproductive harm.&rdquo; Why only California? Do other states genuinely not know the dangers or do they
+just think California&rsquo;s being a wuss?</p>
+]]></content>
+  </entry>
+  
+</feed>

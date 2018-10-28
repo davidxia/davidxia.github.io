@@ -1,0 +1,463 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Math | David Xia]]></title>
+  <link href="https://www.davidxia.com/categories/math/atom.xml" rel="self"/>
+  <link href="https://www.davidxia.com/"/>
+  <updated>2018-10-28T12:11:58-04:00</updated>
+  <id>https://www.davidxia.com/</id>
+  <author>
+    <name><![CDATA[David Xia]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Proof of the Irrationality of √2]]></title>
+    <link href="https://www.davidxia.com/2012/04/proof-of-the-irrationality-of-square-root-of-2/"/>
+    <updated>2012-04-30T00:00:00-04:00</updated>
+    <id>https://www.davidxia.com/2012/04/proof-of-the-irrationality-of-square-root-of-2</id>
+    <content type="html"><![CDATA[<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    displayAlign: "left"
+  });
+</script>
+
+
+<script type="text/javascript"
+  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<p>The Pythagoreans, a wacky bunch of integer-worshipping Greeks, were so against the notion of
+irrational numbers that they supposedly murdered the poor soul who leaked their existence. In
+honor of <a href="http://en.wikipedia.org/wiki/Hippasus">Hippasus</a>, we&rsquo;ll prove that $$\sqrt{2}$$ is irrational, ie $$\sqrt{2}$$ can&rsquo;t be
+expressed $$\frac{p}{q}$$ for some $$p, q \in \mathbb{Z}$$. We&rsquo;ll do a proof by contradiction.</p>
+
+<p>Let&rsquo;s assume $$\sqrt{2}$$ is rational. Then $$\exists a, b, \in \mathbb{Z}: \sqrt{2} = \frac{a}{b}$$.
+$$a$$ and $$b$$ have a greatest common divisor and by dividing each by the
+gcd, we obtain an equivalent fraction $$\frac{p}{q}$$ that&rsquo;s in lowest terms, i.e.
+$$p, q \in \mathbb{Z}$$, $$q \neq 0$$, $$\gcd{p, q} = 1$$.</p>
+
+<!--more-->
+
+
+<p>$$
+\begin{aligned}
+\sqrt{2} &amp;= \frac{p}{q}\
+2 &amp;= \frac{p<sup>2</sup>}{q<sup>2</sup>}\
+2q<sup>2</sup> &amp;= p<sup>2</sup>
+\end{aligned}
+$$</p>
+
+<p>$$2q<sup>2</sup>$$ is even so $$p<sup>2</sup>$$ is even. Since only even numbers squared are even, this means $$p$$
+is even. So $$\exists r \in \mathbb{Z}: p = 2r$$.</p>
+
+<p>$$
+\begin{aligned}
+2q<sup>2</sup> &amp;= (2r)<sup>2</sup>\
+2q<sup>2</sup> &amp;= 4r<sup>2</sup>\
+q<sup>2</sup> &amp;= 2r<sup>2</sup>
+\end{aligned}
+$$</p>
+
+<p>But this contradicts $$\gcd{p, q} = 1$$. So $$\sqrt{2}$$ is irrational.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Euclid's Algorithm]]></title>
+    <link href="https://www.davidxia.com/2012/04/euclids-algorithm/"/>
+    <updated>2012-04-25T00:00:00-04:00</updated>
+    <id>https://www.davidxia.com/2012/04/euclids-algorithm</id>
+    <content type="html"><![CDATA[<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    displayAlign: "left"
+  });
+</script>
+
+
+<script type="text/javascript"
+  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<p>What&rsquo;s the greatest common divisor (gcd) of X and Y? It turns out there&rsquo;s a nice algorithm for
+calculating this – the Euclidean Algorithm.</p>
+
+<h3>Common Divisor Divides Integer Combination</h3>
+
+<p>Let $$(D, +, \cdot)$$ be an integral domain.</p>
+
+<p>Let $$c$$ be a common divisor of two elements $$a$$ and $$b$$ of $$D$$, i.e.:</p>
+
+<p>$$
+a, b, c \in D: c|a \wedge c|b
+$$</p>
+
+<p>Then:</p>
+
+<p>$$
+\forall p, q \in D: c|(pa + qb)
+$$</p>
+
+<p>Proof:</p>
+
+<p>$$
+\begin{aligned}
+c|a \implies &amp; \exists x \in D: a = xc\
+c|b \implies &amp; \exists y \in D: b = yc\
+&amp; \forall p, q \in D: pq + qb = pxc + qyc = (px + qy)c\
+\implies &amp; \exists z \in D: pa + qb = zc\
+\implies &amp; c | pa + qb
+\end{aligned}
+$$</p>
+
+<!--more-->
+
+
+<h3>GCD with Remainder</h3>
+
+<p>Let $$a, b \in \mathbb{Z}$$.</p>
+
+<p>Let $$p, r, \in \mathbb{Z}$$ such that $$a = qb + r$$.</p>
+
+<p>Then $$\gcd{a, b} = \gcd{b, r}$$.</p>
+
+<p>Proof:</p>
+
+<p>$$
+\begin{aligned}
+\gcd{a, b} &amp; \implies gcd{a, b}|a \land \gcd{a, b}|b\
+&amp; \implies \gcd{a, b} | a – qb\
+&amp; \implies \gcd{a, b} | r\
+&amp; \implies \gcd{a, b} \le \gcd{b, r }\
+\
+\gcd{b, r} &amp; \implies \gcd{b, r}|b \land \gcd{b, r}|r\
+&amp; \implies \gcd{b, r} | qb – r\
+&amp; \implies \gcd{b, r} | a\
+&amp; \implies \gcd{b, r} \le \gcd{a, b}
+\end{aligned}
+$$</p>
+
+<p>And so $$\gcd{a, b} = \gcd{b, r}$$.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Secretary Problem]]></title>
+    <link href="https://www.davidxia.com/2011/09/secretary-problem/"/>
+    <updated>2011-09-07T00:00:00-04:00</updated>
+    <id>https://www.davidxia.com/2011/09/secretary-problem</id>
+    <content type="html"><![CDATA[<ol>
+<li>There is a single position to fill.</li>
+<li>There are (n) candidates for the position, and the value of (n) is known.</li>
+<li>The candidates, if seen altogether, can be ranked from best to worst unambiguously.</li>
+<li>The candidates are interviewed sequentially in random order, with each order being equally
+likely.</li>
+<li>Immediately after an interview, the interviewed candidate is either accepted or rejected, and
+the decision is irrevocable.</li>
+<li>The decision to accept or reject a candidate can be based only on the relative ranks of the
+candidates interviewed so far.</li>
+<li>The objective is to select the best candidate with the highest possible probability.</li>
+</ol>
+
+
+<p>The optimal strategy is to reject a certain number of candidates. Call the number of rejected
+candidates (k-1), where (k) is the first candidate that won&rsquo;t be automatically rejected, ie that
+you&rsquo;ll actually consider. We will refer to this let (k−1) go by strategy as strategy (k). Let (M)
+be the best candidate among these (k-1). Then choose the first subsequent candidate that&rsquo;s better
+than (M).</p>
+
+<p>So if we&rsquo;re given (n), what (k) should we pick to give us the highest probability of picking the
+best candidate? What is this probability? What happens when (n) goes to infinity?</p>
+
+<p>Let (p_{n}(k)) be the probability of choosing the best candidate with (n) candidates using
+strategy (k).</p>
+
+<p><strong>Case (bf{n = 3})</strong></p>
+
+<p>We list the 6 permutations of ({1, 2, 3}). 1 is the best, 3 the worst.</p>
+
+<ul>
+<li>1, 2, 3</li>
+<li>1, 3, 2</li>
+<li>2, 1, 3</li>
+<li>2, 3, 1</li>
+<li>3, 1, 2</li>
+<li>3, 2, 1</li>
+</ul>
+
+
+<p>Possible values for (k) range from 1 to 3. If (k=1), we always pick the first candidate. If (k=3),
+we always pick the last. If (k=2), we always reject the first candidate and pick the first
+subsequent candidate that&rsquo;s better than the first. So if the first candidate was 2, we end up
+picking 1. If the first is 3, we end up picking 1 or 2 depending on which one we see first. If the
+first candidate is 1, we never find a better candidate and end up picking the last one. Tragic.</p>
+
+<p>Now we list (p_{n}(k)) for each value of (k):</p>
+
+<p>k</p>
+
+<p>(bf{p_{n}(k)})</p>
+
+<p>1</p>
+
+<p>1/3</p>
+
+<p>2</p>
+
+<p>&frac12;</p>
+
+<p>3</p>
+
+<p>1/3</p>
+
+<p>(k=2) is optimal.</p>
+
+<p><strong>Case (bf{n = 4})</strong></p>
+
+<p>There are 24 permutations of ({1, 2, 3, 4}). 1 is the best, 4 the worst.</p>
+
+<p>k</p>
+
+<p>(bf{p_{n}(k)})</p>
+
+<p>1</p>
+
+<p>6/24</p>
+
+<p>2</p>
+
+<p>11/24</p>
+
+<p>3</p>
+
+<p>10/24</p>
+
+<p>4</p>
+
+<p>6/24</p>
+
+<p>(k=2) is optimal.</p>
+
+<p><strong>Case (bf{n = 5})</strong></p>
+
+<p>There are 120 permutations of ({1, 2, 3, 4, 5}).</p>
+
+<p>k</p>
+
+<p>(bf{p_{n}(k)})</p>
+
+<p>1</p>
+
+<p>24/120</p>
+
+<p>2</p>
+
+<p>50/120</p>
+
+<p>3</p>
+
+<p>52/120</p>
+
+<p>4</p>
+
+<p>42/120</p>
+
+<p>5</p>
+
+<p>24/120</p>
+
+<p>(k=3) is optimal.</p>
+
+<p><strong>The general case</strong><br/>
+For n candidates, let (X_{n}) denote the number or arrival order of the best candidate, and let (S_{n, k}) denote the event of success (that we pick (X_{n})) for strategy (k). All orderings/permutations of the candidates are equally likely so (X_{n}) is uniformly distributed on ({1, 2, &hellip;, n}).</p>
+
+<p>There are two ways we can fail:</p>
+
+<ol>
+<li>the best candidate is among the first (k-1)</li>
+<li>the best candidate is not among the first (k-1) but is preceded by a candidate with a higher score than any in the first (k-1)</li>
+</ol>
+
+
+<p>Since we can only pick one candidate from (k) to (n) and these events are exclusive, the probability of picking the best candidate is the sum of the probabilities that the one we picked is indeed the best.</p>
+
+<p>So what&rsquo;s probability that we succeed by picking a particular candidate? It&rsquo;s the probability that this candidate is the best <em>multiplied</em> by the probability that we&rsquo;ll pick him. This second part is very important. It can be rephrased as the probability that the best candidate before him was in the first (k-1). He has to be the best <strong>and</strong> no one before him can be better than the ones we automatically rejected. Since (X_{n}) is uniformly distributed on ({1, 2, &hellip;, n}), the probability that any particular candidate is the best is (1/n).</p>
+
+<p>We calculate the probability of succeeding with candidate (k). The probability that he&rsquo;s the best candidate is (1/n). The probability that the best candidate before him is in the first (k-1) is 1. So the probability of succeeding with candidate (k) is (1/n cdot 1 = 1/n).</p>
+
+<p>We calculate the probability of succeeding with candidate (k 1). The probability that he&rsquo;s the best candidate is (1/n). The probability that the best candidate before him is in the first k-1 is (frac{k-1}{k}). So the probability of succeeding with candidate k is (1/n cdot frac{k-1}{k} = frac{k-1}{nk}).</p>
+
+<p>We calculate the probability of succeeding with candidate (k 2). The probability that he&rsquo;s the best candidate is (1/n). The probability that the best candidate before him is in the first (k-1) is (frac{k-1}{k 1}). So the probability of succeeding with candidate (k) is (1/n cdot frac{k-1}{k 1} = frac{k-1}{n(k 1)}).</p>
+
+<p>&hellip;</p>
+
+<p>We calculate the probability of succeeding with the last candidate. The probability that he&rsquo;s the best candidate is (1/n). The probability that the best candidate before him is in the first (k-1) is (frac{k-1}{n-1}). So the probability of succeeding with candidate (k) is (1/n cdot frac{k-1}{k 1} = frac{k-1}{n(n-1)}).</p>
+
+<p>We sum up these probabilities.</p>
+
+<p>begin{align<em>}<br/>
+p_{n}(k) &amp;= mathbb{P}(S_{n,k}) = frac{1}{n} frac{k-1}{nk} frac{k-1}{n(k 1)} ldots frac{k-1}{n(n-1)}\<br/>
+&amp;= frac{k-1}{n} sum_{j=k}^n frac{1}{j-1}<br/>
+end{align</em>}</p>
+
+<p>So what&rsquo;s the optimal strategy for (n=100)?</p>
+
+<p><img src="https://lh3.googleusercontent.com/-aNMqJMW3Two/TmkNpf00fJI/AAAAAAAABCE/S4_evnbLgBU/s800/secretary-graph.jpg" title="graph of p_100" alt="" /></p>
+
+<p>The maximum for (y) or (p_{100}(x)) is about (x=38) with (p_{100}(38) approx 0.37104). So given 100 candidates, we should reject the first 37.</p>
+
+<p><strong>Using Drake&rsquo;s Equation to estimate eligible individuals</strong><br/>
+The <a href="http://en.wikipedia.org/wiki/Drake_equation">Drake equation</a> is used to estimate the number of detectable extraterrestrial civilizations that might exist in the Milky Way.</p>
+
+<p>[<br/>
+N = R* cdot f_{p} cdot n_{e} cdot f_{l} cdot f_{i} cdot f_{c} cdot L<br/>
+]</p>
+
+<p>(N) = the number of civilizations in our galaxy with which communication might be possible<br/>
+(R*) = the average rate of star formation per year in our galaxy<br/>
+(f<em>{p}) = the fraction of those stars that have planets<br/>
+(n</em>{e}) = the average number of planets that can potentially support life per star that has planets<br/>
+(f<em>{l}) = the fraction of the above that actually go on to develop life at some point<br/>
+(f</em>{i}) = the fraction of the above that actually go on to develop intelligent life<br/>
+(f_{c}) = the fraction of civilizations that develop a technology that releases detectable signs of their existence into space<br/>
+(L) = the length of time for which such civilizations release detectable signals into space</p>
+
+<p>New York City <a href="http://en.wikipedia.org/wiki/Demographics_of_New_York_City">population 2010</a>: 8,175,133<br/>
+percentage women: 52.62%<br/>
+20-26 years old: 10.8%<br/>
+bachelor&rsquo;s degree: 15.8% <a href="http://www.city-data.com/city/New-York-New-York.html">http://www.city-data.com/city/New-York-New-York.html</a></p>
+
+<p><a href="http://newyork.areaconnect.com/statistics.htm">http://newyork.areaconnect.com/statistics.htm</a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[How to Install Python's Matplotlib on Mac OS X Lion]]></title>
+    <link href="https://www.davidxia.com/2011/08/how-to-install-pythons-matplotlib-on-mac-os-x-lion/"/>
+    <updated>2011-08-16T00:00:00-04:00</updated>
+    <id>https://www.davidxia.com/2011/08/how-to-install-pythons-matplotlib-on-mac-os-x-lion</id>
+    <content type="html"><![CDATA[<p>Argh. I just want to plot some charts in Python. Why does it have to be so hard?</p>
+
+<p>I tried to</p>
+
+<pre><code>easy_install matplotlib
+</code></pre>
+
+<p>but this fails with some byzantine errors that I can&rsquo;t make heads or tails with.</p>
+
+<!--more-->
+
+
+<p>So after going through the tedious process of figuring out what&rsquo;s wrong when a package
+installation fails (<a href="http://stackoverflow.com/questions/4092994/unable-to-install-matplotlib-on-mac-os-x">here</a>, <a href="http://stackoverflow.com/questions/6800488/installing-matplotlib-in-mac-osx-lion">here</a>, <a href="http://superuser.com/questions/242190/how-to-install-matplotlib-on-os-x">a here</a>), I finally found <a href="http://jholewinski.wordpress.com/2011/07/21/installing-matplotlib-on-os-x-10-7-with-homebrew/">a page</a> that promised
+to take me to the land of milk and honey.</p>
+
+<p>But my journey wasn&rsquo;t over. OS Lion choked on</p>
+
+<pre><code>python setup.py build
+</code></pre>
+
+<p>So then I found <a href="http://www.thisisthegreenroom.com/2011/installing-python-numpy-scipy-matplotlib-and-ipython-on-lion/">this very detailed page</a> on how to install Python, NumPy, SciPy, matplotlib
+and IPython on Lion.</p>
+
+<p>Everything&rsquo;s going well for a bit as I follow each step in order. And I get stuck on</p>
+
+<pre><code>pip install -e git https://github.com/scipy/scipy#egg=scipy-dev
+</code></pre>
+
+<p>with error &ldquo;no matches found&rdquo;. I looked around on the github repo for a tag with <code>egg=scipy-dev</code>
+but couldn&rsquo;t find anything.</p>
+
+<p>But I figured it out! Just build from source. This is always a last resort for me, because package
+managers make it so easy to install and uninstall. I&rsquo;m often scared of building from source
+because I see a flood of matrix green letters cascading down my black background terminal. And I
+have no idea what&rsquo;s going on. But this seems to be the only way for now until the packages are
+fixed.</p>
+
+<pre><code>git clone https://github.com/matplotlib/matplotlib
+cd matplotlib
+python setup.py build
+python setup.py install
+</code></pre>
+
+<p><strong>To check your installation:</strong></p>
+
+<pre><code class="python">import matplotlib
+print matplotlib.__version__
+print matplotlib.__file__
+</code></pre>
+
+<p>You should see version 1.1.0 (as of this writing) and path <code>/usr/local/Cellar/...</code></p>
+
+<p><strong>To Install Scipy</strong></p>
+
+<pre><code>git clone https://github.com/scipy/scipy
+cd scipy
+python setup.py build
+python setup.py install
+</code></pre>
+
+<pre><code class="python">python
+import scipy
+print scipy.__version__
+print scipy.__file__
+</code></pre>
+
+<p>You should see version 0.10.0 dev (as of this writing) and path <code>/usr/local/Cellar/...</code></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Letter Frequency Analysis]]></title>
+    <link href="https://www.davidxia.com/2011/06/letter-frequency-analysis/"/>
+    <updated>2011-06-18T00:00:00-04:00</updated>
+    <id>https://www.davidxia.com/2011/06/letter-frequency-analysis</id>
+    <content type="html"><![CDATA[<p>This page analyzes a text&rsquo;s letter frequency and is an emulation of <a href="http://rumkin.com/tools/cipher/frequency.php">Tyler Atkin&rsquo;s page</a>. One
+application is decoding a <a href="http://en.wikipedia.org/wiki/Caesar_cipher">Caesar cipher</a>. A Caesar or &ldquo;shift&rdquo; cipher is an encryption
+technique in which each letter in the unencrypted message is shifted over a certain number of
+positions. For example, A encodes into B and B into C. The cipher is named after Julius Caesar who
+reportedly used a shift cipher of three to communicate with his generals.</p>
+
+<p>So how do we break a Caesar cipher? One technique is to analyze its letter frequency. In English,
+certain letters like E and T occur more frequently than others like Q and Z. By getting the shape
+of the letter frequency distribution and comparing it to the known relative letter frequencies of
+the English language, we can sometimes determine if a Caesar cipher was used.</p>
+
+<!--more-->
+
+
+<p>Enter text into the box below to see its letter frequency. Click the plus and minus signs to alter
+the plaintext by changing the amount the alphabet is shifted.
+<span id="insert-sample">[Click here][3]</span> for a demo.</p>
+
+<h3>Ciphertext</h3>
+
+<p><textarea id="ciphertext" style="width:700px; height:100px;"></textarea></p>
+
+<p><span id="shift-buttons">
+  <a href="#" id="shift-up" style="text-decoration:none;font-size:22px;">+</a>
+  <a href="#" id="shift-down" style="text-decoration:none;font-size:22px;">-</a>
+</span></p>
+
+<h3>Shifted plaintext</h3>
+
+<div><span id="plaintext"></span></div>
+
+
+<h3>Result</h3>
+
+<p><span id="standard-freqs"></span><br />
+<span id="output" style="position:absolute;top:0;z-index:-1;"></span>
+</div></p>
+
+
+
+
+]]></content>
+  </entry>
+  
+</feed>

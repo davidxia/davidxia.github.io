@@ -1,0 +1,464 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Programming & Software | David Xia]]></title>
+  <link href="https://www.davidxia.com/categories/programming-and-software/atom.xml" rel="self"/>
+  <link href="https://www.davidxia.com/"/>
+  <updated>2018-10-28T12:11:58-04:00</updated>
+  <id>https://www.davidxia.com/</id>
+  <author>
+    <name><![CDATA[David Xia]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Useful Site for TLS Server Test]]></title>
+    <link href="https://www.davidxia.com/2017/05/useful-site-for-testing-tls-server-configuration/"/>
+    <updated>2017-05-20T12:49:20-04:00</updated>
+    <id>https://www.davidxia.com/2017/05/useful-site-for-testing-tls-server-configuration</id>
+    <content type="html"><![CDATA[<p>My home server&rsquo;s hard disk&rsquo;s partition map was somehow corrupted. So I&rsquo;m serving this website
+from <a href="https://m.do.co/c/74c553045962">Digital Ocean</a> for now instead of my apartment. While rewriting the nginx server configs,
+I found this useful site that <a href="https://www.ssllabs.com/ssltest/index.html">tests your server&rsquo;s TLS configuration</a>. It&rsquo;ll give you a grade
+and warn you of weak encryption, key exchange protocols, cipher suites, etc.</p>
+
+<p><a href="https://mozilla.github.io/server-side-tls/ssl-config-generator/">Mozilla&rsquo;s TLS configuration generator</a> is useful for providing secure defaults.</p>
+
+<p>I&rsquo;m proud to say this site has an A.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[My QCon NYC 2016 Slides - Reach Production Faster With Containers in Testing]]></title>
+    <link href="https://www.davidxia.com/2016/06/my-qcon-nyc-2016-slides/"/>
+    <updated>2016-06-20T17:15:49-04:00</updated>
+    <id>https://www.davidxia.com/2016/06/my-qcon-nyc-2016-slides</id>
+    <content type="html"><![CDATA[<p>Here are the slides from my <a href="https://qconnewyork.com/ny2016/presentation/reaching-production-faster-with-containers-in-testing">QCon NYC 2016 talk titled &ldquo;Reach Production Faster with Containers in
+Testing.&rdquo;</a> in various formats. <span xmlns:dct="http://purl.org/dc/terms/" property="dct:title">All formats of &ldquo;Reach Production Faster with Containers in Testing&rdquo;</span> by <a xmlns:cc="http://creativecommons.org/ns#" href="https://www.davidxia.com/2016/06/my-qcon-nyc-2016-slides-reach-production-faster-with-containers-in-testing/" property="cc:attributionName" rel="cc:attributionURL">David Xia</a> are licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.</p>
+
+<iframe src="//www.slideshare.net/slideshow/embed_code/key/p1uEfRmocwplbk" width="595" height="485" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" style="border:1px solid #CCC; border-width:1px; margin-bottom:5px; max-width: 100%;" allowfullscreen> </iframe>
+
+
+<p> <div style="margin-bottom:5px"> <strong> <a href="//www.slideshare.net/DavidXia/qcon-nyc-2016-reach-production-faster-with-containers-in-testing" title="QCon NYC 2016: Reach Production Faster with Containers in Testing" target="_blank">QCon NYC 2016: Reach Production Faster with Containers in Testing</a> </strong> from <strong><a href="//www.slideshare.net/DavidXia" target="_blank">David Xia</a></strong> </div></p>
+
+<p>More formats here:</p>
+
+<ul>
+<li><a href="https://drive.google.com/file/d/0By_v8MtsRMKkSloyT3gxalRuYjQ/view?usp=sharing">PDF</a></li>
+<li><a href="https://drive.google.com/file/d/0By_v8MtsRMKkSm9BVW5uWFR5TFk/view?usp=sharing">Keynote</a></li>
+<li><a href="https://drive.google.com/file/d/0By_v8MtsRMKkRkpQWk5paUZOUW8/view?usp=sharing">PowerPoint</a></li>
+</ul>
+
+
+<p><img class="center <a" src="href="https://i.imgur.com/w0P47Ugl.jpg">https://i.imgur.com/w0P47Ugl.jpg</a>&#8221; width=&#8221;640&#8221; height=&#8221;619&#8221;></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[PGP Best Practices - How to Create Strong and Secure Keys]]></title>
+    <link href="https://www.davidxia.com/2015/05/pgp-best-practices-how-to-create-strong-and-secure-keys/"/>
+    <updated>2015-05-02T00:00:00-04:00</updated>
+    <id>https://www.davidxia.com/2015/05/pgp-best-practices-how-to-create-strong-and-secure-keys</id>
+    <content type="html"><![CDATA[<p>I <a href="https://www.davidxia.com/2013/09/intro-to-public-key-cryptography-and-gpg/" title="Intro to public key cryptography and GPG">wrote about PGP</a> a while ago and showed how to generate a key. Since then I&rsquo;ve managed to do what
+you should never, ever do: forget your key&rsquo;s passphrase. And I didn&rsquo;t generate a revocation cert to
+boot. So I was screwed and had to generate a new one. Forunately not many, and by &ldquo;not many&rdquo; I mean
+zero, people were using that public key which I had uploaded to public keyservers.</p>
+
+<p>I generated a new one and spent a lot of time reading about PGP best practices. Here&rsquo;s what I
+learned.</p>
+
+<!-- more -->
+
+
+<h2>How to Generate Strong Keys and Secure Them</h2>
+
+<ul>
+<li>Use GnuPG version &gt;= 1.4 to make it easier to generate and manage keys
+
+<ul>
+<li>You can <code>brew install gpg2</code> on a Mac</li>
+</ul>
+</li>
+<li>Append the following to <code>~/.gnupg/gpg.conf</code> (or whatever the latest strongest encryption
+algorithms are):</li>
+</ul>
+
+
+<pre><code>personal-digest-preferences SHA256
+cert-digest-algo SHA256
+default-preference-list SHA512 SHA384 SHA256 SHA224 AES256 AES192 AES CAST5 ZLIB BZIP2 ZIP Uncompressed
+</code></pre>
+
+<ul>
+<li><code>gpg --gen-key</code></li>
+<li>Choose 1 at this prompt</li>
+</ul>
+
+
+<pre><code>Please select what kind of key you want:
+   (1) RSA and RSA (default)
+   (2) DSA and Elgamal
+   (3) DSA (sign only)
+   (4) RSA (sign only)
+</code></pre>
+
+<ul>
+<li>Set an expiration date of at most two years (you can always extend it)</li>
+<li>Set a strong passphrase that you&rsquo;ll remember!</li>
+<li>Use the maximum number of bits for your key</li>
+<li>Generate revocation cert(s)
+
+<ul>
+<li><code>gpg --gen-revoke &lt;key id&gt;</code> key id can be the portion of the fingerprint you see in
+<code>gpg --list-keys</code> or the uid if it&rsquo;s unique</li>
+</ul>
+</li>
+<li>Use subkeys for encryption (this is automatically done if you choose 1 above) and another for
+signing. The following was copied from the <a href="https://wiki.debian.org/Subkeys" title="Debian wiki - subkeys">Debian wiki</a>.
+
+<ul>
+<li>Here&rsquo;s the best paragraph from that wiki page:</li>
+</ul>
+</li>
+</ul>
+
+
+<p><blockquote><p>You should keep your private master key very, very safe. However, keeping all your keys extremely
+safe is inconvenient: every time you need to sign a new package upload, you need to copy the
+packages onto suitable portable media, go into your sub-basement, prove to the armed guards that
+you&rsquo;re you by using several methods of biometric and other identification, go through a deadly
+maze, feed the guard dogs the right kind of meat, and then finally open the safe, get out the
+signing laptop, and sign the packages. Then do the reverse to get back up to your Internet
+connection for uploading the packages.</p><footer><strong>subkeys <a href="https://wiki.debian.org/Subkeys">https://wiki.debian.org/Subkeys</a></strong></footer></blockquote></p>
+
+<ul>
+<li><code>gpg --edit-key &lt;your master key id&gt;</code></li>
+<li>At the prompt, enter <code>addkey</code></li>
+<li>Enter passphrase</li>
+<li>Choose the &ldquo;RSA (sign only)&rdquo; key type and pick the maximum bits</li>
+<li>Choose an expiry date</li>
+<li><code>save</code></li>
+<li>Backup the <code>~/.gnupg</code> directory and store it somewhere secure and offline.
+Do this before deleting the private master key in the next step.</li>
+<li>Check <code>gpg --export-secret-key &lt;your master key id&gt; | gpg --list-packets</code> does not show
+<code>gnu-dummy 52K, algo: 0, ...</code>. This means your private master key is there.</li>
+<li><code>gpg --export-secret-subkeys &lt;your master key id&gt; &gt; secret-subkeys</code></li>
+<li><code>gpg --delete-secret-key &lt;your master key id&gt;</code></li>
+<li><code>gpg --import secret-subkeys</code></li>
+<li>Verify that <code>gpg -K</code> shows a &ldquo;sec#&rdquo; instead of just &ldquo;sec&rdquo; for your private key. That means the
+secret key is not really there. You can see the presence of a dummy OpenPGP packet if you run
+<code>gpg --export-secret-key &lt;your master key id&gt; | gpg --list-packets</code>.</li>
+<li><code>gpg --keyserver some.keyserver.com --send-keys &lt;your master key id&gt;</code> to publish it to the world</li>
+</ul>
+
+
+<h2>How to Revoke</h2>
+
+<p>If you ever need to revoke your keys,</p>
+
+<pre><code>gpg --import path/to/revocation-cert
+gpg --keyserver some.keyserver.com --send-key &lt;key id&gt;
+</code></pre>
+
+<h2>How to Sign Other People&rsquo;s keys</h2>
+
+<p>Sign their key with a certain level of trust.</p>
+
+<pre><code>gpg -u david@davidxia.com --sign-key --ask-cert-level harvey@harveyxia.com
+</code></pre>
+
+<p>Export the signed key and email it back to the signee.</p>
+
+<pre><code>gpg --armor --output 00AA11BB-signedBy-1A2B3C4D.asc --export 00AA11BB
+</code></pre>
+
+<p>The signee needs to import the signed key</p>
+
+<pre><code>gpg --import 1A2B3C4D-signedBy-00AA11BB.asc
+</code></pre>
+
+<p>and send your certification to the keyserver.</p>
+
+<pre><code>gpg --send-key 1A2B3C4D
+</code></pre>
+
+<h2>Encrypting messages</h2>
+
+<pre><code>gpg -u david@davidxia.com --recipient harvey@harveyxia.com --output msg.asc --encrypt msg
+</code></pre>
+
+<p>Recipients decrypt with <code>gpg -u harvey@harveyxia.com --output msg --decrypt msg.asc</code>.</p>
+
+<h2>Signing messages</h2>
+
+<pre><code>gpg -u david@davidxia.com --output msg.sig --detach-sign msg
+</code></pre>
+
+<p>Recipients verify with <code>gpg --verify msg.sig msg</code>. They should see &ldquo;Good signature from&hellip;&rdquo;</p>
+
+<h2>References</h2>
+
+<ul>
+<li>a super readable introduction titled <a href="http://www.pgpi.org/doc/pgpintro/" title="How PGP Works">&ldquo;How PGP Works&rdquo;</a></li>
+<li>More info <a href="http://ekaia.org/blog/2009/05/10/creating-new-gpgkey/" title="Creating a new GPG Key">here</a>, <a href="https://alexcabal.com/creating-the-perfect-gpg-keypair/" title="Creating the Perfect GPG Keypair">here</a>, and <a href="https://help.riseup.net/en/security/message-security/openpgp/best-practices" title="OpenPGP Best Practices">here</a> on best practices</li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[How to Turn the Internet Upside Down]]></title>
+    <link href="https://www.davidxia.com/2015/03/how-to-turn-the-internet-upside-down/"/>
+    <updated>2015-03-15T00:00:00-04:00</updated>
+    <id>https://www.davidxia.com/2015/03/how-to-turn-the-internet-upside-down</id>
+    <content type="html"><![CDATA[<p>I read <a href="http://www.ex-parrot.com/pete/upside-down-ternet.html" title="upside down ternet">this web page</a> many years ago that described how someone used their unencrypted WiFi
+network to prank neighbors by turning all images upside down or making them blurry or simply
+redirecting them to cats. I always wanted to do it myself, but I didn&rsquo;t have the required knowledge
+or hardware until now.</p>
+
+<p>In <a href="/2015/03/how-to-install-dd-wrt-on-an-asus-rt-n16-router/" title="How to install DD-WRT on on Asus RT-N16 router">my previous post</a>, I wrote about how I installed DD-WRT onto my <a href="http://www.amazon.com/gp/product/B00387G6R8/ref=as_li_tl?ie=UTF8&amp;camp=1789&amp;creative=390957&amp;creativeASIN=B00387G6R8&amp;linkCode=as2&amp;tag=easiamus00-20&amp;linkId=6TECRA3HNZATDC4U" title="Asus RT-N16">Asus RT-N16 wireless
+router</a>. You might be able to do this prank with the factory default firmware for your router.
+Your firmware needs to let you do the steps in <a href="http://www.alexlaird.com/2013/03/dd-wrt-guest-wireless/" title="DD-WRT guest wireless">this awesome tutorial</a> to create a separate
+guest WiFi network and add custom iptables rules. If it doesn&rsquo;t, get a better router or flash
+better firmware.</p>
+
+<!-- more -->
+
+
+<p>Install the squid3 proxy caching server on a computer on the LAN using <a href="https://help.ubuntu.com/community/Upside-Down-TernetHowTo" title="Ubuntu Upside down ternet HowTo">this tutorial from
+Ubuntu</a>. Instead of using the Apache web server and that Perl script (which didn&rsquo;t work for me),
+I used Nginx and wrote an analogous Python script. I skipped their &ldquo;Networking Setup&rdquo; section
+because I need to setup iptables rules in my router to redirect all traffic from the guest WiFi to
+the squid proxy host. I setup a new subdomain &ldquo;newsubdomain.davidxia.com&rdquo; to point to the
+proxy host and added the Nginx configuration for it as shown below.</p>
+
+<pre><code class="python Python script for squid url_rewrite_program">#!/usr/bin/env python
+
+import os
+import subprocess
+import sys
+import urllib
+import uuid
+
+
+IMG_DIR = '/var/www/images/'
+BASE_URL = 'http://newsubdomain.davidxia.com/'
+
+
+def modify_url(line):
+    list = line.split(' ')
+    # The first element of the list is the requested URL.
+    old_url = list[0]
+
+    # The returned needs to contain a '\n' at the end.
+    # A '\n' by itself means do not rewrite the URL.
+    new_url = '\n'
+
+    # If the requested URL is a JPG, save it to a file on the proxy host, flip it upside down,
+    # and give the user the URL to the upside down image. :p
+    if old_url.lower().endswith('.jpg'):
+        img_file_name = str(uuid.uuid4()) + '.jpg'
+        img_file_path = os.path.join(IMG_DIR, img_file_name)
+        try:
+            urllib.urlretrieve(old_url, img_file_path)
+            subprocess.check_output(['/usr/bin/mogrify', '-flip', img_file_path])
+            new_url = BASE_URL + img_file_name + '\n'
+        except urllib.ContentTooShortError:
+            # TODO log this and return original URL
+            pass
+        except subprocess.CalledProcessError:
+            # TODO log and return original URL and delete the image file
+            pass
+    return new_url
+
+while True:
+    # The format of the line read from stdin is
+    # URL ip-address/fqdn ident method, e.g. http://saini.co.in 172.17.8.175/saini.co.in - GET -
+    line = sys.stdin.readline().strip()
+
+    # new_url is a simple URL only, e.g. http://fedora.co.in
+    new_url = modify_url(line)
+    sys.stdout.write(new_url)
+    sys.stdout.flush()
+</code></pre>
+
+<pre><code class="plain Nginx config">server {
+  server_name images.davidxia.com;
+  root /var/www/images;
+
+  access_log /var/log/nginx/images.davidxia.com-access.log;
+  error_log /var/log/nginx/images.davidxia.com-error.log;
+
+  index index.html;
+
+  location ~* \.(?:gif|jpe?g|png)$ {
+    expires 30d;
+    add_header Pragma public;
+    add_header Cache-Control "public";
+  }
+}
+</code></pre>
+
+<p>In the <a href="https://help.ubuntu.com/community/Upside-Down-TernetHowTo#Configuration" title="Ubuntu Upside down ternet HowTo - configuration">squid configuration section</a>, be sure to have <code>acl localnet src &lt;network range&gt;</code> where
+<code>network range</code> is 192.168.2.1/24 if you used the aforementioned tutorial. Make sure you can
+make HTTP requests to the proxy on localhost:3128 in order to debug. If you can&rsquo;t, you might need to
+add extra ACL rules to the squid conf file (something like <code>http_access allow localnet</code>).</p>
+
+<p>I found <a href="http://www.dd-wrt.com/wiki/index.php/Squid_Transparent_Proxy#Proxy_Server_on_the_LAN_Subnet" title="squid transparent proxy - proxy server on the LAN subnet">instructions</a> to configure the router&rsquo;s firewall rules but realized my setup
+was different. I don&rsquo;t want to proxy traffic from my regular WiFi subnet 192.168.1.1/24 to my proxy
+host on 192.168.1.134 but instead from 192.168.2.1/24 to 192.168.1.134. Use these rules:</p>
+
+<pre><code class="plain iptables rules for router"># Allow traffic coming into interface br0 from proxy host 192.168.1.134 to exit interface br1 to any destination IP
+iptables -I FORWARD -i br0 -o br1 -s 192.168.1.134 -j ACCEPT
+
+# Allow traffic coming into interface br1 from any IP to exit interface br1 to proxy host 192.168.1.134
+# make stricter later
+iptables -I FORWARD -i br1 -o br0 -d 192.168.1.134 -j ACCEPT
+
+PROXY_IP=192.168.1.134
+PROXY_PORT=3128
+LAN_IP=`nvram get br1_ipaddr`
+LAN_NET=$LAN_IP/`nvram get br1_netmask`
+
+# Modify the destination address of packets as soon as they come in.
+# Change their destination address to the squid proxy on 192.168.1.134:3128.
+# Only change packets matching these criteria: came into the br1 interface, are TCP packets, destined for port 80.
+# This redirects HTTP traffic from the guest WiFi to the squid proxy.
+iptables -t nat -A PREROUTING -i br1 -p tcp --dport 80 -j DNAT --to $PROXY_IP:$PROXY_PORT
+
+# Modify the destination address of packets as they are about to go out.
+# Change their destination address to the br1 interface's IP, ie the virtual Wifi's router IP of 192.168.2.1.
+# Only change packets matching these criteria: leaving the br1 interface, have a source address
+# from the 192.168.2.1/24 subnet, are TCP packets, destined for the proxy IP.
+# This makes the squid proxy return HTTP requests back to the guest Wifi, I think...
+iptables -t nat -I POSTROUTING -o br1 -s $LAN_NET -d $PROXY_IP -p tcp -j SNAT --to $LAN_IP
+
+# Allow traffic coming into the br1 interface and leaving br0 with a source IP from the guest WiFi.
+# Packets have to be TCP and destined for the squid proxy's port.
+iptables -I FORWARD -i br1 -o br0 -s $LAN_NET -d $PROXY_IP -p tcp --dport $PROXY_PORT -j ACCEPT
+</code></pre>
+
+<p>Result!</p>
+
+<blockquote class="twitter-tweet" lang="en"><p>I just turned the Internet upside down! I&#39;m so proud of myself. <a href="http://t.co/FhqI0qPP1j">pic.twitter.com/FhqI0qPP1j</a></p>&mdash; David Xia (@davidxia_) <a href="https://twitter.com/davidxia_/status/576614894767890432">March 14, 2015</a></blockquote>
+
+
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[How to Install DD-WRT on an Asus RT-N16 Router]]></title>
+    <link href="https://www.davidxia.com/2015/03/how-to-install-dd-wrt-on-an-asus-rt-n16-router/"/>
+    <updated>2015-03-13T00:00:00-04:00</updated>
+    <id>https://www.davidxia.com/2015/03/how-to-install-dd-wrt-on-an-asus-rt-n16-router</id>
+    <content type="html"><![CDATA[<p>I&rsquo;ve known about <a href="http://en.wikipedia.org/wiki/DD-WRT" title="DD-WRT">DD-WRT</a> for a while and always wanted to play with it (partly because I
+thought it was needed to do <a href="http://www.ex-parrot.com/pete/upside-down-ternet.html" title="upside down ternet">this prank of turning the Internet upside down</a>).
+My router is leased from Time Warner and probably not supported by DD-WRT.
+So I bought an <a href="http://www.amazon.com/gp/product/B00387G6R8/ref=as_li_tl?ie=UTF8&amp;camp=1789&amp;creative=390957&amp;creativeASIN=B00387G6R8&amp;linkCode=as2&amp;tag=easiamus00-20&amp;linkId=6TECRA3HNZATDC4U" title="Asus RT-N16">Asus RT-N16 router</a> and learned how to flash DD-WRT firmware onto it. The process
+was easier than I expected but required me to read a lot and be careful.
+I sifted through mazes of documentation, blog posts, and forum threads to find the most recent
+and correct ones. I was afraid of bricking my brand new $100 Asus, but I succeeded.
+Here&rsquo;s how you can too.</p>
+
+<h2>What is DD-WRT and why would you install it?</h2>
+
+<p>DD-WRT is open-source Linux-based firmware that can replace and enhance the factory default
+firmware on many wireless routers. Once you install it, you can SSH, overclock the CPU, setup
+advanced access restrictions, change the firewall, etc.</p>
+
+<!-- more -->
+
+
+<h2>How to install DD-WRT onto an Asus RT-N16 wireless router</h2>
+
+<p>Follow <a href="http://www.dd-wrt.com/wiki/index.php/Asus_RT-N16" title="DD-WRT's installation guide for Asus RT-N16">this guide written specifically for the Asus RT-N16</a> and
+flash the initial firmware <a href="ftp://ftp.dd-wrt.com/others/eko/BrainSlayer-V24-preSP2/2010/08-12-10-r14929/broadcom_K26/dd-wrt.v24-14929_NEWD-2_K2.6_mini_RT-N16.trx" title="DD-WRT initial firmware">dd-wrt.v24-14929_NEWD-2_K2.6_mini_RT-N16.trx</a>
+<a href="http://www.dd-wrt.com/wiki/index.php/Asus_RT-N16#How_it_is_done" title="DD-WRT's installation guide for Asus RT-N16">here in step 3</a>. Then in step 7, flash the <a href="http://www.dd-wrt.com/wiki/index.php/What_is_DD-WRT%3F#K2.6_Build_Features" title="DD-WRT K2.6 build features">dd-wrt.v24-18024_NEWD-2_K2.6_mega</a> build
+to get most of the features.</p>
+
+<p>Read everything carefully and make sure to follow all the steps. If you open your router&rsquo;s web UI
+and see the below, give yourself a pat on the back.</p>
+
+<p><img class="center <a" src="href="http://i.kinja-img.com/gawker-media/image/upload/s--K37zgSAg--/c_fit,fl_progressive,q_80,w_636/18o8kyq5au0xojpg.jpg">http://i.kinja-img.com/gawker-media/image/upload/s&#8211;K37zgSAg&#8211;/c_fit,fl_progressive,q_80,w_636/18o8kyq5au0xojpg.jpg</a>&#8221; width=&#8221;636&#8221; height=&#8221;403&#8221;></p>
+
+<h2>Setup SSH access to router</h2>
+
+<p>Go to the web UI. Click on the &ldquo;Services&rdquo; tab and scroll down to the &ldquo;Secure Shell&rdquo; section.
+Enable SSHd and add your SSH public key.</p>
+
+<p><img class="center <a" src="href="https://i.imgur.com/5BFkP24.png">https://i.imgur.com/5BFkP24.png</a>&#8221; width=&#8221;677&#8221; height=&#8221;217&#8221;></p>
+
+<p>Now you can <code>ssh root@&lt;router's IP&gt;</code>.</p>
+
+<h2>Mount a USB hard drive for network-attached storage</h2>
+
+<p>I quickly discovered, thanks to my colleague Andrey, that the Asus has a read-only file system.
+The only way to write anything to it is to mount an external hard disk. Luckily USB disks are
+cheap, this can act as a <a href="http://en.wikipedia.org/wiki/Network-attached_storage" title="network-attached storage">file server/network-attached storage</a>, and it&rsquo;s easy to do.</p>
+
+<p>I bought a ~$25 <a href="http://www.amazon.com/gp/product/B007RB0P2I/ref=as_li_tl?ie=UTF8&amp;camp=1789&amp;creative=390957&amp;creativeASIN=B007RB0P2I&amp;linkCode=as2&amp;tag=easiamus00-20&amp;linkId=OS37UXM3XSWIXCR5" title="SanDisk Cruzer Glide USB 64GB Flash Drive">64GB Sandisk USB</a>. The first step is to <a href="http://www.dd-wrt.com/wiki/index.php/How_to_-_Format_and_Partition_External_Storage_Device" title="How To - Format And Partition External Storage Device">format and partition</a> it
+(<a href="http://www.dd-wrt.com/wiki/index.php/How_to_-_Format_and_Partition_External_Storage_Device#Linux_Command_Line_Method_.28preferred.29" title="How To - Format And Partition External Storage Device: Linux Command Line Method (preferred)">I used a Linux machine</a>). I didn&rsquo;t create the &ldquo;jffs&rdquo; partition because I had a USB instead of
+a multimedia card or &ldquo;MMC&rdquo;.</p>
+
+<p><div class='image center <a'><img  src="href="http://www.hacker9.com/wp-content/uploads/2010/11/How-to-recover-lost-password-of-Memory-Card-MMC-micro-SD-adapter.jpg">http://www.hacker9.com/wp-content/uploads/2010/11/How-to-recover-lost-password-of-Memory-Card-MMC-micro-SD-adapter.jpg</a>&#8221; width=&#8221;215&#8221; height=&#8221;235&#8221; title=&#8221;example MMC&#8221; ><div class='caption'>example MMC</div></div></p>
+
+<p>Plug the USB into the Asus router and follow <a href="http://www.dd-wrt.com/wiki/index.php/USB_storage#USB_Guide_for_v24_and_v24SP1_Mega_of_DD-WRT" title="USB storage - USB Guide for v24 and v24SP1 Mega of DD-WRT">these steps here</a>. You&rsquo;ll know you&rsquo;ve mounted the
+USB correctly when you can <code>touch /opt/test</code> if <code>/opt</code> was your mount point.</p>
+
+<h2>Install extra software using ipkg</h2>
+
+<p>For someone who&rsquo;s used to advanced shells like <a href="http://fishshell.com/" title="fish shell">fish</a> and zsh, I was sad to see I was
+always root (is there a way to create more user accounts?) running sh. There&rsquo;s vi but no vim,
+no <code>--help</code> or man pages for commands, and not even error messages (you have to <code>echo $?</code>). So I
+followed <a href="http://www.dd-wrt.com/wiki/index.php/USB_storage#Option_6.2_-_Extra_software_the_Optware_way" title="USB storage - extra software the optware way">these steps</a> to install ipkg, the <a href="http://en.wikipedia.org/wiki/Ipkg" title="Wikipedia ipkg">Itsy Package Management System</a>, into <code>/opt</code>.</p>
+
+<p>I didn&rsquo;t bother creating <code>/opt/etc/profile</code>. I just use <code>ipkg-opt</code> instead of the built-in <code>ipkg</code>,
+and things seem to work. I installed the following packages:</p>
+
+<pre><code>root@DD-WRT:~# ipkg-opt list_installed
+ipkg-opt - 0.99.163-10 - The Itsy Package Manager
+ncurses - 5.7-3 - NCurses libraries
+uclibc-opt - 0.9.28-13 - micro C library for embedded Linux systems
+vim - 7.3-2 - Yet another version of the vi editor.
+Successfully terminated.
+</code></pre>
+
+<p>As I&rsquo;m writing this, I see that ipkg has been discontinued and that <a href="http://en.wikipedia.org/wiki/Opkg" title="Wikipedia opkg">opkg</a> supersedes it.
+I haven&rsquo;t tried out opkg yet.</p>
+
+<p>The background behind the limited functionality of DD-WRT&rsquo;s operating system is that it&rsquo;s built on
+top of <a href="http://en.wikipedia.org/wiki/BusyBox" title="Wikipedia BuxyBox">BusyBox</a>, a single executable providing a very stripped-down version of Linux.
+BusyBox was specifically created for <a href="http://en.wikipedia.org/wiki/Embedded_operating_system" title="Wikipedia embedded operating systems">embedded operating systems</a>.</p>
+
+<h2>Known bugs in DD-WRT v24-sp2 mega revision 18024</h2>
+
+<ul>
+<li>the router&rsquo;s <a href="http://www.dd-wrt.com/phpBB2/viewtopic.php?t=148539&amp;sid=d550bc235bccd0ea8593df413c3439b7" title="New official dd-wrt build - 18024 is out (BS)">SSH keys change everytime it reboots</a></li>
+<li>NAT loopback doesn&rsquo;t work. I worked around it with the iptables rules below.</li>
+</ul>
+
+
+<pre><code>insmod ipt_mark
+insmod xt_mark
+iptables -t mangle -A PREROUTING -i ! `get_wanface` -d `nvram get wan_ipaddr` -j MARK --set-mark 0xd001
+iptables -t nat -A POSTROUTING -m mark --mark 0xd001 -j MASQUERADE
+</code></pre>
+
+<p>This is <a href="http://www.alexlaird.com/2013/04/dd-wrt-nat-loopback-issue/" title="DD-WRT NAT loopback issue">explained here</a> where the writer claims allowing NAT loopback doesn&rsquo;t make your
+internal network less secure. I think the reason for the disabled NAT loopback is to prevent
+<a href="http://en.wikipedia.org/wiki/DNS_rebinding" title="Wikipedia DNS rebinding">DNS rebinding attacks</a>. This DefCon talk by Craig Heffner explains it nicely.</p>
+
+<iframe class="fill-width" width="560" height="315" src="https://www.youtube-nocookie.com/embed/Zazk0plSoQg?rel=0" frameborder="0" allowfullscreen></iframe>
+
+
+<p>There&rsquo;s an option to enable &ldquo;No DNS rebind&rdquo; in DD-WRT though. Maybe that prevents this
+vulnerability?</p>
+]]></content>
+  </entry>
+  
+</feed>
