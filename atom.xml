@@ -4,7 +4,7 @@
   <title><![CDATA[David Xia]]></title>
   <link href="https://www.davidxia.com/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2018-10-28T12:11:58-04:00</updated>
+  <updated>2018-11-11T17:27:11-05:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -12,6 +12,44 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Using Upstream Kubernetes Java Models Is Much Better Than Raw YAML]]></title>
+    <link href="https://www.davidxia.com/2018/11/using-upstream-kubernetes-java-models-is-much-better-than-raw-yaml/"/>
+    <updated>2018-11-11T17:11:38-05:00</updated>
+    <id>https://www.davidxia.com/2018/11/using-upstream-kubernetes-java-models-is-much-better-than-raw-yaml</id>
+    <content type="html"><![CDATA[<p>It&rsquo;s been a while since I blogged about something tech related, but I had some
+free time today.</p>
+
+<p>Recently, I&rsquo;ve been trying to refactor an internal Spotify deployment tool my
+team built and maintains. This deployment tool takes Kubernetes (k8s) YAML
+manifests, changes them, and essentially runs <code>kubectl apply</code>. We add metadata
+to the k8s manifests like labels.</p>
+
+<p>Right now this tool receives the input YAML as strings, converts them to
+Jackson ObjectNodes, and manipulates those ObjectNodes. The disadvantage of
+this is that there&rsquo;s no k8s type-safety. We might accidentally add a field to a
+Deployment that isn&rsquo;t valid or remove something from a Service that&rsquo;s required.</p>
+
+<p>My refactor uses upstream k8s model classes from <a href="https://github.com/kubernetes-client/java">kubernetes-client/java</a>
+which are themselves <a href="https://github.com/kubernetes-client/gen">generated</a> from the official Swagger spec. Here&rsquo;s a
+helpful Yaml utility class that deserializes YAML strings into concrete classes
+and can also serialize them back into YAML strings. So helpful.</p>
+
+<p>Unfortunately, there&rsquo;s some bugs in the YAML (de)serialization that prevent me
+from finishing this effort.</p>
+
+<ul>
+<li><a href="https://github.com/kubernetes-client/java/pull/417">kubernetes-client/java</a></li>
+<li><a href="https://github.com/kubernetes-client/java/issues/431">kubernetes-client/java</a></li>
+<li><a href="https://github.com/kubernetes-client/java/issues/340">kubernetes-client/java</a></li>
+</ul>
+
+
+<p>Nonetheless, it&rsquo;ll be much nicer to change k8s resources in a type-safe way
+instead of parsing and rewriting raw YAML strings.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Internet Meme Role Models]]></title>
@@ -895,192 +933,6 @@ crushed me.</p>
 
 
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Growing Together and Apart]]></title>
-    <link href="https://www.davidxia.com/2016/05/growing-together-and-apart/"/>
-    <updated>2016-05-13T10:09:28-04:00</updated>
-    <id>https://www.davidxia.com/2016/05/growing-together-and-apart</id>
-    <content type="html"><![CDATA[<p><em>Thanks to Nanette for editing and agreeing to let me publish this and to my friends who gave me
-feedback.</em></p>
-
-<p>&ldquo;It&rsquo;s almost 2016. Let&rsquo;s reset our relationship next year. OK?&rdquo; Nanette asked me two days before
-Christmas Eve. I couldn&rsquo;t bring myself to say yes. I felt I would be lying.</p>
-
-<p>I told Nanette we should break up. We spent the next two days crying until our eyes became red and
-puffy. I had bought bus tickets for the night of Christmas Eve to travel back to my family in
-Boston. It was cold and pouring that evening, but Nanette still accompanied me to the bus stop. I
-got on the bus and asked her to go back home. She stood outside in the rain waiting for the driver
-to pull out while looking at me through the windows. It broke my heart to see her standing on the
-sidewalk, her tears mixing with the rain.</p>
-
-<!--more-->
-
-
-<p>We kept texting each other while we waited for the bus to leave. Afterwards, she wrote that she
-was hoping I would get out at the last minute and spend one more night with her. I texted back
-that she deserved someone who would do that unflinchingly. I didn&rsquo;t think I could live up to that.</p>
-
-<p>I felt both trapped and estranged near the end. It was a weird sense of closeness and distance. I
-felt physically boxed in because I moved into her Upper West Side apartment in July of 2015. I
-didn&rsquo;t have the space or time to think on my own without also considering her. Yet I felt we were
-drifting away. We misunderstood and talked around each other more and more. We became less kind
-and patient toward each other.</p>
-
-<p>I often felt I was going mad for the paradoxical way I treated her. I loved her yet I&rsquo;d get
-frustrated when she couldn&rsquo;t help me in the kitchen. I cared deeply about her yet sometimes
-criticized her for wasting my time with words harsh enough to make her cry. Her optimism and
-persistence, traits I cherished mostly, sometimes seemed like naivete and stubbornness.</p>
-
-<p>Nanette had more patience and conviction for the life we had built together than I did. I
-interpreted the fact that I had doubts two and a half years into our relationship as a sign that
-although we were compatible in so many ways, we were not compatible enough. It killed me to know I
-could be her biggest source of pain. Wouldn&rsquo;t both of us be happier dating people who might be
-better matches? Nanette needed someone who&rsquo;s better at listening instead of quickly trying to come
-up with solutions. Someone who could provide more emotional support while she figures out her
-career passions and navigates her H1-B visa situation. Someone better at confronting relationship
-issues and making up afterwards instead of sulking and letting disagreements fester. I guess in
-the end I decided our problems weren&rsquo;t worth the effort it&rsquo;d take to resolve them. I was
-discouraged by what I saw as a lack of results from our recent efforts. I felt emotionally burnt
-out.</p>
-
-<p>The constant pressure of time gave me more anxiety. As a certain <a href="http://www.thebookoflife.org/stay-or-leave/">thought-provoking website called
-the <em>School of Life</em></a> states, &ldquo;There&rsquo;s no excuse for delay. Don&rsquo;t imagine that you&rsquo;re doing
-someone a favour by dragging out how long they can persist in the benign illusion that you want
-them. Their real priority is to stop wasting their lives&hellip; There&rsquo;s nothing at all wrong with
-deciding someone isn&rsquo;t for you. There is something very wrong with ruining large chunks of someone
-else&rsquo;s life while you squeamishly and sentimentally hesitate to get out of the
-way.&rdquo;</p>
-
-<p>I asked myself hard questions. How do I know if our relationship is worth the effort? How much
-should we compromise and expect from each other? Can&rsquo;t I just be happy with what I have?</p>
-
-<p>It was a big and lonely decision. I couldn&rsquo;t bring it up with Nanette. I couldn&rsquo;t talk about it
-with most friends as I felt my relationship troubles were a personal failure and that I&rsquo;d be
-betraying Nanette. Our friends thought we were great together. Some even drew inspiration from us.
-I couldn&rsquo;t ask my family as they&rsquo;d already made up their minds one way or the other and were more
-keen on convincing me of something rather than helping me with my contorted thoughts. It was my
-own existential crisis with little consequence for everyone else.</p>
-
-<p>Was I ready to, according to the <em>School of Life</em>, &ldquo;exchange a familiar kind of unhappiness for a
-new and more complex variety&rdquo;? I had already broken Nanette&rsquo;s heart and trust once before. A month
-after we returned to New York City after hiking Mt. Kilimanjaro, I asked to take a break from
-seeing each other.</p>
-
-<p>After only a week, I returned and asked her to take me back. Later I realized I was motivated more
-by fear and guilt than hope and choice.</p>
-
-<p>I tried to change my behavior and outlook. For a couple of months, things seemed to be improving.
-She secretly planned a birthday dinner for me with my close friends, delighted me with gifts
-including an expensive Ferragamo card holder to replace the one I lost, and surprised me with
-tickets to a competitive scavenger hunt/murder mystery event at the Metropolitan Museum of Art
-(just my cup of tea). I got us tickets to an interactive play called &ldquo;Then She Fell&rdquo; and the
-Brooklyn Comedy Festival; I spent time teaching her Python for her General Assembly data science
-class (I could&rsquo;ve been more patient though). We toured Napa Valley with her college friends for
-Thanksgiving break. Our interactions were almost back to normal.</p>
-
-<p>By the end of December, however, we were in a slump again, and my doubts were stronger than ever.
-One night Nanette, sensing she was losing me, held my face in her hands as we lay in bed. She
-looked into my eyes while hers swelled with tears. &ldquo;Come back. Come back,&rdquo; she said. &ldquo;I want to,
-but I don&rsquo;t know how,&rdquo; I replied.</p>
-
-<p>My heart had changed. The person who set out for Boston with a heavy heart and silent tears in a
-Chinatown bus two days before Christmas was not the same person Nanette met in the summer of
-2013.</p>
-
-<p>[redacted]</p>
-
-<!--I was curious to go out and start dating again. After two and a half years, I wanted to see
-what was out there. I scheduled five dates in the span of ten days at the end of January 2016 with
-girls I met on dating apps. They all felt forgettable. I'd compare them to Nanette and write them
-off within an hour of meeting them. Arranging so many dates in such a short amount of time also
-took time, money, and concentration. I'd review chat history before each one so I wouldn't call
-Joyce Nancy or ask someone who was an NYU student about her OB/GYN residency. Despite my best
-efforts, I still arrived late for a couple of dates and blurted out a complete non-sequitur.-->
-
-
-<p>My heart and head were not in the right place so I stopped and focused on myself instead. I swam
-regularly, practiced my guitar, and took singing lessons. But the break up&rsquo;s initial relief and
-freedom gave way to guilt, sadness, and loneliness.</p>
-
-<p>Guilt haunted me after the breakup. The fact that I could hurt Nanette so much frightened me, yet
-I suffered no divine or worldly punishment. To my bewilderment, life went on. So I had to punish
-myself.</p>
-
-<p>I lived austerely and pushed myself harder than usual. I moved into an apartment close to Columbus
-Circle and didn&rsquo;t bother unpacking or buying furniture. I put my mattress on the ground, woke up
-at 6:30AM every morning, and swam at least 3,500 yards in the Chelsea Recreation Center&rsquo;s pool. I
-stopped going out except for the occasional dinner or drinks with friends.</p>
-
-<p>I checked Nanette&rsquo;s Facebook profile more than I should have. I saw that her mother had traveled
-from Jakarta to visit her and that they visited the Bronx botanical garden for an orchid
-exhibition. Shortly after, Nanette posted a photo of a pink orchid on her wall. &ldquo;Oh yay &mdash; now I
-have my own orchid thanks to a certain thoughtful friend. Now I just need to keep it alive&hellip;
-Haha.&rdquo; I felt this was a subtle reference to the fact that a new guy was now in her life. Every
-couple of weeks or so, she&rsquo;d post a new photo of her blooming orchid. While it was thriving, I was
-reminded of how my lack of mindfulness allowed what we once grew to decay.</p>
-
-<p>A few weeks later, when I saw a photo of her with a handsome and gentle-looking man, I knew she
-had moved on. My guilt lessened because she seemed happy again. I was surprised, however, by the
-jealousy that took its place. I liked the pain though, because it proved I really loved her. I&rsquo;d
-be more worried if I didn&rsquo;t feel anything at all.</p>
-
-<p>I held onto this pain. I allowed myself to be sad, to let it wash over me. It killed me but made
-me feel alive. (Now I sound like a One Republic song.) The pain felt like a strange animal from
-which I could draw strength and inspiration. Hurting also helped me burn into my mind the lessons
-I learned. They include but aren&rsquo;t limited to:</p>
-
-<ol>
-<li>Talk about issues early and resolve them. I was not as good at communicating as I thought I
-was. I was naive and expected Nanette to read my mind and know my wants and dislikes. She was
-better than I was at teaching me how to love her than I was at explaining to her about myself.</li>
-<li>Don&rsquo;t make people feel inadequate. This is a nasty fault of mine. Enough said.</li>
-<li>Give your significant other your undivided attention when you know she needs it most. I can be
-impatient and sometimes I tried to multitask which would upset her, understandably so.</li>
-<li>Don&rsquo;t let myself get burned out. This relates to number one above. I sulked.</li>
-<li>Appreciate and acknowledge that different people express love in different ways. Nanette showed
-she cared through affection and sentimental gifts: a video compilation of my close friends saying
-happy birthday to me when I turned 26, cards and flowers, a surprise delivery of David&rsquo;s Tea even
-when she was thousands of miles away in Nairobi. I gave her more practical gifts: backpacking
-gear, a green J Crew jacket and brown Uggs for the winter, and even a portable bidet (dual-action
-nozzle with cold <em>and</em> hot water).</li>
-</ol>
-
-
-<p>In this introspective and soul-searching period, swimming was both atonement and therapy. My hair
-grew coarse; my skin became dry; and I smelled like chlorine. Stroke after stroke, I wanted the
-water to purify me. I swam until I was out of breath, until the lack of oxygen drowned out
-thoughts of Nanette. Swimming became a new constant that replaced her. On Friday, after swimming
-throughout the whole week, I&rsquo;d be a tight wad of nerves and flesh. I&rsquo;d visit a Chinatown massage
-parlor where a masseur plied and kneaded me until my muscles opened up.</p>
-
-<p>When I became tired in the pool, my technique deteriorated. I&rsquo;d fight the water instead of working
-with it. Great swimmers achieve a huge amount of distance per stroke. They&rsquo;re efficient because
-they can find that moment of stillness between each stroke where they just glide.</p>
-
-<p>I sought out stillness in other parts of life as well. I wanted to be single for a while and enjoy
-the freedom and solitude. For a time, it was weird to think about everything Nanette and I had
-experienced and to know those moments had passed. We hiked <a href="https://youtu.be/W0ft7A9-Z6E?t=1m8s">Mt. Rinjani in Indonesia</a> and
-<a href="https://youtu.be/8bkkJC_XreQ">Kilimanjaro in Tanzania</a>. We entangled ourselves in each other on the bed and shared our innermost
-secrets. All of a sudden she was no longer in my life. For a while, whenever I&rsquo;d see something
-beautiful or funny, I&rsquo;d reflexively want to share it with someone as I&rsquo;d once done with Nanette.
-After a while, however, I learned and accepted how to be alone again.</p>
-
-<p>I ended our relationship because I had the hope of something better for both of us. Neither of us
-were afraid to get hurt at the beginning. The chance we took led to two and a half amazing years
-of unforgettable experiences. I ended it because I wasn&rsquo;t afraid of getting hurt at the end. I was
-ready to confront whatever could be on the other side of the breakup even though at the time it
-seemed like the end of the world. I got back together with Nanette in August for the wrong
-reasons: guilt and fear instead of hope and choice. But choice, as this wonderful <a href="http://www.nytimes.com/2014/03/16/fashion/modern-love-A-Second-Embrace-With-Hearts-and-Eyes-Open-.html"><em>New York
-Times</em> &ldquo;Modern Love&rdquo; essay</a> points out, &ldquo;terrifying as it can be, is so much better.&rdquo;</p>
-
-<p>We grow through the people that touch us the most even if their presence is impermanent. I feel
-nothing but goodwill towards Nanette. I&rsquo;m eternally grateful for how she shared so much of herself
-with me and had so much faith even when I was mercurial and prickly. I hope that I helped her grow
-when we were together as much as she helped me. Now that we&rsquo;re apart, both of us have the freedom
-to grow even more.</p>
 ]]></content>
   </entry>
   

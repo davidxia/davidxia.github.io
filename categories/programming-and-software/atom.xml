@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Programming & Software | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/programming-and-software/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2018-10-28T12:11:58-04:00</updated>
+  <updated>2018-11-11T17:28:21-05:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -12,6 +12,44 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Using Upstream Kubernetes Java Models Is Much Better Than Raw YAML]]></title>
+    <link href="https://www.davidxia.com/2018/11/using-upstream-kubernetes-java-models-is-much-better-than-raw-yaml/"/>
+    <updated>2018-11-11T17:11:38-05:00</updated>
+    <id>https://www.davidxia.com/2018/11/using-upstream-kubernetes-java-models-is-much-better-than-raw-yaml</id>
+    <content type="html"><![CDATA[<p>It&rsquo;s been a while since I blogged about something tech related, but I had some
+free time today.</p>
+
+<p>Recently, I&rsquo;ve been trying to refactor an internal Spotify deployment tool my
+team built and maintains. This deployment tool takes Kubernetes (k8s) YAML
+manifests, changes them, and essentially runs <code>kubectl apply</code>. We add metadata
+to the k8s manifests like labels.</p>
+
+<p>Right now this tool receives the input YAML as strings, converts them to
+Jackson ObjectNodes, and manipulates those ObjectNodes. The disadvantage of
+this is that there&rsquo;s no k8s type-safety. We might accidentally add a field to a
+Deployment that isn&rsquo;t valid or remove something from a Service that&rsquo;s required.</p>
+
+<p>My refactor uses upstream k8s model classes from <a href="https://github.com/kubernetes-client/java">kubernetes-client/java</a>
+which are themselves <a href="https://github.com/kubernetes-client/gen">generated</a> from the official Swagger spec. Here&rsquo;s a
+helpful Yaml utility class that deserializes YAML strings into concrete classes
+and can also serialize them back into YAML strings. So helpful.</p>
+
+<p>Unfortunately, there&rsquo;s some bugs in the YAML (de)serialization that prevent me
+from finishing this effort.</p>
+
+<ul>
+<li><a href="https://github.com/kubernetes-client/java/pull/417">kubernetes-client/java</a></li>
+<li><a href="https://github.com/kubernetes-client/java/issues/431">kubernetes-client/java</a></li>
+<li><a href="https://github.com/kubernetes-client/java/issues/340">kubernetes-client/java</a></li>
+</ul>
+
+
+<p>Nonetheless, it&rsquo;ll be much nicer to change k8s resources in a type-safe way
+instead of parsing and rewriting raw YAML strings.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Useful Site for TLS Server Test]]></title>
@@ -51,7 +89,7 @@ Testing.&rdquo;</a> in various formats. <span xmlns:dct="http://purl.org/dc/term
 </ul>
 
 
-<p><img class="center <a" src="href="https://i.imgur.com/w0P47Ugl.jpg">https://i.imgur.com/w0P47Ugl.jpg</a>&#8221; width=&#8221;640&#8221; height=&#8221;619&#8221;></p>
+<p>{% img center <a href="https://i.imgur.com/w0P47Ugl.jpg">https://i.imgur.com/w0P47Ugl.jpg</a> 640 619 %}</p>
 ]]></content>
   </entry>
   
@@ -124,13 +162,15 @@ signing. The following was copied from the <a href="https://wiki.debian.org/Subk
 </ul>
 
 
-<p><blockquote><p>You should keep your private master key very, very safe. However, keeping all your keys extremely
+<p>{% blockquote_nobr subkeys <a href="https://wiki.debian.org/Subkeys">https://wiki.debian.org/Subkeys</a> %}
+You should keep your private master key very, very safe. However, keeping all your keys extremely
 safe is inconvenient: every time you need to sign a new package upload, you need to copy the
 packages onto suitable portable media, go into your sub-basement, prove to the armed guards that
 you&rsquo;re you by using several methods of biometric and other identification, go through a deadly
 maze, feed the guard dogs the right kind of meat, and then finally open the safe, get out the
 signing laptop, and sign the packages. Then do the reverse to get back up to your Internet
-connection for uploading the packages.</p><footer><strong>subkeys <a href="https://wiki.debian.org/Subkeys">https://wiki.debian.org/Subkeys</a></strong></footer></blockquote></p>
+connection for uploading the packages.
+{% endblockquote_nobr %}</p>
 
 <ul>
 <li><code>gpg --edit-key &lt;your master key id&gt;</code></li>
@@ -348,116 +388,6 @@ iptables -I FORWARD -i br1 -o br0 -s $LAN_NET -d $PROXY_IP -p tcp --dport $PROXY
 
 
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[How to Install DD-WRT on an Asus RT-N16 Router]]></title>
-    <link href="https://www.davidxia.com/2015/03/how-to-install-dd-wrt-on-an-asus-rt-n16-router/"/>
-    <updated>2015-03-13T00:00:00-04:00</updated>
-    <id>https://www.davidxia.com/2015/03/how-to-install-dd-wrt-on-an-asus-rt-n16-router</id>
-    <content type="html"><![CDATA[<p>I&rsquo;ve known about <a href="http://en.wikipedia.org/wiki/DD-WRT" title="DD-WRT">DD-WRT</a> for a while and always wanted to play with it (partly because I
-thought it was needed to do <a href="http://www.ex-parrot.com/pete/upside-down-ternet.html" title="upside down ternet">this prank of turning the Internet upside down</a>).
-My router is leased from Time Warner and probably not supported by DD-WRT.
-So I bought an <a href="http://www.amazon.com/gp/product/B00387G6R8/ref=as_li_tl?ie=UTF8&amp;camp=1789&amp;creative=390957&amp;creativeASIN=B00387G6R8&amp;linkCode=as2&amp;tag=easiamus00-20&amp;linkId=6TECRA3HNZATDC4U" title="Asus RT-N16">Asus RT-N16 router</a> and learned how to flash DD-WRT firmware onto it. The process
-was easier than I expected but required me to read a lot and be careful.
-I sifted through mazes of documentation, blog posts, and forum threads to find the most recent
-and correct ones. I was afraid of bricking my brand new $100 Asus, but I succeeded.
-Here&rsquo;s how you can too.</p>
-
-<h2>What is DD-WRT and why would you install it?</h2>
-
-<p>DD-WRT is open-source Linux-based firmware that can replace and enhance the factory default
-firmware on many wireless routers. Once you install it, you can SSH, overclock the CPU, setup
-advanced access restrictions, change the firewall, etc.</p>
-
-<!-- more -->
-
-
-<h2>How to install DD-WRT onto an Asus RT-N16 wireless router</h2>
-
-<p>Follow <a href="http://www.dd-wrt.com/wiki/index.php/Asus_RT-N16" title="DD-WRT's installation guide for Asus RT-N16">this guide written specifically for the Asus RT-N16</a> and
-flash the initial firmware <a href="ftp://ftp.dd-wrt.com/others/eko/BrainSlayer-V24-preSP2/2010/08-12-10-r14929/broadcom_K26/dd-wrt.v24-14929_NEWD-2_K2.6_mini_RT-N16.trx" title="DD-WRT initial firmware">dd-wrt.v24-14929_NEWD-2_K2.6_mini_RT-N16.trx</a>
-<a href="http://www.dd-wrt.com/wiki/index.php/Asus_RT-N16#How_it_is_done" title="DD-WRT's installation guide for Asus RT-N16">here in step 3</a>. Then in step 7, flash the <a href="http://www.dd-wrt.com/wiki/index.php/What_is_DD-WRT%3F#K2.6_Build_Features" title="DD-WRT K2.6 build features">dd-wrt.v24-18024_NEWD-2_K2.6_mega</a> build
-to get most of the features.</p>
-
-<p>Read everything carefully and make sure to follow all the steps. If you open your router&rsquo;s web UI
-and see the below, give yourself a pat on the back.</p>
-
-<p><img class="center <a" src="href="http://i.kinja-img.com/gawker-media/image/upload/s--K37zgSAg--/c_fit,fl_progressive,q_80,w_636/18o8kyq5au0xojpg.jpg">http://i.kinja-img.com/gawker-media/image/upload/s&#8211;K37zgSAg&#8211;/c_fit,fl_progressive,q_80,w_636/18o8kyq5au0xojpg.jpg</a>&#8221; width=&#8221;636&#8221; height=&#8221;403&#8221;></p>
-
-<h2>Setup SSH access to router</h2>
-
-<p>Go to the web UI. Click on the &ldquo;Services&rdquo; tab and scroll down to the &ldquo;Secure Shell&rdquo; section.
-Enable SSHd and add your SSH public key.</p>
-
-<p><img class="center <a" src="href="https://i.imgur.com/5BFkP24.png">https://i.imgur.com/5BFkP24.png</a>&#8221; width=&#8221;677&#8221; height=&#8221;217&#8221;></p>
-
-<p>Now you can <code>ssh root@&lt;router's IP&gt;</code>.</p>
-
-<h2>Mount a USB hard drive for network-attached storage</h2>
-
-<p>I quickly discovered, thanks to my colleague Andrey, that the Asus has a read-only file system.
-The only way to write anything to it is to mount an external hard disk. Luckily USB disks are
-cheap, this can act as a <a href="http://en.wikipedia.org/wiki/Network-attached_storage" title="network-attached storage">file server/network-attached storage</a>, and it&rsquo;s easy to do.</p>
-
-<p>I bought a ~$25 <a href="http://www.amazon.com/gp/product/B007RB0P2I/ref=as_li_tl?ie=UTF8&amp;camp=1789&amp;creative=390957&amp;creativeASIN=B007RB0P2I&amp;linkCode=as2&amp;tag=easiamus00-20&amp;linkId=OS37UXM3XSWIXCR5" title="SanDisk Cruzer Glide USB 64GB Flash Drive">64GB Sandisk USB</a>. The first step is to <a href="http://www.dd-wrt.com/wiki/index.php/How_to_-_Format_and_Partition_External_Storage_Device" title="How To - Format And Partition External Storage Device">format and partition</a> it
-(<a href="http://www.dd-wrt.com/wiki/index.php/How_to_-_Format_and_Partition_External_Storage_Device#Linux_Command_Line_Method_.28preferred.29" title="How To - Format And Partition External Storage Device: Linux Command Line Method (preferred)">I used a Linux machine</a>). I didn&rsquo;t create the &ldquo;jffs&rdquo; partition because I had a USB instead of
-a multimedia card or &ldquo;MMC&rdquo;.</p>
-
-<p><div class='image center <a'><img  src="href="http://www.hacker9.com/wp-content/uploads/2010/11/How-to-recover-lost-password-of-Memory-Card-MMC-micro-SD-adapter.jpg">http://www.hacker9.com/wp-content/uploads/2010/11/How-to-recover-lost-password-of-Memory-Card-MMC-micro-SD-adapter.jpg</a>&#8221; width=&#8221;215&#8221; height=&#8221;235&#8221; title=&#8221;example MMC&#8221; ><div class='caption'>example MMC</div></div></p>
-
-<p>Plug the USB into the Asus router and follow <a href="http://www.dd-wrt.com/wiki/index.php/USB_storage#USB_Guide_for_v24_and_v24SP1_Mega_of_DD-WRT" title="USB storage - USB Guide for v24 and v24SP1 Mega of DD-WRT">these steps here</a>. You&rsquo;ll know you&rsquo;ve mounted the
-USB correctly when you can <code>touch /opt/test</code> if <code>/opt</code> was your mount point.</p>
-
-<h2>Install extra software using ipkg</h2>
-
-<p>For someone who&rsquo;s used to advanced shells like <a href="http://fishshell.com/" title="fish shell">fish</a> and zsh, I was sad to see I was
-always root (is there a way to create more user accounts?) running sh. There&rsquo;s vi but no vim,
-no <code>--help</code> or man pages for commands, and not even error messages (you have to <code>echo $?</code>). So I
-followed <a href="http://www.dd-wrt.com/wiki/index.php/USB_storage#Option_6.2_-_Extra_software_the_Optware_way" title="USB storage - extra software the optware way">these steps</a> to install ipkg, the <a href="http://en.wikipedia.org/wiki/Ipkg" title="Wikipedia ipkg">Itsy Package Management System</a>, into <code>/opt</code>.</p>
-
-<p>I didn&rsquo;t bother creating <code>/opt/etc/profile</code>. I just use <code>ipkg-opt</code> instead of the built-in <code>ipkg</code>,
-and things seem to work. I installed the following packages:</p>
-
-<pre><code>root@DD-WRT:~# ipkg-opt list_installed
-ipkg-opt - 0.99.163-10 - The Itsy Package Manager
-ncurses - 5.7-3 - NCurses libraries
-uclibc-opt - 0.9.28-13 - micro C library for embedded Linux systems
-vim - 7.3-2 - Yet another version of the vi editor.
-Successfully terminated.
-</code></pre>
-
-<p>As I&rsquo;m writing this, I see that ipkg has been discontinued and that <a href="http://en.wikipedia.org/wiki/Opkg" title="Wikipedia opkg">opkg</a> supersedes it.
-I haven&rsquo;t tried out opkg yet.</p>
-
-<p>The background behind the limited functionality of DD-WRT&rsquo;s operating system is that it&rsquo;s built on
-top of <a href="http://en.wikipedia.org/wiki/BusyBox" title="Wikipedia BuxyBox">BusyBox</a>, a single executable providing a very stripped-down version of Linux.
-BusyBox was specifically created for <a href="http://en.wikipedia.org/wiki/Embedded_operating_system" title="Wikipedia embedded operating systems">embedded operating systems</a>.</p>
-
-<h2>Known bugs in DD-WRT v24-sp2 mega revision 18024</h2>
-
-<ul>
-<li>the router&rsquo;s <a href="http://www.dd-wrt.com/phpBB2/viewtopic.php?t=148539&amp;sid=d550bc235bccd0ea8593df413c3439b7" title="New official dd-wrt build - 18024 is out (BS)">SSH keys change everytime it reboots</a></li>
-<li>NAT loopback doesn&rsquo;t work. I worked around it with the iptables rules below.</li>
-</ul>
-
-
-<pre><code>insmod ipt_mark
-insmod xt_mark
-iptables -t mangle -A PREROUTING -i ! `get_wanface` -d `nvram get wan_ipaddr` -j MARK --set-mark 0xd001
-iptables -t nat -A POSTROUTING -m mark --mark 0xd001 -j MASQUERADE
-</code></pre>
-
-<p>This is <a href="http://www.alexlaird.com/2013/04/dd-wrt-nat-loopback-issue/" title="DD-WRT NAT loopback issue">explained here</a> where the writer claims allowing NAT loopback doesn&rsquo;t make your
-internal network less secure. I think the reason for the disabled NAT loopback is to prevent
-<a href="http://en.wikipedia.org/wiki/DNS_rebinding" title="Wikipedia DNS rebinding">DNS rebinding attacks</a>. This DefCon talk by Craig Heffner explains it nicely.</p>
-
-<iframe class="fill-width" width="560" height="315" src="https://www.youtube-nocookie.com/embed/Zazk0plSoQg?rel=0" frameborder="0" allowfullscreen></iframe>
-
-
-<p>There&rsquo;s an option to enable &ldquo;No DNS rebind&rdquo; in DD-WRT though. Maybe that prevents this
-vulnerability?</p>
 ]]></content>
   </entry>
   
