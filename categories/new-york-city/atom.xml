@@ -4,7 +4,7 @@
   <title><![CDATA[Category: New York City | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/new-york-city/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2019-02-05T14:13:12-05:00</updated>
+  <updated>2019-02-05T17:12:56-05:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -40,9 +40,9 @@ federal action level of 15 micrograms per liter (μg/L). Your specific results w
 <p>First draw: 0 μg/L
 1-2 minute flush: 0 μg/L</p></blockquote>
 
-<p><img class="center <a" src="href="https://i.imgur.com/uxwBi0bl.jpg">https://i.imgur.com/uxwBi0bl.jpg</a>&#8221;></p>
+<p>{% img center <a href="https://i.imgur.com/uxwBi0bl.jpg">https://i.imgur.com/uxwBi0bl.jpg</a> %}</p>
 
-<p><img class="center <a" src="href="https://i.imgur.com/98MoXGNl.jpg">https://i.imgur.com/98MoXGNl.jpg</a>&#8221;></p>
+<p>{% img center <a href="https://i.imgur.com/98MoXGNl.jpg">https://i.imgur.com/98MoXGNl.jpg</a> %}</p>
 ]]></content>
   </entry>
   
@@ -63,13 +63,13 @@ to that.</p>
 <!-- more -->
 
 
-<p><img class="center <a" src="href="https://i.imgur.com/g6jwSpXl.jpg">https://i.imgur.com/g6jwSpXl.jpg</a>&#8221; width=&#8221;480&#8221; height=&#8221;640&#8221;></p>
+<p>{% img center <a href="https://i.imgur.com/g6jwSpXl.jpg">https://i.imgur.com/g6jwSpXl.jpg</a> 480 640 %}</p>
 
-<p><div class='image center <a'><img  src="href="https://i.imgur.com/rbyvOtml.jpg">https://i.imgur.com/rbyvOtml.jpg</a>&#8221; width=&#8221;480&#8221; height=&#8221;640&#8221; title=&#8221;I had to wear a hot and stuffy life vest on a 90-degree day.&#8221; ><div class='caption'>I had to wear a hot and stuffy life vest on a 90-degree day.</div></div></p>
+<p>{% img_caption center <a href="https://i.imgur.com/rbyvOtml.jpg">https://i.imgur.com/rbyvOtml.jpg</a> 480 640 I had to wear a hot and stuffy life vest on a 90-degree day. %}</p>
 
-<p><div class='image center <a'><img  src="href="https://i.imgur.com/5cHxUtKl.jpg">https://i.imgur.com/5cHxUtKl.jpg</a>&#8221; width=&#8221;480&#8221; height=&#8221;640&#8221; title=&#8221;A great view of lower Manhattan.&#8221; ><div class='caption'>A great view of lower Manhattan.</div></div></p>
+<p>{% img_caption center <a href="https://i.imgur.com/5cHxUtKl.jpg">https://i.imgur.com/5cHxUtKl.jpg</a> 480 640 A great view of lower Manhattan. %}</p>
 
-<p><div class='image center <a'><img  src="href="https://i.imgur.com/ivnVCYXl.jpg">https://i.imgur.com/ivnVCYXl.jpg</a>&#8221; width=&#8221;480&#8221; height=&#8221;640&#8221; title=&#8221;Sailing close to the Statue of Liberty.&#8221; ><div class='caption'>Sailing close to the Statue of Liberty.</div></div></p>
+<p>{% img_caption center <a href="https://i.imgur.com/ivnVCYXl.jpg">https://i.imgur.com/ivnVCYXl.jpg</a> 480 640 Sailing close to the Statue of Liberty. %}</p>
 ]]></content>
   </entry>
   
@@ -95,7 +95,7 @@ Testing.&rdquo;</a> in various formats. <span xmlns:dct="http://purl.org/dc/term
 </ul>
 
 
-<p><img class="center <a" src="href="https://i.imgur.com/w0P47Ugl.jpg">https://i.imgur.com/w0P47Ugl.jpg</a>&#8221; width=&#8221;640&#8221; height=&#8221;619&#8221;></p>
+<p>{% img center <a href="https://i.imgur.com/w0P47Ugl.jpg">https://i.imgur.com/w0P47Ugl.jpg</a> 640 619 %}</p>
 ]]></content>
   </entry>
   
@@ -111,7 +111,7 @@ The events below transpired in New York City. The buying process may be differen
 but the most of the process such as contract of sale and mortgage application is the same across
 the U.S.</em></p>
 
-<p><div class='image center <a'><img  src="href="https://upload.wikimedia.org/wikipedia/commons/8/8d/Cary_Grant_Myrna_Loy_Mr_Blandings_Builds_His_Dream_House_1948.JPG">https://upload.wikimedia.org/wikipedia/commons/8/8d/Cary_Grant_Myrna_Loy_Mr_Blandings_Builds_His_Dream_House_1948.JPG</a>&#8221; width=&#8221;640&#8221; height=&#8221;772&#8221; title=&#8221;By RKO radio pictures (eBay item photo front photo back) [Public domain], via Wikimedia Commons. Promotional photo of Cary Grant and Myrna Loy for the film Mr. Blandings Builds His Dream House (1948)&#8221; ><div class='caption'>By RKO radio pictures (eBay item photo front photo back) [Public domain], via Wikimedia Commons. Promotional photo of Cary Grant and Myrna Loy for the film Mr. Blandings Builds His Dream House (1948)</div></div></p>
+<p>{% img_caption center <a href="https://upload.wikimedia.org/wikipedia/commons/8/8d/Cary_Grant_Myrna_Loy_Mr_Blandings_Builds_His_Dream_House_1948.JPG">https://upload.wikimedia.org/wikipedia/commons/8/8d/Cary_Grant_Myrna_Loy_Mr_Blandings_Builds_His_Dream_House_1948.JPG</a> 640 772 By RKO radio pictures (eBay item photo front photo back) [Public domain], via Wikimedia Commons. Promotional photo of Cary Grant and Myrna Loy for the film Mr. Blandings Builds His Dream House (1948) %}</p>
 
 <ul>
 <li>My mother found an affordable co-op unit for sale while browsing StreetEasy on her iPad
@@ -223,10 +223,12 @@ for free!&rdquo;</p>
 
 <p>I got off at my stop and started reading the <em>New York Times</em> on my phone.</p>
 
-<p><blockquote><p>Donald J. Trump and Senator Ted Cruz of Texas traded insults on Easter Sunday morning over recent
+<p>{% blockquote_nobr New York Times <a href="http://www.nytimes.com/politics/first-draft/2016/03/27/donald-trump-and-ted-cruz-continue-clash-over-spouses/">http://www.nytimes.com/politics/first-draft/2016/03/27/donald-trump-and-ted-cruz-continue-clash-over-spouses/</a> %}
+Donald J. Trump and Senator Ted Cruz of Texas traded insults on Easter Sunday morning over recent
 smears against their wives, while Mr. Trump ruled out creating internment camps for American
 Muslims and said he would study a proposal to allow delegates to bring guns to the Republican
-National Convention.</p><footer><strong>New York Times <a href="http://www.nytimes.com/politics/first-draft/2016/03/27/donald-trump-and-ted-cruz-continue-clash-over-spouses/">http://www.nytimes.com/politics/first-draft/2016/03/27/donald-trump-and-ted-cruz-continue-clash-over-spouses/</a></strong></footer></blockquote></p>
+National Convention.
+{% endblockquote_nobr %}</p>
 
 <p>Ah, it&rsquo;s good to be back.</p>
 ]]></content>
