@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Career | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/career/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2018-11-11T17:28:21-05:00</updated>
+  <updated>2019-02-05T14:13:12-05:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -35,7 +35,7 @@ Testing.&rdquo;</a> in various formats. <span xmlns:dct="http://purl.org/dc/term
 </ul>
 
 
-<p>{% img center <a href="https://i.imgur.com/w0P47Ugl.jpg">https://i.imgur.com/w0P47Ugl.jpg</a> 640 619 %}</p>
+<p><img class="center <a" src="href="https://i.imgur.com/w0P47Ugl.jpg">https://i.imgur.com/w0P47Ugl.jpg</a>&#8221; width=&#8221;640&#8221; height=&#8221;619&#8221;></p>
 ]]></content>
   </entry>
   
@@ -89,7 +89,7 @@ have the same connotation it usually does in the United States. It refers to stu
 out of school not because they don&rsquo;t want to attend but because their family can&rsquo;t afford to pay
 tuition.</p>
 
-<p>{% img_caption center <a href="https://i.imgur.com/UkX3KWrl.jpg">https://i.imgur.com/UkX3KWrl.jpg</a> 640 480 The front of the CAP school. %}</p>
+<p><div class='image center <a'><img  src="href="https://i.imgur.com/UkX3KWrl.jpg">https://i.imgur.com/UkX3KWrl.jpg</a>&#8221; width=&#8221;640&#8221; height=&#8221;480&#8221; title=&#8221;The front of the CAP school.&#8221; ><div class='caption'>The front of the CAP school.</div></div></p>
 
 <!-- more -->
 
@@ -102,9 +102,9 @@ up his small business, which has a Facebook page and makes deliveries to custome
 Nanette he wants another loan to buy more used items to sell, like sandals. Nanette&rsquo;s friend Safia
 bought a pink pair of Nike shorts from him for 200 shillings at the end of their visit.</p>
 
-<p>{% img_caption center <a href="https://i.imgur.com/OZOwCQtl.jpg">https://i.imgur.com/OZOwCQtl.jpg</a> 640 480 Fredrick&rsquo;s clothes stall. %}</p>
+<p><div class='image center <a'><img  src="href="https://i.imgur.com/OZOwCQtl.jpg">https://i.imgur.com/OZOwCQtl.jpg</a>&#8221; width=&#8221;640&#8221; height=&#8221;480&#8221; title=&#8221;Fredrick&rsquo;s clothes stall.&#8221; ><div class='caption'>Fredrick&rsquo;s clothes stall.</div></div></p>
 
-<p>{% img_caption center <a href="https://i.imgur.com/O91nAV1l.jpg">https://i.imgur.com/O91nAV1l.jpg</a> 640 480 Nanette posing with a pair of pink Nike shorts next to Fredrick and a CAP administrator. %}</p>
+<p><div class='image center <a'><img  src="href="https://i.imgur.com/O91nAV1l.jpg">https://i.imgur.com/O91nAV1l.jpg</a>&#8221; width=&#8221;640&#8221; height=&#8221;480&#8221; title=&#8221;Nanette posing with a pair of pink Nike shorts next to Fredrick and a CAP administrator.&#8221; ><div class='caption'>Nanette posing with a pair of pink Nike shorts next to Fredrick and a CAP administrator.</div></div></p>
 
 <p>Nanette visited <a href="https://zip.kiva.org/loans/8527">another borrower also named Fredrick</a> who&rsquo;s
 still studying in CAP creates and sells practice worksheets for primary school students. He sells

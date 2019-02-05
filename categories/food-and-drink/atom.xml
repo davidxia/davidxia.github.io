@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Food & Drink | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/food-and-drink/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2018-11-11T17:28:21-05:00</updated>
+  <updated>2019-02-05T14:13:12-05:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -170,11 +170,11 @@ millennia of passed down knowledge or Jenny Craig and some American cardiologist
     <link href="https://www.davidxia.com/2011/05/funny-fortune-cookies/"/>
     <updated>2011-05-13T00:00:00-04:00</updated>
     <id>https://www.davidxia.com/2011/05/funny-fortune-cookies</id>
-    <content type="html"><![CDATA[<p>{% img center <a href="https://lh3.googleusercontent.com/_lgMz7QRk66k/Tc21KUosp7I/AAAAAAAAAzc/cUdr3Gaqc58/s400/fortune%20cookie2.jpg">https://lh3.googleusercontent.com/_lgMz7QRk66k/Tc21KUosp7I/AAAAAAAAAzc/cUdr3Gaqc58/s400/fortune%20cookie2.jpg</a> 400 300 %}</p>
+    <content type="html"><![CDATA[<p><img class="center <a" src="href="https://lh3.googleusercontent.com/_lgMz7QRk66k/Tc21KUosp7I/AAAAAAAAAzc/cUdr3Gaqc58/s400/fortune%20cookie2.jpg">https://lh3.googleusercontent.com/_lgMz7QRk66k/Tc21KUosp7I/AAAAAAAAAzc/cUdr3Gaqc58/s400/fortune%20cookie2.jpg</a>&#8221; width=&#8221;400&#8221; height=&#8221;300&#8221;></p>
 
-<p>{% img_caption center <a href="https://lh5.googleusercontent.com/_lgMz7QRk66k/Tc21HhP9niI/AAAAAAAAAzU/dN_os52w7SE/s400/fortune%20cookie1.jpg">https://lh5.googleusercontent.com/_lgMz7QRk66k/Tc21HhP9niI/AAAAAAAAAzU/dN_os52w7SE/s400/fortune%20cookie1.jpg</a> 400 300 So what do I do when the moment comes? %}</p>
+<p><div class='image center <a'><img  src="href="https://lh5.googleusercontent.com/_lgMz7QRk66k/Tc21HhP9niI/AAAAAAAAAzU/dN_os52w7SE/s400/fortune%20cookie1.jpg">https://lh5.googleusercontent.com/_lgMz7QRk66k/Tc21HhP9niI/AAAAAAAAAzU/dN_os52w7SE/s400/fortune%20cookie1.jpg</a>&#8221; width=&#8221;400&#8221; height=&#8221;300&#8221; title=&#8221;So what do I do when the moment comes?&#8221; ><div class='caption'>So what do I do when the moment comes?</div></div></p>
 
-<p>{% img_caption center <a href="https://lh3.googleusercontent.com/_lgMz7QRk66k/Tc21KMSpmNI/AAAAAAAAAzY/FXx_ntaOhrE/s400/fortune%20cookie3.jpg">https://lh3.googleusercontent.com/_lgMz7QRk66k/Tc21KMSpmNI/AAAAAAAAAzY/FXx_ntaOhrE/s400/fortune%20cookie3.jpg</a> 400 300 I don&rsquo;t have any clean party clothes %}</p>
+<p><div class='image center <a'><img  src="href="https://lh3.googleusercontent.com/_lgMz7QRk66k/Tc21KMSpmNI/AAAAAAAAAzY/FXx_ntaOhrE/s400/fortune%20cookie3.jpg">https://lh3.googleusercontent.com/_lgMz7QRk66k/Tc21KMSpmNI/AAAAAAAAAzY/FXx_ntaOhrE/s400/fortune%20cookie3.jpg</a>&#8221; width=&#8221;400&#8221; height=&#8221;300&#8221; title=&#8221;I don&rsquo;t have any clean party clothes&#8221; ><div class='caption'>I don&rsquo;t have any clean party clothes</div></div></p>
 ]]></content>
   </entry>
   
@@ -237,15 +237,13 @@ society. Mercy toward the animals in our care is one such casualty.&rdquo;</p
 <p>In the second section of Omnivore&rsquo;s Dilemma, Pollan writes about his experience on Polyface Farms,
 an organic, local farm. He includes this quote by farm-owner Joel Salatin:</p>
 
-<p>{% blockquote_nobr %}
-Me and the folks who buy my food are like the Indians - we just want to opt out. That&rsquo;s all the
+<p><blockquote><p>Me and the folks who buy my food are like the Indians - we just want to opt out. That&rsquo;s all the
 Indians every wanted - to keep their teepees, to give their kids herbs instead of patent medicines
 and leeches. They didn&rsquo;t care if there was a Washington, D.C., or a Custer or a USDA; just leave
 us alone. But the Western mind can&rsquo;t bear an opt-out option. We&rsquo;re going to have to refight the
 Battle of the Little Big Horn to preserve the right to opt out, or your grandchildren and mine
 will have no choice but to eat amalgamated, irradiated, genetically prostituted, bar-coded,
-adulterated fecal spam from the centralized processing conglomerate.
-{% endblockquote_nobr %}</p>
+adulterated fecal spam from the centralized processing conglomerate.</p></blockquote></p>
 
 <p>Them is fightin&#8217; words.</p>
 

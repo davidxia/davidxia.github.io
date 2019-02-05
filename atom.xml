@@ -4,7 +4,7 @@
   <title><![CDATA[David Xia]]></title>
   <link href="https://www.davidxia.com/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2018-11-11T17:27:11-05:00</updated>
+  <updated>2019-02-05T14:13:12-05:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -40,9 +40,9 @@ and can also serialize them back into YAML strings. So helpful.</p>
 from finishing this effort.</p>
 
 <ul>
-<li><a href="https://github.com/kubernetes-client/java/pull/417">kubernetes-client/java</a></li>
-<li><a href="https://github.com/kubernetes-client/java/issues/431">kubernetes-client/java</a></li>
-<li><a href="https://github.com/kubernetes-client/java/issues/340">kubernetes-client/java</a></li>
+<li><a href="https://github.com/kubernetes-client/java/pull/417">kubernetes-client/java issue 417</a></li>
+<li><a href="https://github.com/kubernetes-client/java/issues/431">kubernetes-client/java issue 431</a></li>
+<li><a href="https://github.com/kubernetes-client/java/issues/340">kubernetes-client/java issue 340</a></li>
 </ul>
 
 
