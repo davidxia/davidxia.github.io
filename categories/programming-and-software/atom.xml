@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Programming & Software | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/programming-and-software/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2019-05-17T15:28:13-04:00</updated>
+  <updated>2019-05-17T15:41:41-04:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -161,7 +161,7 @@ metadata:
 ...
 </code></pre>
 
-<p>will create a DNS A record <code>hoth.tugboat.svc.cluster.local.</code> pointing to the K8s Service&rsquo;s IP.
+<p>will create a DNS A record <code>foo.bar.svc.cluster.local.</code> pointing to the K8s Service&rsquo;s IP.
 Since this Service&rsquo;s IP is stable and it load balances requests to the underlying Pods, there&rsquo;s no need for Nginx to
 periodically lookup the Pod IPs. I can keep the <code>upstream</code> block like so.</p>
 
@@ -170,7 +170,7 @@ periodically lookup the Pod IPs. I can keep the <code>upstream</code> block like
 }
 </code></pre>
 
-<p>As its name implies, <code>hoth.tugboat.svc.cluster.local.</code> is only resolvable within the cluster. So
+<p>As its name implies, <code>foo.bar.svc.cluster.local.</code> is only resolvable within the cluster. So
 Nginx has to be running on the same cluster as foo.</p>
 
 <h3>Solution: dynamically set the Nginx <code>resolver</code> equal to the system&rsquo;s when the Pod starts</h3>
