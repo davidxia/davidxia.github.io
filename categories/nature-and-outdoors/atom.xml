@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Nature & Outdoors | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/nature-and-outdoors/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2019-05-17T14:28:09-04:00</updated>
+  <updated>2019-05-17T15:28:13-04:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -30,13 +30,13 @@ to that.</p>
 <!-- more -->
 
 
-<p><img class="center <a" src="href="https://i.imgur.com/g6jwSpXl.jpg">https://i.imgur.com/g6jwSpXl.jpg</a>&#8221; width=&#8221;480&#8221; height=&#8221;640&#8221;></p>
+<p>{% img center <a href="https://i.imgur.com/g6jwSpXl.jpg">https://i.imgur.com/g6jwSpXl.jpg</a> 480 640 %}</p>
 
-<p><div class='image center <a'><img  src="href="https://i.imgur.com/rbyvOtml.jpg">https://i.imgur.com/rbyvOtml.jpg</a>&#8221; width=&#8221;480&#8221; height=&#8221;640&#8221; title=&#8221;I had to wear a hot and stuffy life vest on a 90-degree day.&#8221; ><div class='caption'>I had to wear a hot and stuffy life vest on a 90-degree day.</div></div></p>
+<p>{% img_caption center <a href="https://i.imgur.com/rbyvOtml.jpg">https://i.imgur.com/rbyvOtml.jpg</a> 480 640 I had to wear a hot and stuffy life vest on a 90-degree day. %}</p>
 
-<p><div class='image center <a'><img  src="href="https://i.imgur.com/5cHxUtKl.jpg">https://i.imgur.com/5cHxUtKl.jpg</a>&#8221; width=&#8221;480&#8221; height=&#8221;640&#8221; title=&#8221;A great view of lower Manhattan.&#8221; ><div class='caption'>A great view of lower Manhattan.</div></div></p>
+<p>{% img_caption center <a href="https://i.imgur.com/5cHxUtKl.jpg">https://i.imgur.com/5cHxUtKl.jpg</a> 480 640 A great view of lower Manhattan. %}</p>
 
-<p><div class='image center <a'><img  src="href="https://i.imgur.com/ivnVCYXl.jpg">https://i.imgur.com/ivnVCYXl.jpg</a>&#8221; width=&#8221;480&#8221; height=&#8221;640&#8221; title=&#8221;Sailing close to the Statue of Liberty.&#8221; ><div class='caption'>Sailing close to the Statue of Liberty.</div></div></p>
+<p>{% img_caption center <a href="https://i.imgur.com/ivnVCYXl.jpg">https://i.imgur.com/ivnVCYXl.jpg</a> 480 640 Sailing close to the Statue of Liberty. %}</p>
 ]]></content>
   </entry>
   
@@ -154,24 +154,24 @@ Wikipedia:</p>
 journal in the back of the park in which visitors would write down their thoughts as they admired
 the view and stillness. These anonymous entries are touching and sometimes painfully honest.</p>
 
-<p><img class="center <a" src="href="https://lh6.googleusercontent.com/-XwSeSKSsJes/TyB8SX-U_qI/AAAAAAAAAEs/pGdeNTN21hE/s640/parkdiary09.JPG">https://lh6.googleusercontent.com/-XwSeSKSsJes/TyB8SX-U_qI/AAAAAAAAAEs/pGdeNTN21hE/s640/parkdiary09.JPG</a>&#8221; width=&#8221;540&#8221; height=&#8221;405&#8221; title=&#8221;park journal&#8221; ></p>
+<p>{% img center <a href="https://lh6.googleusercontent.com/-XwSeSKSsJes/TyB8SX-U_qI/AAAAAAAAAEs/pGdeNTN21hE/s640/parkdiary09.JPG">https://lh6.googleusercontent.com/-XwSeSKSsJes/TyB8SX-U_qI/AAAAAAAAAEs/pGdeNTN21hE/s640/parkdiary09.JPG</a> 540 405 park journal %}</p>
 
-<p><img class="center <a" src="href="https://lh3.googleusercontent.com/-D2UbEIFPUnQ/TyB8SS0ZK4I/AAAAAAAAAEs/i0Jsl-MWRU8/s640/parkdiary03.JPG">https://lh3.googleusercontent.com/-D2UbEIFPUnQ/TyB8SS0ZK4I/AAAAAAAAAEs/i0Jsl-MWRU8/s640/parkdiary03.JPG</a>&#8221; width=&#8221;540&#8221; height=&#8221;405&#8221;></p>
+<p>{% img center <a href="https://lh3.googleusercontent.com/-D2UbEIFPUnQ/TyB8SS0ZK4I/AAAAAAAAAEs/i0Jsl-MWRU8/s640/parkdiary03.JPG">https://lh3.googleusercontent.com/-D2UbEIFPUnQ/TyB8SS0ZK4I/AAAAAAAAAEs/i0Jsl-MWRU8/s640/parkdiary03.JPG</a> 540 405 %}</p>
 
 <!--more-->
 
 
-<p><img class="center <a" src="href="https://lh6.googleusercontent.com/-gEDaKpmTx2k/TyB8SUasERI/AAAAAAAAAEs/tcQeeMb3oSU/s640/parkdiary07.JPG">https://lh6.googleusercontent.com/-gEDaKpmTx2k/TyB8SUasERI/AAAAAAAAAEs/tcQeeMb3oSU/s640/parkdiary07.JPG</a>&#8221; width=&#8221;480&#8221; height=&#8221;640&#8221;></p>
+<p>{% img center <a href="https://lh6.googleusercontent.com/-gEDaKpmTx2k/TyB8SUasERI/AAAAAAAAAEs/tcQeeMb3oSU/s640/parkdiary07.JPG">https://lh6.googleusercontent.com/-gEDaKpmTx2k/TyB8SUasERI/AAAAAAAAAEs/tcQeeMb3oSU/s640/parkdiary07.JPG</a> 480 640 %}</p>
 
-<p><img class="center <a" src="href="https://lh6.googleusercontent.com/-i5GwR1Yy_6Q/TyB8SX7gMlI/AAAAAAAAAEs/6vmnY3cg8kk/s640/parkdiary04.JPG">https://lh6.googleusercontent.com/-i5GwR1Yy_6Q/TyB8SX7gMlI/AAAAAAAAAEs/6vmnY3cg8kk/s640/parkdiary04.JPG</a>&#8221; width=&#8221;480&#8221; height=&#8221;640&#8221;></p>
+<p>{% img center <a href="https://lh6.googleusercontent.com/-i5GwR1Yy_6Q/TyB8SX7gMlI/AAAAAAAAAEs/6vmnY3cg8kk/s640/parkdiary04.JPG">https://lh6.googleusercontent.com/-i5GwR1Yy_6Q/TyB8SX7gMlI/AAAAAAAAAEs/6vmnY3cg8kk/s640/parkdiary04.JPG</a> 480 640 %}</p>
 
-<p><img class="center <a" src="href="https://lh4.googleusercontent.com/-RVZS4nhYEDE/TyB8ScAandI/AAAAAAAAAEs/84DHiUdtfDo/s640/parkdiary05.JPG">https://lh4.googleusercontent.com/-RVZS4nhYEDE/TyB8ScAandI/AAAAAAAAAEs/84DHiUdtfDo/s640/parkdiary05.JPG</a>&#8221; width=&#8221;480&#8221; height=&#8221;640&#8221;></p>
+<p>{% img center <a href="https://lh4.googleusercontent.com/-RVZS4nhYEDE/TyB8ScAandI/AAAAAAAAAEs/84DHiUdtfDo/s640/parkdiary05.JPG">https://lh4.googleusercontent.com/-RVZS4nhYEDE/TyB8ScAandI/AAAAAAAAAEs/84DHiUdtfDo/s640/parkdiary05.JPG</a> 480 640 %}</p>
 
-<p><img class="center <a" src="href="https://lh3.googleusercontent.com/-r_YuRAQICgQ/TyB8SYzdD7I/AAAAAAAAAEs/h1YEEztllN0/s640/parkdiary06.JPG">https://lh3.googleusercontent.com/-r_YuRAQICgQ/TyB8SYzdD7I/AAAAAAAAAEs/h1YEEztllN0/s640/parkdiary06.JPG</a>&#8221; width=&#8221;480&#8221; height=&#8221;640&#8221;></p>
+<p>{% img center <a href="https://lh3.googleusercontent.com/-r_YuRAQICgQ/TyB8SYzdD7I/AAAAAAAAAEs/h1YEEztllN0/s640/parkdiary06.JPG">https://lh3.googleusercontent.com/-r_YuRAQICgQ/TyB8SYzdD7I/AAAAAAAAAEs/h1YEEztllN0/s640/parkdiary06.JPG</a> 480 640 %}</p>
 
-<p><img class="center <a" src="href="https://lh3.googleusercontent.com/-MXzyIQ0htGU/TyB8SX3RD3I/AAAAAAAAAEs/APZIfSVjhco/s640/parkdiary01.JPG">https://lh3.googleusercontent.com/-MXzyIQ0htGU/TyB8SX3RD3I/AAAAAAAAAEs/APZIfSVjhco/s640/parkdiary01.JPG</a>&#8221; width=&#8221;480&#8221; height=&#8221;640&#8221; title=&#8221;nothing to be scared of&#8221; ></p>
+<p>{% img center <a href="https://lh3.googleusercontent.com/-MXzyIQ0htGU/TyB8SX3RD3I/AAAAAAAAAEs/APZIfSVjhco/s640/parkdiary01.JPG">https://lh3.googleusercontent.com/-MXzyIQ0htGU/TyB8SX3RD3I/AAAAAAAAAEs/APZIfSVjhco/s640/parkdiary01.JPG</a> 480 640 nothing to be scared of %}</p>
 
-<p><img class="center <a" src="href="https://lh5.googleusercontent.com/-kBuTM2GSRgQ/TyB8Sdir63I/AAAAAAAAAEs/woXGmWoV1Zw/s640/parkdiary02.JPG">https://lh5.googleusercontent.com/-kBuTM2GSRgQ/TyB8Sdir63I/AAAAAAAAAEs/woXGmWoV1Zw/s640/parkdiary02.JPG</a>&#8221; width=&#8221;540&#8221; height=&#8221;405&#8221; title=&#8221;There&rsquo;s more to life than problem sets&#8221; ></p>
+<p>{% img center <a href="https://lh5.googleusercontent.com/-kBuTM2GSRgQ/TyB8Sdir63I/AAAAAAAAAEs/woXGmWoV1Zw/s640/parkdiary02.JPG">https://lh5.googleusercontent.com/-kBuTM2GSRgQ/TyB8Sdir63I/AAAAAAAAAEs/woXGmWoV1Zw/s640/parkdiary02.JPG</a> 540 405 There&rsquo;s more to life than problem sets %}</p>
 ]]></content>
   </entry>
   

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Internet | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/internet/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2019-05-17T14:28:09-04:00</updated>
+  <updated>2019-05-17T15:28:13-04:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -104,7 +104,8 @@ what the intelligence agencies have cracked and what&rsquo;s still safe. Has the
 general or only in targeted cases? But I wonder if this discussion is useful or if it misses the
 point as Kamp inspiringly points out at the end of his talk.</p>
 
-<p><blockquote><p>So the standard reaction in the open source environment to Edward Snowden&rsquo;s disclosures have been,
+<p>{% blockquote_nobr Poul-Henning Kamp <a href="https://youtu.be/fwcl17Q0bpk?t=30m8s">https://youtu.be/fwcl17Q0bpk?t=30m8s</a> %}
+So the standard reaction in the open source environment to Edward Snowden&rsquo;s disclosures have been,
 &ldquo;We need to strengthen the protocols! We need to have SSL everywhere.&rdquo; And I think that misses the
 point by a large margin. The things that have been published by the Snowden documents by now are
 the things that the general public can understand reading their newspaper. The stuff we would be
@@ -117,7 +118,8 @@ it. If you cannot find politicians, get you some politicians who can understand 
 is a renewable resource. Use your pencil when you vote. Or run yourself.</p>
 
 <p><strong>This is your children&rsquo;s and grandchildren&rsquo;s future society you&rsquo;re looking at. And we&rsquo;re the guys
-who sort of missed the boat.</strong></p><footer><strong>Poul-Henning Kamp <a href="https://youtu.be/fwcl17Q0bpk?t=30m8s">https://youtu.be/fwcl17Q0bpk?t=30m8s</a></strong></footer></blockquote></p>
+who sort of missed the boat.</strong>
+{% endblockquote_nobr %}</p>
 
 <p>If a guy who&rsquo;s been committing to the FreeBSD kernel for over 15 years says he doesn&rsquo;t see a
 technical solution to mass digital surveillance, he&rsquo;s probably got a point. He doesn&rsquo;t see a
@@ -144,7 +146,7 @@ each of our actions or inactions affect those around us.</p>
 
 <p>I&rsquo;ve drawn a flow chart of my argument of why we should stop mass surveillance below.</p>
 
-<p><a href="https://i.imgur.com/athtKWxh.jpg"><img class="center" src="https://i.imgur.com/athtKWxh.jpg" width="640" height="480"></a></p>
+<p><a href="https://i.imgur.com/athtKWxh.jpg">{% img center https://i.imgur.com/athtKWxh.jpg 640 480 %}</a></p>
 ]]></content>
   </entry>
   
@@ -193,31 +195,31 @@ roommates will be confused.</p>
 on a Mac, you can also go to Network settings -> [select the connection on the left hand side for
 the router] -> Advanced -> TCP/IP -> find the &ldquo;Router&rdquo; IP address.</p>
 
-<p><img class="center <a" src="href="https://fbcdn-sphotos-g-a.akamaihd.net/hphotos-ak-xfa1/v/t1.0-9/10917102_10101626154130882_4752830600148447470_n.jpg?oh=687ddbc7d54a8d49bc0a13c4f0f10fa0&amp;oe=55268EFA&amp;__gda__=1429886743_ed56c2e974636c894617c7c44ed7e783">https://fbcdn-sphotos-g-a.akamaihd.net/hphotos-ak-xfa1/v/t1.0-9/10917102_10101626154130882_4752830600148447470_n.jpg?oh=687ddbc7d54a8d49bc0a13c4f0f10fa0&amp;oe=55268EFA&amp;__gda__=1429886743_ed56c2e974636c894617c7c44ed7e783</a>&#8221; width=&#8221;662&#8221; height=&#8221;560&#8221;></p>
+<p>{% img center <a href="https://fbcdn-sphotos-g-a.akamaihd.net/hphotos-ak-xfa1/v/t1.0-9/10917102_10101626154130882_4752830600148447470_n.jpg?oh=687ddbc7d54a8d49bc0a13c4f0f10fa0&amp;oe=55268EFA&amp;__gda__=1429886743_ed56c2e974636c894617c7c44ed7e783">https://fbcdn-sphotos-g-a.akamaihd.net/hphotos-ak-xfa1/v/t1.0-9/10917102_10101626154130882_4752830600148447470_n.jpg?oh=687ddbc7d54a8d49bc0a13c4f0f10fa0&amp;oe=55268EFA&amp;__gda__=1429886743_ed56c2e974636c894617c7c44ed7e783</a> 662 560 %}</p>
 
-<p><img class="center <a" src="href="https://fbcdn-sphotos-c-a.akamaihd.net/hphotos-ak-xpa1/v/t1.0-9/10919009_10101626154090962_4392777984770748593_n.jpg?oh=c43148c8d01b5086d56e0643f5a7e35e&amp;oe=5532E3B4&amp;__gda__=1428807330_9fd7f561242eddec6d850e5db16e1a56">https://fbcdn-sphotos-c-a.akamaihd.net/hphotos-ak-xpa1/v/t1.0-9/10919009_10101626154090962_4392777984770748593_n.jpg?oh=c43148c8d01b5086d56e0643f5a7e35e&amp;oe=5532E3B4&amp;__gda__=1428807330_9fd7f561242eddec6d850e5db16e1a56</a>&#8221; width=&#8221;619&#8221; height=&#8221;216&#8221;></p>
+<p>{% img center <a href="https://fbcdn-sphotos-c-a.akamaihd.net/hphotos-ak-xpa1/v/t1.0-9/10919009_10101626154090962_4392777984770748593_n.jpg?oh=c43148c8d01b5086d56e0643f5a7e35e&amp;oe=5532E3B4&amp;__gda__=1428807330_9fd7f561242eddec6d850e5db16e1a56">https://fbcdn-sphotos-c-a.akamaihd.net/hphotos-ak-xpa1/v/t1.0-9/10919009_10101626154090962_4392777984770748593_n.jpg?oh=c43148c8d01b5086d56e0643f5a7e35e&amp;oe=5532E3B4&amp;__gda__=1428807330_9fd7f561242eddec6d850e5db16e1a56</a> 619 216 %}</p>
 
 <p>Go to that IP address in a browser.</p>
 
 <p>Most routers will show you an admin page that prompts for a username and password. The default is
 usually admin/admin or admin/password.</p>
 
-<p><img class="center <a" src="href="https://fbcdn-sphotos-a-a.akamaihd.net/hphotos-ak-xaf1/v/t1.0-9/10410155_10101626154095952_226725594218369342_n.jpg?oh=aed19b834fb767fa8f8663a4a01ac195&amp;oe=5535E796&amp;__gda__=1429460257_bff57da2e2ebcd4c0941690accd39b5a">https://fbcdn-sphotos-a-a.akamaihd.net/hphotos-ak-xaf1/v/t1.0-9/10410155_10101626154095952_226725594218369342_n.jpg?oh=aed19b834fb767fa8f8663a4a01ac195&amp;oe=5535E796&amp;__gda__=1429460257_bff57da2e2ebcd4c0941690accd39b5a</a>&#8221; width=&#8221;700&#8221; height=&#8221;248&#8221;></p>
+<p>{% img center <a href="https://fbcdn-sphotos-a-a.akamaihd.net/hphotos-ak-xaf1/v/t1.0-9/10410155_10101626154095952_226725594218369342_n.jpg?oh=aed19b834fb767fa8f8663a4a01ac195&amp;oe=5535E796&amp;__gda__=1429460257_bff57da2e2ebcd4c0941690accd39b5a">https://fbcdn-sphotos-a-a.akamaihd.net/hphotos-ak-xaf1/v/t1.0-9/10410155_10101626154095952_226725594218369342_n.jpg?oh=aed19b834fb767fa8f8663a4a01ac195&amp;oe=5535E796&amp;__gda__=1429460257_bff57da2e2ebcd4c0941690accd39b5a</a> 700 248 %}</p>
 
 <p>Find the page that lists the devices connected to the router. Note down your server&rsquo;s IP address.</p>
 
-<p><img class="center <a" src="href="https://fbcdn-sphotos-g-a.akamaihd.net/hphotos-ak-xpa1/v/t1.0-9/10896944_10101626154844452_1876206850052900071_n.jpg?oh=7c9f32651e691da17a5e2013998082d0&amp;oe=55299B48&amp;__gda__=1428651870_0dff0a668214d8e15623be1039b8e646">https://fbcdn-sphotos-g-a.akamaihd.net/hphotos-ak-xpa1/v/t1.0-9/10896944_10101626154844452_1876206850052900071_n.jpg?oh=7c9f32651e691da17a5e2013998082d0&amp;oe=55299B48&amp;__gda__=1428651870_0dff0a668214d8e15623be1039b8e646</a>&#8221; width=&#8221;636&#8221; height=&#8221;161&#8221;></p>
+<p>{% img center <a href="https://fbcdn-sphotos-g-a.akamaihd.net/hphotos-ak-xpa1/v/t1.0-9/10896944_10101626154844452_1876206850052900071_n.jpg?oh=7c9f32651e691da17a5e2013998082d0&amp;oe=55299B48&amp;__gda__=1428651870_0dff0a668214d8e15623be1039b8e646">https://fbcdn-sphotos-g-a.akamaihd.net/hphotos-ak-xpa1/v/t1.0-9/10896944_10101626154844452_1876206850052900071_n.jpg?oh=7c9f32651e691da17a5e2013998082d0&amp;oe=55299B48&amp;__gda__=1428651870_0dff0a668214d8e15623be1039b8e646</a> 636 161 %}</p>
 
 <p>Set the DNS servers for your router to <a href="https://developers.google.com/speed/public-dns/">Google&rsquo;s DNS servers</a>:
 8.8.8.8, 8.8.4.4.</p>
 
-<p><img class="center <a" src="href="https://fbcdn-sphotos-f-a.akamaihd.net/hphotos-ak-xpa1/v/t1.0-9/10407390_10101626154879382_1002124578065929748_n.jpg?oh=5dc7af5bbbd53fd16698ce4924fb9b70&amp;oe=5529AD7D&amp;__gda__=1428557163_e985a42a159b9d85f10f20ddba5c1c64">https://fbcdn-sphotos-f-a.akamaihd.net/hphotos-ak-xpa1/v/t1.0-9/10407390_10101626154879382_1002124578065929748_n.jpg?oh=5dc7af5bbbd53fd16698ce4924fb9b70&amp;oe=5529AD7D&amp;__gda__=1428557163_e985a42a159b9d85f10f20ddba5c1c64</a>&#8221; width=&#8221;666&#8221; height=&#8221;128&#8221;></p>
+<p>{% img center <a href="https://fbcdn-sphotos-f-a.akamaihd.net/hphotos-ak-xpa1/v/t1.0-9/10407390_10101626154879382_1002124578065929748_n.jpg?oh=5dc7af5bbbd53fd16698ce4924fb9b70&amp;oe=5529AD7D&amp;__gda__=1428557163_e985a42a159b9d85f10f20ddba5c1c64">https://fbcdn-sphotos-f-a.akamaihd.net/hphotos-ak-xpa1/v/t1.0-9/10407390_10101626154879382_1002124578065929748_n.jpg?oh=5dc7af5bbbd53fd16698ce4924fb9b70&amp;oe=5529AD7D&amp;__gda__=1428557163_e985a42a159b9d85f10f20ddba5c1c64</a> 666 128 %}</p>
 
 <p>Setup a static route for each of these Google IPs that point to your server.</p>
 
-<p><img class="center <a" src="href="https://fbcdn-sphotos-c-a.akamaihd.net/hphotos-ak-xap1/v/t1.0-9/10898174_10101626154794552_232860980624736509_n.jpg?oh=42ddf8144e919d83f73bfc0ce307ee7a&amp;oe=55420596&amp;__gda__=1430042031_93da6ec48766a9e2c1788c147c430eb6">https://fbcdn-sphotos-c-a.akamaihd.net/hphotos-ak-xap1/v/t1.0-9/10898174_10101626154794552_232860980624736509_n.jpg?oh=42ddf8144e919d83f73bfc0ce307ee7a&amp;oe=55420596&amp;__gda__=1430042031_93da6ec48766a9e2c1788c147c430eb6</a>&#8221; width=&#8221;700&#8221; height=&#8221;93&#8221;></p>
+<p>{% img center <a href="https://fbcdn-sphotos-c-a.akamaihd.net/hphotos-ak-xap1/v/t1.0-9/10898174_10101626154794552_232860980624736509_n.jpg?oh=42ddf8144e919d83f73bfc0ce307ee7a&amp;oe=55420596&amp;__gda__=1430042031_93da6ec48766a9e2c1788c147c430eb6">https://fbcdn-sphotos-c-a.akamaihd.net/hphotos-ak-xap1/v/t1.0-9/10898174_10101626154794552_232860980624736509_n.jpg?oh=42ddf8144e919d83f73bfc0ce307ee7a&amp;oe=55420596&amp;__gda__=1430042031_93da6ec48766a9e2c1788c147c430eb6</a> 700 93 %}</p>
 
-<p><img class="center <a" src="href="https://scontent-a.xx.fbcdn.net/hphotos-xpf1/v/t1.0-9/10270311_10101626154834472_5673943759150803695_n.jpg?oh=425580867e67451a7cb805159dc5052f&amp;oe=553CC1E6">https://scontent-a.xx.fbcdn.net/hphotos-xpf1/v/t1.0-9/10270311_10101626154834472_5673943759150803695_n.jpg?oh=425580867e67451a7cb805159dc5052f&amp;oe=553CC1E6</a>&#8221; width=&#8221;695&#8221; height=&#8221;266&#8221;></p>
+<p>{% img center <a href="https://scontent-a.xx.fbcdn.net/hphotos-xpf1/v/t1.0-9/10270311_10101626154834472_5673943759150803695_n.jpg?oh=425580867e67451a7cb805159dc5052f&amp;oe=553CC1E6">https://scontent-a.xx.fbcdn.net/hphotos-xpf1/v/t1.0-9/10270311_10101626154834472_5673943759150803695_n.jpg?oh=425580867e67451a7cb805159dc5052f&amp;oe=553CC1E6</a> 695 266 %}</p>
 
 <p>Install and configure DNS software on your server. I used bind9 and followed <a href="https://www.digitalocean.com/community/tutorials/how-to-configure-bind-as-a-private-network-dns-server-on-ubuntu-14-04">this tutorial by
 Digital Ocean</a>.
@@ -373,7 +375,7 @@ stuff. You just want your website to work. Is this that much to ask?</p>
 
 <p>This tutorial<sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup> will get your own website up and running from scratch in under 1.5 hours. At the
 end you&rsquo;ll be able to type &ldquo;myownwebsite.com&rdquo; into your browser to see a website you own and
-receive e-mail at &ldquo;<a href="&#109;&#97;&#x69;&#x6c;&#x74;&#111;&#x3a;&#102;&#105;&#114;&#x73;&#116;&#110;&#x61;&#109;&#101;&#64;&#x6d;&#121;&#x6f;&#119;&#x6e;&#119;&#101;&#x62;&#115;&#105;&#116;&#x65;&#46;&#x63;&#x6f;&#109;">&#102;&#105;&#x72;&#115;&#116;&#x6e;&#97;&#109;&#101;&#64;&#109;&#121;&#x6f;&#119;&#110;&#119;&#101;&#x62;&#115;&#x69;&#116;&#101;&#46;&#99;&#x6f;&#x6d;</a>&rdquo;. You&rsquo;ll learn how the Internet works on a basic
+receive e-mail at &ldquo;<a href="&#x6d;&#x61;&#x69;&#x6c;&#x74;&#x6f;&#x3a;&#x66;&#105;&#x72;&#115;&#x74;&#110;&#97;&#x6d;&#101;&#64;&#x6d;&#121;&#x6f;&#x77;&#110;&#119;&#101;&#x62;&#115;&#x69;&#x74;&#101;&#46;&#x63;&#x6f;&#x6d;">&#102;&#105;&#114;&#x73;&#x74;&#x6e;&#x61;&#x6d;&#x65;&#64;&#x6d;&#121;&#x6f;&#x77;&#110;&#x77;&#101;&#x62;&#115;&#105;&#x74;&#x65;&#x2e;&#x63;&#111;&#109;</a>&rdquo;. You&rsquo;ll learn how the Internet works on a basic
 level, what domain name servers (DNS) are, and how to link your website to Google&rsquo;s free apps.</p>
 
 <ol>

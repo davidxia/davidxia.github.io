@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Business | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/business/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2019-05-17T14:28:09-04:00</updated>
+  <updated>2019-05-17T15:28:13-04:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -25,7 +25,7 @@ The events below transpired in New York City. The buying process may be differen
 but the most of the process such as contract of sale and mortgage application is the same across
 the U.S.</em></p>
 
-<p><div class='image center <a'><img  src="href="https://upload.wikimedia.org/wikipedia/commons/8/8d/Cary_Grant_Myrna_Loy_Mr_Blandings_Builds_His_Dream_House_1948.JPG">https://upload.wikimedia.org/wikipedia/commons/8/8d/Cary_Grant_Myrna_Loy_Mr_Blandings_Builds_His_Dream_House_1948.JPG</a>&#8221; width=&#8221;640&#8221; height=&#8221;772&#8221; title=&#8221;By RKO radio pictures (eBay item photo front photo back) [Public domain], via Wikimedia Commons. Promotional photo of Cary Grant and Myrna Loy for the film Mr. Blandings Builds His Dream House (1948)&#8221; ><div class='caption'>By RKO radio pictures (eBay item photo front photo back) [Public domain], via Wikimedia Commons. Promotional photo of Cary Grant and Myrna Loy for the film Mr. Blandings Builds His Dream House (1948)</div></div></p>
+<p>{% img_caption center <a href="https://upload.wikimedia.org/wikipedia/commons/8/8d/Cary_Grant_Myrna_Loy_Mr_Blandings_Builds_His_Dream_House_1948.JPG">https://upload.wikimedia.org/wikipedia/commons/8/8d/Cary_Grant_Myrna_Loy_Mr_Blandings_Builds_His_Dream_House_1948.JPG</a> 640 772 By RKO radio pictures (eBay item photo front photo back) [Public domain], via Wikimedia Commons. Promotional photo of Cary Grant and Myrna Loy for the film Mr. Blandings Builds His Dream House (1948) %}</p>
 
 <ul>
 <li>My mother found an affordable co-op unit for sale while browsing StreetEasy on her iPad
@@ -908,9 +908,11 @@ explanation by Steve Yegge titled <a href="http://steve-yegge.blogspot.com/2006/
     <link href="https://www.davidxia.com/2013/04/how-the-big-short-inspired-me-to-make-a-risky-bet-in-tesla/"/>
     <updated>2013-04-09T00:00:00-04:00</updated>
     <id>https://www.davidxia.com/2013/04/how-the-big-short-inspired-me-to-make-a-risky-bet-in-tesla</id>
-    <content type="html"><![CDATA[<p><blockquote><p>The most difficult subjects can be explained to the slow-witted man if he has not formed any
+    <content type="html"><![CDATA[<p>{% blockquote_nobr Leo Tolstoy, 1897 %}
+The most difficult subjects can be explained to the slow-witted man if he has not formed any
 idea of them already; but the simplest thing cannot be made clear to the most intelligent man if
-he is firmly persuaded that he knows already without a shadow of a doubt, what is laid before him.</p><footer><strong>Leo Tolstoy</strong> <cite>1897</cite></footer></blockquote></p>
+he is firmly persuaded that he knows already without a shadow of a doubt, what is laid before him.
+{% endblockquote_nobr %}</p>
 
 <p>In early February of this year, my roommate Ben recommended I read <a href="http://www.amazon.com/gp/product/B00ANYJ3NI/ref=as_li_ss_tl?ie=UTF8&amp;camp=1789&amp;creative=390957&amp;creativeASIN=B00ANYJ3NI&amp;linkCode=as2&amp;tag=easiamus00-20"><em>The Big Short</em></a><img src="https://www.assoc-amazon.com/e/ir?t=easiamus00-20&amp;l=as2&amp;o=1&amp;a=B00ANYJ3NI" alt="" /> by
 Michael Lewis. This book tells the story of individuals who foresaw the impending 2008 financial

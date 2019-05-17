@@ -196,18 +196,21 @@ block.</p>
 
 
 <p>K8s Pods can be rescheduled anytime so their IPs aren&rsquo;t stable. I&rsquo;m supposed to use K8s Services
-to avoid caching these ephemeral Pod IPs. But in my case because of interoperability I was
-registering Pod IPs directly as A records for foo.example.com. I started noticing that after my Pod
+to avoid caching these ephemeral Pod IPs. But in my case because of interoperability reasons I was
+registering Pod IPs directly as A records for <code>foo.example.com.</code>. I started noticing that after my Pod
 IPs changed either because of rescheduling or updating the Deployment, Nginx started throwing
 <code>502 Bad Gateway</code> errors.</p>
 
 <h3>Root Problem</h3>
 
-<p>This is Nginx resolves statically configured domain names only once at startup or configuration
+<p>Nginx resolves statically configured domain names only once at startup or configuration
 reload time. So Nginx resolved <code>foo.example.com.</code> once at startup to several Pod IPs and cached
-them forever even when those Pod IPs changed.</p>
+them forever.</p>
 
 <h3>Solution</h3>
+
+<!-- more -->
+
 
 <p>Using a variable for the domain name will make Nginx resolve and cache it using the TTL value of the
 DNS response. So replace the <code>upstream</code> block with a variable. I have no idea why it has to be a
@@ -235,7 +238,7 @@ and <a href="https://www.ruby-forum.com/t/using-127-0-0-1-in-resolver/238180/4">
 <code>/etc/resolv.conf</code> but periodically resolved domains require a completely different config
 setting.</strong> I would love to know why.</p>
 
-<p>The VM on which Nginx was running ran a Bind DNS server locally so I set it to <code>resolver 127.0.0.1</code>.
+<p>The VM on which Nginx was running ran a Bind DNS server locally, so I set <code>resolver 127.0.0.1</code>.
 I triggered the code path that made Nginx send requests to foo and saw periodic DNS queries
 occurring with <code>sudo tcpdump -i lo -n dst port 53 | grep foo</code>.</p>
 
@@ -441,7 +444,7 @@ placeholder with a nameserver IP from <code>/etc/resolv.conf</code>.</p>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>Deployment YAML then becomes (note the added <code>command</code>, <code>args</code>, and new <code>volume</code> and <code>volumeMount</code>.</p>
+<p>Deployment YAML then becomes (note the added <code>command</code>, <code>args</code>, and new <code>volume</code> and <code>volumeMount</code>).</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>

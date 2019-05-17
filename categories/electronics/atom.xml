@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Electronics | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/electronics/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2019-05-17T14:28:09-04:00</updated>
+  <updated>2019-05-17T15:28:13-04:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -43,7 +43,7 @@ sensors-detect</code>, fortune (fortune-mod on Ubuntu), and cowsay</li>
 </ul>
 
 
-<p><img class="center <a" src="href="https://lh4.googleusercontent.com/-QXSuwFFOFJ0/UO95Yd3bGrI/AAAAAAAAAVg/QvgptZL2SI4/s640/motd.jpg">https://lh4.googleusercontent.com/-QXSuwFFOFJ0/UO95Yd3bGrI/AAAAAAAAAVg/QvgptZL2SI4/s640/motd.jpg</a>&#8221; width=&#8221;540&#8221; height=&#8221;532&#8221; title=&#8221;my motd&#8221; ></p>
+<p>{% img center <a href="https://lh4.googleusercontent.com/-QXSuwFFOFJ0/UO95Yd3bGrI/AAAAAAAAAVg/QvgptZL2SI4/s640/motd.jpg">https://lh4.googleusercontent.com/-QXSuwFFOFJ0/UO95Yd3bGrI/AAAAAAAAAVg/QvgptZL2SI4/s640/motd.jpg</a> 540 532 my motd %}</p>
 
 <h2>Dynamic DNS</h2>
 
