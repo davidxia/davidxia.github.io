@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Technology | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/technology/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2019-02-05T17:12:56-05:00</updated>
+  <updated>2019-05-17T14:28:09-04:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -35,7 +35,7 @@ Testing.&rdquo;</a> in various formats. <span xmlns:dct="http://purl.org/dc/term
 </ul>
 
 
-<p>{% img center <a href="https://i.imgur.com/w0P47Ugl.jpg">https://i.imgur.com/w0P47Ugl.jpg</a> 640 619 %}</p>
+<p><img class="center <a" src="href="https://i.imgur.com/w0P47Ugl.jpg">https://i.imgur.com/w0P47Ugl.jpg</a>&#8221; width=&#8221;640&#8221; height=&#8221;619&#8221;></p>
 ]]></content>
   </entry>
   
@@ -134,8 +134,7 @@ what the intelligence agencies have cracked and what&rsquo;s still safe. Has the
 general or only in targeted cases? But I wonder if this discussion is useful or if it misses the
 point as Kamp inspiringly points out at the end of his talk.</p>
 
-<p>{% blockquote_nobr Poul-Henning Kamp <a href="https://youtu.be/fwcl17Q0bpk?t=30m8s">https://youtu.be/fwcl17Q0bpk?t=30m8s</a> %}
-So the standard reaction in the open source environment to Edward Snowden&rsquo;s disclosures have been,
+<p><blockquote><p>So the standard reaction in the open source environment to Edward Snowden&rsquo;s disclosures have been,
 &ldquo;We need to strengthen the protocols! We need to have SSL everywhere.&rdquo; And I think that misses the
 point by a large margin. The things that have been published by the Snowden documents by now are
 the things that the general public can understand reading their newspaper. The stuff we would be
@@ -148,8 +147,7 @@ it. If you cannot find politicians, get you some politicians who can understand 
 is a renewable resource. Use your pencil when you vote. Or run yourself.</p>
 
 <p><strong>This is your children&rsquo;s and grandchildren&rsquo;s future society you&rsquo;re looking at. And we&rsquo;re the guys
-who sort of missed the boat.</strong>
-{% endblockquote_nobr %}</p>
+who sort of missed the boat.</strong></p><footer><strong>Poul-Henning Kamp <a href="https://youtu.be/fwcl17Q0bpk?t=30m8s">https://youtu.be/fwcl17Q0bpk?t=30m8s</a></strong></footer></blockquote></p>
 
 <p>If a guy who&rsquo;s been committing to the FreeBSD kernel for over 15 years says he doesn&rsquo;t see a
 technical solution to mass digital surveillance, he&rsquo;s probably got a point. He doesn&rsquo;t see a
@@ -176,7 +174,7 @@ each of our actions or inactions affect those around us.</p>
 
 <p>I&rsquo;ve drawn a flow chart of my argument of why we should stop mass surveillance below.</p>
 
-<p><a href="https://i.imgur.com/athtKWxh.jpg">{% img center https://i.imgur.com/athtKWxh.jpg 640 480 %}</a></p>
+<p><a href="https://i.imgur.com/athtKWxh.jpg"><img class="center" src="https://i.imgur.com/athtKWxh.jpg" width="640" height="480"></a></p>
 ]]></content>
   </entry>
   
@@ -357,14 +355,14 @@ to get most of the features.</p>
 <p>Read everything carefully and make sure to follow all the steps. If you open your router&rsquo;s web UI
 and see the below, give yourself a pat on the back.</p>
 
-<p>{% img center <a href="http://i.kinja-img.com/gawker-media/image/upload/s--K37zgSAg--/c_fit,fl_progressive,q_80,w_636/18o8kyq5au0xojpg.jpg">http://i.kinja-img.com/gawker-media/image/upload/s&#8211;K37zgSAg&#8211;/c_fit,fl_progressive,q_80,w_636/18o8kyq5au0xojpg.jpg</a> 636 403 %}</p>
+<p><img class="center <a" src="href="http://i.kinja-img.com/gawker-media/image/upload/s--K37zgSAg--/c_fit,fl_progressive,q_80,w_636/18o8kyq5au0xojpg.jpg">http://i.kinja-img.com/gawker-media/image/upload/s&#8211;K37zgSAg&#8211;/c_fit,fl_progressive,q_80,w_636/18o8kyq5au0xojpg.jpg</a>&#8221; width=&#8221;636&#8221; height=&#8221;403&#8221;></p>
 
 <h2>Setup SSH access to router</h2>
 
 <p>Go to the web UI. Click on the &ldquo;Services&rdquo; tab and scroll down to the &ldquo;Secure Shell&rdquo; section.
 Enable SSHd and add your SSH public key.</p>
 
-<p>{% img center <a href="https://i.imgur.com/5BFkP24.png">https://i.imgur.com/5BFkP24.png</a> 677 217 %}</p>
+<p><img class="center <a" src="href="https://i.imgur.com/5BFkP24.png">https://i.imgur.com/5BFkP24.png</a>&#8221; width=&#8221;677&#8221; height=&#8221;217&#8221;></p>
 
 <p>Now you can <code>ssh root@&lt;router's IP&gt;</code>.</p>
 
@@ -378,7 +376,7 @@ cheap, this can act as a <a href="http://en.wikipedia.org/wiki/Network-attached_
 (<a href="http://www.dd-wrt.com/wiki/index.php/How_to_-_Format_and_Partition_External_Storage_Device#Linux_Command_Line_Method_.28preferred.29" title="How To - Format And Partition External Storage Device: Linux Command Line Method (preferred)">I used a Linux machine</a>). I didn&rsquo;t create the &ldquo;jffs&rdquo; partition because I had a USB instead of
 a multimedia card or &ldquo;MMC&rdquo;.</p>
 
-<p>{% img_caption center <a href="http://www.hacker9.com/wp-content/uploads/2010/11/How-to-recover-lost-password-of-Memory-Card-MMC-micro-SD-adapter.jpg">http://www.hacker9.com/wp-content/uploads/2010/11/How-to-recover-lost-password-of-Memory-Card-MMC-micro-SD-adapter.jpg</a> 215 235 example MMC %}</p>
+<p><div class='image center <a'><img  src="href="http://www.hacker9.com/wp-content/uploads/2010/11/How-to-recover-lost-password-of-Memory-Card-MMC-micro-SD-adapter.jpg">http://www.hacker9.com/wp-content/uploads/2010/11/How-to-recover-lost-password-of-Memory-Card-MMC-micro-SD-adapter.jpg</a>&#8221; width=&#8221;215&#8221; height=&#8221;235&#8221; title=&#8221;example MMC&#8221; ><div class='caption'>example MMC</div></div></p>
 
 <p>Plug the USB into the Asus router and follow <a href="http://www.dd-wrt.com/wiki/index.php/USB_storage#USB_Guide_for_v24_and_v24SP1_Mega_of_DD-WRT" title="USB storage - USB Guide for v24 and v24SP1 Mega of DD-WRT">these steps here</a>. You&rsquo;ll know you&rsquo;ve mounted the
 USB correctly when you can <code>touch /opt/test</code> if <code>/opt</code> was your mount point.</p>

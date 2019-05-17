@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Programming & Software | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/programming-and-software/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2019-02-05T17:12:56-05:00</updated>
+  <updated>2019-05-17T14:28:09-04:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -12,6 +12,250 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[More About Nginx DNS Resolution Than You Ever Wanted to Know]]></title>
+    <link href="https://www.davidxia.com/2019/05/more-about-nginx-dns-resolution-than-you-ever-wanted-to-know/"/>
+    <updated>2019-05-17T12:58:38-04:00</updated>
+    <id>https://www.davidxia.com/2019/05/more-about-nginx-dns-resolution-than-you-ever-wanted-to-know</id>
+    <content type="html"><![CDATA[<p>This is a post about Nginx&rsquo;s DNS resolution behavior I didn&rsquo;t know about but wish I did before I
+started using Kubernetes (K8s).</p>
+
+<h2>Nginx caches statically configured domains once</h2>
+
+<h3>Symptoms</h3>
+
+<p>I moved a backend service <code>foo</code> from running on a virtual
+machine to K8s. Foo&rsquo;s clients include an Nginx instance configured with this <code>upstream</code>
+block.</p>
+
+<pre><code>upstream foo {
+  server foo.example.com.;
+}
+
+server {
+  ...
+
+  location ~* /_foo/(.*) {
+    proxy_pass https://foo/$1;
+    ...
+  }
+}
+</code></pre>
+
+<p>K8s Pods can be rescheduled anytime so their IPs aren&rsquo;t stable. I&rsquo;m supposed to use K8s Services
+to avoid caching these ephemeral Pod IPs. But in my case because of interoperability I was
+registering Pod IPs directly as A records for foo.example.com. I started noticing that after my Pod
+IPs changed either because of rescheduling or updating the Deployment, Nginx started throwing
+<code>502 Bad Gateway</code> errors.</p>
+
+<h3>Root Problem</h3>
+
+<p>This is Nginx resolves statically configured domain names only once at startup or configuration
+reload time. So Nginx resolved <code>foo.example.com.</code> once at startup to several Pod IPs and cached
+them forever even when those Pod IPs changed.</p>
+
+<h3>Solution</h3>
+
+<p>Using a variable for the domain name will make Nginx resolve and cache it using the TTL value of the
+DNS response. So replace the <code>upstream</code> block with a variable. I have no idea why it has to be a
+variable to make Nginx resolve the domain periodically.</p>
+
+<pre><code>set $foo_url foo.example.com.;
+</code></pre>
+
+<p>And replace the <code>proxy_pass</code> line with</p>
+
+<pre><code>  location ~* /_foo/(.*) {
+    proxy_pass https://$foo_url/$1;
+    ...
+  }
+</code></pre>
+
+<p>This behavior isn&rsquo;t documented but has been observed empirically and discussed <a href="https://serverfault.com/a/593003/88755">here</a>, <a href="https://stackoverflow.com/a/41476524/553994">here</a>,
+and <a href="https://www.ruby-forum.com/t/using-127-0-0-1-in-resolver/238180/4">here</a>. I also learned that this setup requires me to define a <code>resolver</code> in the Nginx configs.
+<strong>For some reason Nginx resolves statically configured domains by querying the nameserver specified in
+<code>/etc/resolv.conf</code> but periodically resolved domains require a completely different config
+setting.</strong> I would love to know why.</p>
+
+<p>The VM on which Nginx was running ran a Bind DNS server locally so I set it to <code>resolver 127.0.0.1</code>.
+I triggered the code path that made Nginx send requests to foo and saw periodic DNS queries
+occurring with <code>sudo tcpdump -i lo -n dst port 53 | grep foo</code>.</p>
+
+<h2>What if that Nginx is also running on K8s?</h2>
+
+<h3>Problem</h3>
+
+<p>I had another Nginx instance that also made requests to foo. This Nginx was running on K8s too. It
+was created with this Deployment YAML.</p>
+
+<pre><code class="yaml">apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: openresty/openresty:trusty
+        ports:
+          - name: https
+            containerPort: 443
+            protocol: TCP
+        volumeMounts:
+          - name: nginx-config
+            mountPath: /etc/nginx/conf.d
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: nginx-config
+</code></pre>
+
+<p>The <code>nginx-config</code> ConfigMap was</p>
+
+<pre><code class="yaml">apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+data:
+  nginx.conf: |
+    upstream foo {
+      server foo.example.com.:443;
+    }
+
+    server {
+      ...
+
+      # use regex capture to preserve url path and query params
+      location ~* /_foo/(.*) {
+        proxy_pass https://foo/$1;
+        ...
+      }
+    }
+</code></pre>
+
+<p>I replaced <code>upstream</code> with the same pattern above, but in this case when I needed to define
+<code>resolver</code> I couldn&rsquo;t use <code>127.0.0.1</code> because there&rsquo;s no Bind running locally. I can&rsquo;t hardcode the
+resolver because it might change.</p>
+
+<h3>Solution: run Nginx and foo on the same K8s cluster and use the cluster-local Service DNS record</h3>
+
+<p>If Nginx and foo run on the same K8s cluster, I can use the cluster-local DNS record created by a
+K8s Service matching the foo Pods. A Service like this</p>
+
+<pre><code class="yaml">apiVersion: v1
+kind: Service
+metadata:
+  name: foo
+  namespace: bar
+...
+</code></pre>
+
+<p>will create a DNS A record <code>hoth.tugboat.svc.cluster.local.</code> pointing to the K8s Service&rsquo;s IP.
+Since this Service&rsquo;s IP is stable and it load balances requests to the underlying Pods, there&rsquo;s no need for Nginx to
+periodically lookup the Pod IPs. I can keep the <code>upstream</code> block like so.</p>
+
+<pre><code>upstream foo {
+  server foo.bar.svc.cluster.local.:443;
+}
+</code></pre>
+
+<p>As its name implies, <code>hoth.tugboat.svc.cluster.local.</code> is only resolvable within the cluster. So
+Nginx has to be running on the same cluster as foo.</p>
+
+<h3>Solution: dynamically set the Nginx <code>resolver</code> equal to the system&rsquo;s when the Pod starts</h3>
+
+<p>What if Nginx is on another K8s cluster? Then I can set <code>resolver</code> to the IP of one of the
+nameservers in <code>/etc/resolv.conf</code>. After a bunch of tinkering I came up with this way to dynamically
+set the Nginx <code>resolver</code> when the Pod starts. A placeholder for <code>resolver</code> is set in the Nginx
+ConfigMap, and a command at Pod startup copies over the templated config and replaces the
+placeholder with a nameserver IP from <code>/etc/resolv.conf</code>.</p>
+
+<p>Change <code>nginx-config</code> ConfigMap to</p>
+
+<pre><code class="yaml">apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+data:
+  nginx.conf.template: |
+    server {
+      ...
+
+      # This directive is dynamic because we set it to the
+      # kube-dns Service IP which is different for each cluster.
+      resolver $NAMESERVER;
+
+      set $foo_url foo.example.com.;
+
+      # use regex capture to preserve url path and query params
+      location ~* /_foo/(.*) {
+        proxy_pass https://$foo_url/$1;
+        ...
+      }
+    }
+</code></pre>
+
+<p>Deployment YAML then becomes (note the added <code>command</code>, <code>args</code>, and new <code>volume</code> and <code>volumeMount</code>.</p>
+
+<pre><code class="yaml">apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: openresty/openresty:trusty
+        command: ['/bin/bash', '-c']
+        args:
+        - |
+          export NAMESERVER=$(grep 'nameserver' /etc/resolv.conf | awk '{print $2}' | tr '\n' ' ')
+          echo "Nameserver is: $NAMESERVER"
+          echo 'Copying nginx config'
+          envsubst '$NAMESERVER' &lt; /etc/nginx/conf.d.template/nginx.conf.template &gt; /etc/nginx/conf.d/nginx.conf
+          echo 'Using nginx config:'
+          cat /etc/nginx/conf.d/nginx.conf
+          echo 'Starting nginx'
+          nginx -g 'daemon off;'
+        ports:
+          - name: https
+            containerPort: 443
+            protocol: TCP
+        volumeMounts:
+          - name: nginx-config-template
+            mountPath: /etc/nginx/conf.d.template
+          - name: nginx-config
+            mountPath: /etc/nginx/conf.d
+      volumes:
+        - name: nginx-config
+          emptyDir: {}
+        - name: nginx-config-template
+          configMap:
+            name: nginx-config
+</code></pre>
+
+<p>A <code>volume</code> of type <code>emptyDir</code> is needed because recent versions of K8s made configMap volumes
+read-only. EmptyDir types are writable.</p>
+
+<p>Hopefully this helps some people out there who don&rsquo;t want to spend as much time as I did Googling
+obscure Nginx behavior.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Using Upstream Kubernetes Java Models Is Much Better Than Raw YAML]]></title>
@@ -89,7 +333,7 @@ Testing.&rdquo;</a> in various formats. <span xmlns:dct="http://purl.org/dc/term
 </ul>
 
 
-<p>{% img center <a href="https://i.imgur.com/w0P47Ugl.jpg">https://i.imgur.com/w0P47Ugl.jpg</a> 640 619 %}</p>
+<p><img class="center <a" src="href="https://i.imgur.com/w0P47Ugl.jpg">https://i.imgur.com/w0P47Ugl.jpg</a>&#8221; width=&#8221;640&#8221; height=&#8221;619&#8221;></p>
 ]]></content>
   </entry>
   
@@ -162,15 +406,13 @@ signing. The following was copied from the <a href="https://wiki.debian.org/Subk
 </ul>
 
 
-<p>{% blockquote_nobr subkeys <a href="https://wiki.debian.org/Subkeys">https://wiki.debian.org/Subkeys</a> %}
-You should keep your private master key very, very safe. However, keeping all your keys extremely
+<p><blockquote><p>You should keep your private master key very, very safe. However, keeping all your keys extremely
 safe is inconvenient: every time you need to sign a new package upload, you need to copy the
 packages onto suitable portable media, go into your sub-basement, prove to the armed guards that
 you&rsquo;re you by using several methods of biometric and other identification, go through a deadly
 maze, feed the guard dogs the right kind of meat, and then finally open the safe, get out the
 signing laptop, and sign the packages. Then do the reverse to get back up to your Internet
-connection for uploading the packages.
-{% endblockquote_nobr %}</p>
+connection for uploading the packages.</p><footer><strong>subkeys <a href="https://wiki.debian.org/Subkeys">https://wiki.debian.org/Subkeys</a></strong></footer></blockquote></p>
 
 <ul>
 <li><code>gpg --edit-key &lt;your master key id&gt;</code></li>
@@ -243,150 +485,6 @@ gpg --keyserver some.keyserver.com --send-key &lt;key id&gt;
 <li>a super readable introduction titled <a href="http://www.pgpi.org/doc/pgpintro/" title="How PGP Works">&ldquo;How PGP Works&rdquo;</a></li>
 <li>More info <a href="http://ekaia.org/blog/2009/05/10/creating-new-gpgkey/" title="Creating a new GPG Key">here</a>, <a href="https://alexcabal.com/creating-the-perfect-gpg-keypair/" title="Creating the Perfect GPG Keypair">here</a>, and <a href="https://help.riseup.net/en/security/message-security/openpgp/best-practices" title="OpenPGP Best Practices">here</a> on best practices</li>
 </ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[How to Turn the Internet Upside Down]]></title>
-    <link href="https://www.davidxia.com/2015/03/how-to-turn-the-internet-upside-down/"/>
-    <updated>2015-03-15T00:00:00-04:00</updated>
-    <id>https://www.davidxia.com/2015/03/how-to-turn-the-internet-upside-down</id>
-    <content type="html"><![CDATA[<p>I read <a href="http://www.ex-parrot.com/pete/upside-down-ternet.html" title="upside down ternet">this web page</a> many years ago that described how someone used their unencrypted WiFi
-network to prank neighbors by turning all images upside down or making them blurry or simply
-redirecting them to cats. I always wanted to do it myself, but I didn&rsquo;t have the required knowledge
-or hardware until now.</p>
-
-<p>In <a href="/2015/03/how-to-install-dd-wrt-on-an-asus-rt-n16-router/" title="How to install DD-WRT on on Asus RT-N16 router">my previous post</a>, I wrote about how I installed DD-WRT onto my <a href="http://www.amazon.com/gp/product/B00387G6R8/ref=as_li_tl?ie=UTF8&amp;camp=1789&amp;creative=390957&amp;creativeASIN=B00387G6R8&amp;linkCode=as2&amp;tag=easiamus00-20&amp;linkId=6TECRA3HNZATDC4U" title="Asus RT-N16">Asus RT-N16 wireless
-router</a>. You might be able to do this prank with the factory default firmware for your router.
-Your firmware needs to let you do the steps in <a href="http://www.alexlaird.com/2013/03/dd-wrt-guest-wireless/" title="DD-WRT guest wireless">this awesome tutorial</a> to create a separate
-guest WiFi network and add custom iptables rules. If it doesn&rsquo;t, get a better router or flash
-better firmware.</p>
-
-<!-- more -->
-
-
-<p>Install the squid3 proxy caching server on a computer on the LAN using <a href="https://help.ubuntu.com/community/Upside-Down-TernetHowTo" title="Ubuntu Upside down ternet HowTo">this tutorial from
-Ubuntu</a>. Instead of using the Apache web server and that Perl script (which didn&rsquo;t work for me),
-I used Nginx and wrote an analogous Python script. I skipped their &ldquo;Networking Setup&rdquo; section
-because I need to setup iptables rules in my router to redirect all traffic from the guest WiFi to
-the squid proxy host. I setup a new subdomain &ldquo;newsubdomain.davidxia.com&rdquo; to point to the
-proxy host and added the Nginx configuration for it as shown below.</p>
-
-<pre><code class="python Python script for squid url_rewrite_program">#!/usr/bin/env python
-
-import os
-import subprocess
-import sys
-import urllib
-import uuid
-
-
-IMG_DIR = '/var/www/images/'
-BASE_URL = 'http://newsubdomain.davidxia.com/'
-
-
-def modify_url(line):
-    list = line.split(' ')
-    # The first element of the list is the requested URL.
-    old_url = list[0]
-
-    # The returned needs to contain a '\n' at the end.
-    # A '\n' by itself means do not rewrite the URL.
-    new_url = '\n'
-
-    # If the requested URL is a JPG, save it to a file on the proxy host, flip it upside down,
-    # and give the user the URL to the upside down image. :p
-    if old_url.lower().endswith('.jpg'):
-        img_file_name = str(uuid.uuid4()) + '.jpg'
-        img_file_path = os.path.join(IMG_DIR, img_file_name)
-        try:
-            urllib.urlretrieve(old_url, img_file_path)
-            subprocess.check_output(['/usr/bin/mogrify', '-flip', img_file_path])
-            new_url = BASE_URL + img_file_name + '\n'
-        except urllib.ContentTooShortError:
-            # TODO log this and return original URL
-            pass
-        except subprocess.CalledProcessError:
-            # TODO log and return original URL and delete the image file
-            pass
-    return new_url
-
-while True:
-    # The format of the line read from stdin is
-    # URL ip-address/fqdn ident method, e.g. http://saini.co.in 172.17.8.175/saini.co.in - GET -
-    line = sys.stdin.readline().strip()
-
-    # new_url is a simple URL only, e.g. http://fedora.co.in
-    new_url = modify_url(line)
-    sys.stdout.write(new_url)
-    sys.stdout.flush()
-</code></pre>
-
-<pre><code class="plain Nginx config">server {
-  server_name images.davidxia.com;
-  root /var/www/images;
-
-  access_log /var/log/nginx/images.davidxia.com-access.log;
-  error_log /var/log/nginx/images.davidxia.com-error.log;
-
-  index index.html;
-
-  location ~* \.(?:gif|jpe?g|png)$ {
-    expires 30d;
-    add_header Pragma public;
-    add_header Cache-Control "public";
-  }
-}
-</code></pre>
-
-<p>In the <a href="https://help.ubuntu.com/community/Upside-Down-TernetHowTo#Configuration" title="Ubuntu Upside down ternet HowTo - configuration">squid configuration section</a>, be sure to have <code>acl localnet src &lt;network range&gt;</code> where
-<code>network range</code> is 192.168.2.1/24 if you used the aforementioned tutorial. Make sure you can
-make HTTP requests to the proxy on localhost:3128 in order to debug. If you can&rsquo;t, you might need to
-add extra ACL rules to the squid conf file (something like <code>http_access allow localnet</code>).</p>
-
-<p>I found <a href="http://www.dd-wrt.com/wiki/index.php/Squid_Transparent_Proxy#Proxy_Server_on_the_LAN_Subnet" title="squid transparent proxy - proxy server on the LAN subnet">instructions</a> to configure the router&rsquo;s firewall rules but realized my setup
-was different. I don&rsquo;t want to proxy traffic from my regular WiFi subnet 192.168.1.1/24 to my proxy
-host on 192.168.1.134 but instead from 192.168.2.1/24 to 192.168.1.134. Use these rules:</p>
-
-<pre><code class="plain iptables rules for router"># Allow traffic coming into interface br0 from proxy host 192.168.1.134 to exit interface br1 to any destination IP
-iptables -I FORWARD -i br0 -o br1 -s 192.168.1.134 -j ACCEPT
-
-# Allow traffic coming into interface br1 from any IP to exit interface br1 to proxy host 192.168.1.134
-# make stricter later
-iptables -I FORWARD -i br1 -o br0 -d 192.168.1.134 -j ACCEPT
-
-PROXY_IP=192.168.1.134
-PROXY_PORT=3128
-LAN_IP=`nvram get br1_ipaddr`
-LAN_NET=$LAN_IP/`nvram get br1_netmask`
-
-# Modify the destination address of packets as soon as they come in.
-# Change their destination address to the squid proxy on 192.168.1.134:3128.
-# Only change packets matching these criteria: came into the br1 interface, are TCP packets, destined for port 80.
-# This redirects HTTP traffic from the guest WiFi to the squid proxy.
-iptables -t nat -A PREROUTING -i br1 -p tcp --dport 80 -j DNAT --to $PROXY_IP:$PROXY_PORT
-
-# Modify the destination address of packets as they are about to go out.
-# Change their destination address to the br1 interface's IP, ie the virtual Wifi's router IP of 192.168.2.1.
-# Only change packets matching these criteria: leaving the br1 interface, have a source address
-# from the 192.168.2.1/24 subnet, are TCP packets, destined for the proxy IP.
-# This makes the squid proxy return HTTP requests back to the guest Wifi, I think...
-iptables -t nat -I POSTROUTING -o br1 -s $LAN_NET -d $PROXY_IP -p tcp -j SNAT --to $LAN_IP
-
-# Allow traffic coming into the br1 interface and leaving br0 with a source IP from the guest WiFi.
-# Packets have to be TCP and destined for the squid proxy's port.
-iptables -I FORWARD -i br1 -o br0 -s $LAN_NET -d $PROXY_IP -p tcp --dport $PROXY_PORT -j ACCEPT
-</code></pre>
-
-<p>Result!</p>
-
-<blockquote class="twitter-tweet" lang="en"><p>I just turned the Internet upside down! I&#39;m so proud of myself. <a href="http://t.co/FhqI0qPP1j">pic.twitter.com/FhqI0qPP1j</a></p>&mdash; David Xia (@davidxia_) <a href="https://twitter.com/davidxia_/status/576614894767890432">March 14, 2015</a></blockquote>
-
-
-<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-
 
 ]]></content>
   </entry>

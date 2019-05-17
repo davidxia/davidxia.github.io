@@ -105,6 +105,453 @@
   <header>
     <span itemprop="name headline">
       
+        <h2 class="entry-title"><a href="/2019/05/more-about-nginx-dns-resolution-than-you-ever-wanted-to-know/">More About Nginx DNS Resolution Than You Ever Wanted to Know</a></h2>
+      
+    </span>
+    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2019/05/more-about-nginx-dns-resolution-than-you-ever-wanted-to-know/">
+    
+      <p class="meta">
+        
+  
+  
+
+  
+    
+  
+
+  
+    
+  
+
+
+
+<span itemprop="datePublished" content="May 17, 2019"><time class='entry-date' datetime='2019-05-17T12:58:38-04:00'><span class='date'>May 17, 2019</span></time></span>
+<meta itemprop="dateModified" content="May 17, 2019">
+ | 
+  
+
+
+
+  <span class="byline author vcard">
+    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
+  </span>
+
+
+        
+        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
+  <meta itemprop="name" content="David Xia">
+  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
+    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
+  </div>
+</div>
+
+        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
+  
+    
+    
+    
+  
+  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
+  <meta itemprop="height" content="696">
+  <meta itemprop="width" content="696">
+</span>
+
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>This is a post about Nginx&rsquo;s DNS resolution behavior I didn&rsquo;t know about but wish I did before I
+started using Kubernetes (K8s).</p>
+
+<h2>Nginx caches statically configured domains once</h2>
+
+<h3>Symptoms</h3>
+
+<p>I moved a backend service <code>foo</code> from running on a virtual
+machine to K8s. Foo&rsquo;s clients include an Nginx instance configured with this <code>upstream</code>
+block.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>upstream foo {
+</span><span class='line'>  server foo.example.com.;
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>server {
+</span><span class='line'>  ...
+</span><span class='line'>
+</span><span class='line'>  location ~* /_foo/(.*) {
+</span><span class='line'>    proxy_pass https://foo/$1;
+</span><span class='line'>    ...
+</span><span class='line'>  }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>K8s Pods can be rescheduled anytime so their IPs aren&rsquo;t stable. I&rsquo;m supposed to use K8s Services
+to avoid caching these ephemeral Pod IPs. But in my case because of interoperability I was
+registering Pod IPs directly as A records for foo.example.com. I started noticing that after my Pod
+IPs changed either because of rescheduling or updating the Deployment, Nginx started throwing
+<code>502 Bad Gateway</code> errors.</p>
+
+<h3>Root Problem</h3>
+
+<p>This is Nginx resolves statically configured domain names only once at startup or configuration
+reload time. So Nginx resolved <code>foo.example.com.</code> once at startup to several Pod IPs and cached
+them forever even when those Pod IPs changed.</p>
+
+<h3>Solution</h3>
+
+<p>Using a variable for the domain name will make Nginx resolve and cache it using the TTL value of the
+DNS response. So replace the <code>upstream</code> block with a variable. I have no idea why it has to be a
+variable to make Nginx resolve the domain periodically.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>set $foo_url foo.example.com.;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And replace the <code>proxy_pass</code> line with</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>  location ~* /_foo/(.*) {
+</span><span class='line'>    proxy_pass https://$foo_url/$1;
+</span><span class='line'>    ...
+</span><span class='line'>  }</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This behavior isn&rsquo;t documented but has been observed empirically and discussed <a href="https://serverfault.com/a/593003/88755">here</a>, <a href="https://stackoverflow.com/a/41476524/553994">here</a>,
+and <a href="https://www.ruby-forum.com/t/using-127-0-0-1-in-resolver/238180/4">here</a>. I also learned that this setup requires me to define a <code>resolver</code> in the Nginx configs.
+<strong>For some reason Nginx resolves statically configured domains by querying the nameserver specified in
+<code>/etc/resolv.conf</code> but periodically resolved domains require a completely different config
+setting.</strong> I would love to know why.</p>
+
+<p>The VM on which Nginx was running ran a Bind DNS server locally so I set it to <code>resolver 127.0.0.1</code>.
+I triggered the code path that made Nginx send requests to foo and saw periodic DNS queries
+occurring with <code>sudo tcpdump -i lo -n dst port 53 | grep foo</code>.</p>
+
+<h2>What if that Nginx is also running on K8s?</h2>
+
+<h3>Problem</h3>
+
+<p>I had another Nginx instance that also made requests to foo. This Nginx was running on K8s too. It
+was created with this Deployment YAML.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">apiVersion</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">apps/v1</span>
+</span><span class='line'><span class="l-Scalar-Plain">kind</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Deployment</span>
+</span><span class='line'><span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">nginx</span>
+</span><span class='line'><span class="l-Scalar-Plain">spec</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">selector</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">matchLabels</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">app</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">nginx</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">template</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">labels</span><span class="p-Indicator">:</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">app</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">nginx</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">spec</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">containers</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">nginx</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">image</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">openresty/openresty:trusty</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">ports</span><span class="p-Indicator">:</span>
+</span><span class='line'>          <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">https</span>
+</span><span class='line'>            <span class="l-Scalar-Plain">containerPort</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">443</span>
+</span><span class='line'>            <span class="l-Scalar-Plain">protocol</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">TCP</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">volumeMounts</span><span class="p-Indicator">:</span>
+</span><span class='line'>          <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">nginx-config</span>
+</span><span class='line'>            <span class="l-Scalar-Plain">mountPath</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">/etc/nginx/conf.d</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">volumes</span><span class="p-Indicator">:</span>
+</span><span class='line'>        <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">nginx-config</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">configMap</span><span class="p-Indicator">:</span>
+</span><span class='line'>            <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">nginx-config</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The <code>nginx-config</code> ConfigMap was</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">apiVersion</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">v1</span>
+</span><span class='line'><span class="l-Scalar-Plain">kind</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">ConfigMap</span>
+</span><span class='line'><span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">nginx-config</span>
+</span><span class='line'><span class="l-Scalar-Plain">data</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">nginx.conf</span><span class="p-Indicator">:</span> <span class="p-Indicator">|</span>
+</span><span class='line'>    <span class="no">upstream foo {</span>
+</span><span class='line'>      <span class="no">server foo.example.com.:443;</span>
+</span><span class='line'>    <span class="no">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="no">server {</span>
+</span><span class='line'>      <span class="no">...</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="no"># use regex capture to preserve url path and query params</span>
+</span><span class='line'>      <span class="no">location ~* /_foo/(.*) {</span>
+</span><span class='line'>        <span class="no">proxy_pass https://foo/$1;</span>
+</span><span class='line'>        <span class="no">...</span>
+</span><span class='line'>      <span class="no">}</span>
+</span><span class='line'>    <span class="no">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I replaced <code>upstream</code> with the same pattern above, but in this case when I needed to define
+<code>resolver</code> I couldn&rsquo;t use <code>127.0.0.1</code> because there&rsquo;s no Bind running locally. I can&rsquo;t hardcode the
+resolver because it might change.</p>
+
+<h3>Solution: run Nginx and foo on the same K8s cluster and use the cluster-local Service DNS record</h3>
+
+<p>If Nginx and foo run on the same K8s cluster, I can use the cluster-local DNS record created by a
+K8s Service matching the foo Pods. A Service like this</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">apiVersion</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">v1</span>
+</span><span class='line'><span class="l-Scalar-Plain">kind</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Service</span>
+</span><span class='line'><span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">foo</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">namespace</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">bar</span>
+</span><span class='line'><span class="nn">...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>will create a DNS A record <code>hoth.tugboat.svc.cluster.local.</code> pointing to the K8s Service&rsquo;s IP.
+Since this Service&rsquo;s IP is stable and it load balances requests to the underlying Pods, there&rsquo;s no need for Nginx to
+periodically lookup the Pod IPs. I can keep the <code>upstream</code> block like so.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">upstream foo {</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">server foo.bar.svc.cluster.local.:443;</span>
+</span><span class='line'><span class="l-Scalar-Plain">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>As its name implies, <code>hoth.tugboat.svc.cluster.local.</code> is only resolvable within the cluster. So
+Nginx has to be running on the same cluster as foo.</p>
+
+<h3>Solution: dynamically set the Nginx <code>resolver</code> equal to the system&rsquo;s when the Pod starts</h3>
+
+<p>What if Nginx is on another K8s cluster? Then I can set <code>resolver</code> to the IP of one of the
+nameservers in <code>/etc/resolv.conf</code>. After a bunch of tinkering I came up with this way to dynamically
+set the Nginx <code>resolver</code> when the Pod starts. A placeholder for <code>resolver</code> is set in the Nginx
+ConfigMap, and a command at Pod startup copies over the templated config and replaces the
+placeholder with a nameserver IP from <code>/etc/resolv.conf</code>.</p>
+
+<p>Change <code>nginx-config</code> ConfigMap to</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">apiVersion</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">v1</span>
+</span><span class='line'><span class="l-Scalar-Plain">kind</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">ConfigMap</span>
+</span><span class='line'><span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">nginx-config</span>
+</span><span class='line'><span class="l-Scalar-Plain">data</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">nginx.conf.template</span><span class="p-Indicator">:</span> <span class="p-Indicator">|</span>
+</span><span class='line'>    <span class="no">server {</span>
+</span><span class='line'>      <span class="no">...</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="no"># This directive is dynamic because we set it to the</span>
+</span><span class='line'>      <span class="no"># kube-dns Service IP which is different for each cluster.</span>
+</span><span class='line'>      <span class="no">resolver $NAMESERVER;</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="no">set $foo_url foo.example.com.;</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="no"># use regex capture to preserve url path and query params</span>
+</span><span class='line'>      <span class="no">location ~* /_foo/(.*) {</span>
+</span><span class='line'>        <span class="no">proxy_pass https://$foo_url/$1;</span>
+</span><span class='line'>        <span class="no">...</span>
+</span><span class='line'>      <span class="no">}</span>
+</span><span class='line'>    <span class="no">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Deployment YAML then becomes (note the added <code>command</code>, <code>args</code>, and new <code>volume</code> and <code>volumeMount</code>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">apiVersion</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">apps/v1</span>
+</span><span class='line'><span class="l-Scalar-Plain">kind</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Deployment</span>
+</span><span class='line'><span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">nginx</span>
+</span><span class='line'><span class="l-Scalar-Plain">spec</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">selector</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">matchLabels</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">app</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">nginx</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">template</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">labels</span><span class="p-Indicator">:</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">app</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">nginx</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">spec</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">containers</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">nginx</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">image</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">openresty/openresty:trusty</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">command</span><span class="p-Indicator">:</span> <span class="p-Indicator">[</span><span class="s">&#39;/bin/bash&#39;</span><span class="p-Indicator">,</span> <span class="s">&#39;-c&#39;</span><span class="p-Indicator">]</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">args</span><span class="p-Indicator">:</span>
+</span><span class='line'>        <span class="p-Indicator">-</span> <span class="p-Indicator">|</span>
+</span><span class='line'>          <span class="no">export NAMESERVER=$(grep &#39;nameserver&#39; /etc/resolv.conf | awk &#39;{print $2}&#39; | tr &#39;\n&#39; &#39; &#39;)</span>
+</span><span class='line'>          <span class="no">echo &quot;Nameserver is: $NAMESERVER&quot;</span>
+</span><span class='line'>          <span class="no">echo &#39;Copying nginx config&#39;</span>
+</span><span class='line'>          <span class="no">envsubst &#39;$NAMESERVER&#39; &lt; /etc/nginx/conf.d.template/nginx.conf.template &gt; /etc/nginx/conf.d/nginx.conf</span>
+</span><span class='line'>          <span class="no">echo &#39;Using nginx config:&#39;</span>
+</span><span class='line'>          <span class="no">cat /etc/nginx/conf.d/nginx.conf</span>
+</span><span class='line'>          <span class="no">echo &#39;Starting nginx&#39;</span>
+</span><span class='line'>          <span class="no">nginx -g &#39;daemon off;&#39;</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">ports</span><span class="p-Indicator">:</span>
+</span><span class='line'>          <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">https</span>
+</span><span class='line'>            <span class="l-Scalar-Plain">containerPort</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">443</span>
+</span><span class='line'>            <span class="l-Scalar-Plain">protocol</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">TCP</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">volumeMounts</span><span class="p-Indicator">:</span>
+</span><span class='line'>          <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">nginx-config-template</span>
+</span><span class='line'>            <span class="l-Scalar-Plain">mountPath</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">/etc/nginx/conf.d.template</span>
+</span><span class='line'>          <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">nginx-config</span>
+</span><span class='line'>            <span class="l-Scalar-Plain">mountPath</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">/etc/nginx/conf.d</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">volumes</span><span class="p-Indicator">:</span>
+</span><span class='line'>        <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">nginx-config</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">emptyDir</span><span class="p-Indicator">:</span> <span class="p-Indicator">{}</span>
+</span><span class='line'>        <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">nginx-config-template</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">configMap</span><span class="p-Indicator">:</span>
+</span><span class='line'>            <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">nginx-config</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>A <code>volume</code> of type <code>emptyDir</code> is needed because recent versions of K8s made configMap volumes
+read-only. EmptyDir types are writable.</p>
+
+<p>Hopefully this helps some people out there who don&rsquo;t want to spend as much time as I did Googling
+obscure Nginx behavior.</p>
+</div>
+  
+  
+
+
+    </article>
+    <br class="clear">
+  
+    
+    <article itemscope itemtype="http://schema.org/BlogPosting" >
+      
+  <header>
+    <span itemprop="name headline">
+      
         <h2 class="entry-title"><a href="/2018/11/using-upstream-kubernetes-java-models-is-much-better-than-raw-yaml/">Using Upstream Kubernetes Java Models Is Much Better Than Raw YAML</a></h2>
       
     </span>
@@ -867,150 +1314,6 @@ federal action level of 15 micrograms per liter (μg/L). Your specific results w
     </article>
     <br class="clear">
   
-    
-    <article itemscope itemtype="http://schema.org/BlogPosting" >
-      
-  <header>
-    <span itemprop="name headline">
-      
-        <h2 class="entry-title"><a href="/2016/10/what-im-looking-for-in-a-volunteering-position/">What I&#8217;m Looking for in a Volunteering Position</a></h2>
-      
-    </span>
-    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2016/10/what-im-looking-for-in-a-volunteering-position/">
-    
-      <p class="meta">
-        
-  
-  
-
-  
-    
-  
-
-  
-    
-  
-
-
-
-<span itemprop="datePublished" content="October 31, 2016"><time class='entry-date' datetime='2016-10-31T13:59:34-04:00'><span class='date'>October 31, 2016</span></time></span>
-<meta itemprop="dateModified" content="October 31, 2016">
- | 
-  
-
-
-
-  <span class="byline author vcard">
-    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
-  </span>
-
-
-        
-        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
-  <meta itemprop="name" content="David Xia">
-  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
-    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
-  </div>
-</div>
-
-        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
-  
-    
-    
-    
-  
-  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
-  <meta itemprop="height" content="696">
-  <meta itemprop="width" content="696">
-</span>
-
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>My Absolute Requirements</h2>
-
-<ul>
-<li><strong>Does not require a law degree</strong>
-
-<ul>
-<li>Although I have thought about getting one just so I can apply for certain volunteering gigs that require one.</li>
-</ul>
-</li>
-<li><strong>Does not require me to write code</strong> for a significant portion of my volunteer time. I already do
-that full time and am not looking for more. I am fine giving high level tech guidance, however.</li>
-</ul>
-
-
-<h2>My Preferences</h2>
-
-<p><em>In rough order of preference</em></p>
-
-<ul>
-<li>in-person and local</li>
-<li>intellectually challenging</li>
-<li>accommodating of my full time work schedule and personal life</li>
-<li>5-10 hours a week</li>
-<li>months-long to year-long commitment</li>
-<li>not just a desk job but also field work</li>
-</ul>
-
-
-<h2>Skills I Want to Learn or Improve Upon</h2>
-
-<p><em>In rough order of preference</em></p>
-
-<ul>
-<li>public speaking</li>
-<li>community organizing and building trust with people who have different backgrounds</li>
-<li>negotiating and building consensus with and between people who don&rsquo;t necessarily see eye-to-eye</li>
-<li>Learning to lobby public officials and organizations</li>
-<li>learning more about the law or government or various industries</li>
-<li>investigative reporting</li>
-</ul>
-
-
-<h2>Values of Organizations in which I&rsquo;ll Thrive</h2>
-
-<p><em>In rough order of preference</em></p>
-
-<ul>
-<li>competence</li>
-<li>hard work</li>
-<li>innovation or at least open-mindedness</li>
-<li>passion and compassion</li>
-<li>personal responsibility</li>
-</ul>
-
-
-<h2>Skills I Can Contribute</h2>
-
-<p><em>In rough order of ability</em></p>
-
-<ul>
-<li>writing code, creating web sites, general computer stuff (see my <a href="https://github.com/davidxia">github</a>)</li>
-<li>writing prose such as reports, summaries, and essays (see my <a href="https://www.davidxia.com/">blog</a>)</li>
-<li>analytical and quantitative (I was a math major in college. Now I work at Spotify as a software
-engineer.)</li>
-<li>effective at collaborating and working as part of a team</li>
-<li>good at spoken communication</li>
-<li>has a knack for establishing rapport and building strong relationships with all kinds of people</li>
-</ul>
-
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="https://www.davidxia.com/2016/10/what-im-looking-for-in-a-volunteering-position/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-    <br class="clear">
-  
   <div class="pagination">
     
     <div class="col-md-4">
@@ -1116,7 +1419,7 @@ engineer.)</li>
 <li class='category'><a href='/categories/new-york-city/'>New York City (17)</a></li>
 <li class='category'><a href='/categories/personal/'>Personal (55)</a></li>
 <li class='category'><a href='/categories/photography/'>Photography (3)</a></li>
-<li class='category'><a href='/categories/programming-and-software/'>Programming & Software (45)</a></li>
+<li class='category'><a href='/categories/programming-and-software/'>Programming & Software (46)</a></li>
 <li class='category'><a href='/categories/spy-shit/'>Spy Shit (5)</a></li>
 <li class='category'><a href='/categories/startups-and-entrepreneurism/'>Startups & Entrepreneurism (4)</a></li>
 <li class='category'><a href='/categories/swimming/'>Swimming (2)</a></li>
