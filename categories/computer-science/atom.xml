@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Computer Science | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/computer-science/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2019-05-17T15:41:41-04:00</updated>
+  <updated>2019-05-26T00:51:59+02:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Useful Site for TLS Server Test]]></title>
     <link href="https://www.davidxia.com/2017/05/useful-site-for-testing-tls-server-configuration/"/>
-    <updated>2017-05-20T12:49:20-04:00</updated>
+    <updated>2017-05-20T18:49:20+02:00</updated>
     <id>https://www.davidxia.com/2017/05/useful-site-for-testing-tls-server-configuration</id>
     <content type="html"><![CDATA[<p>My home server&rsquo;s hard disk&rsquo;s partition map was somehow corrupted. So I&rsquo;m serving this website
 from <a href="https://m.do.co/c/74c553045962">Digital Ocean</a> for now instead of my apartment. While rewriting the nginx server configs,
@@ -32,7 +32,7 @@ and warn you of weak encryption, key exchange protocols, cipher suites, etc.</p>
   <entry>
     <title type="html"><![CDATA[PGP Best Practices - How to Create Strong and Secure Keys]]></title>
     <link href="https://www.davidxia.com/2015/05/pgp-best-practices-how-to-create-strong-and-secure-keys/"/>
-    <updated>2015-05-02T00:00:00-04:00</updated>
+    <updated>2015-05-02T00:00:00+02:00</updated>
     <id>https://www.davidxia.com/2015/05/pgp-best-practices-how-to-create-strong-and-secure-keys</id>
     <content type="html"><![CDATA[<p>I <a href="https://www.davidxia.com/2013/09/intro-to-public-key-cryptography-and-gpg/" title="Intro to public key cryptography and GPG">wrote about PGP</a> a while ago and showed how to generate a key. Since then I&rsquo;ve managed to do what
 you should never, ever do: forget your key&rsquo;s passphrase. And I didn&rsquo;t generate a revocation cert to
@@ -186,7 +186,7 @@ gpg --keyserver some.keyserver.com --send-key &lt;key id&gt;
   <entry>
     <title type="html"><![CDATA[How to Backup and Restore Your Hard Disk by Creating a Disk Image]]></title>
     <link href="https://www.davidxia.com/2013/12/how-to-backup-and-restore-your-hard-disk-by-creating-a-disk-image/"/>
-    <updated>2013-12-21T00:00:00-05:00</updated>
+    <updated>2013-12-21T00:00:00+01:00</updated>
     <id>https://www.davidxia.com/2013/12/how-to-backup-and-restore-your-hard-disk-by-creating-a-disk-image</id>
     <content type="html"><![CDATA[<p>It&rsquo;s been almost a year since I <a href="/2013/01/setting-up-my-new-home-server/">setup my personal server</a> which I named Jarvis. I haven&rsquo;t
 backed-up Jarvis at all and recently grew paranoid that something might happen to him. Jarvis
@@ -283,7 +283,7 @@ table stored within the image. The most important of which is the cylinder size.
   <entry>
     <title type="html"><![CDATA[Introduction to Public-key Cryptography and GPG]]></title>
     <link href="https://www.davidxia.com/2013/09/intro-to-public-key-cryptography-and-gpg/"/>
-    <updated>2013-09-27T00:00:00-04:00</updated>
+    <updated>2013-09-27T00:00:00+02:00</updated>
     <id>https://www.davidxia.com/2013/09/intro-to-public-key-cryptography-and-gpg</id>
     <content type="html"><![CDATA[<p><a href="http://en.wikipedia.org/wiki/Public-key_cryptography">Public-key cryptography</a>
 is an encryption method that uses two keys, one public and one private, to securely communicate
@@ -431,7 +431,7 @@ VswBtq/GbejN9AXk4X2SM2SbB8E=
   <entry>
     <title type="html"><![CDATA[Learning Computer Science Fundamentals Makes You a Better Software Engineer]]></title>
     <link href="https://www.davidxia.com/2012/05/learning-computer-science-fundamentals-makes-you-a-better-software-engineer/"/>
-    <updated>2012-05-31T00:00:00-04:00</updated>
+    <updated>2012-05-31T00:00:00+02:00</updated>
     <id>https://www.davidxia.com/2012/05/learning-computer-science-fundamentals-makes-you-a-better-software-engineer</id>
     <content type="html"><![CDATA[<p>I&rsquo;ve heard that one can become a great software engineer with ten years of experience or with
 fewer years of experience but a solid grasp of data structures and algorithms. Since I studied

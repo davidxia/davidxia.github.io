@@ -10,7 +10,16 @@
   <meta name="author" content="David Xia">
 
   
-  <meta name="description" content="Argh. I just want to plot some charts in Python. Why does it have to be so hard? I tried to easy_install matplotlib but this fails with some byzantine errors &hellip;">
+  <meta name="description" content="Stick this into your shell&rsquo;s rc file. If you use bash, .bashrc. I use zsh, so .zshrc. 1
+2
+3
+4
+5
+6
+7
+8
+9
+# make ls display colors, reinforce with CLICOLOR &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -30,7 +39,16 @@
   <meta property="og:url" content="https://www.davidxia.com/posts/15/" />
   <meta property="og:image" content="https://i.imgur.com/BJPOY0D.jpg" />
   <meta property="og:locale" content="en_US" />
-  <meta property="og:description" content="Argh. I just want to plot some charts in Python. Why does it have to be so hard? I tried to easy_install matplotlib but this fails with some byzantine errors &hellip;" />
+  <meta property="og:description" content="Stick this into your shell&rsquo;s rc file. If you use bash, .bashrc. I use zsh, so .zshrc. 1
+2
+3
+4
+5
+6
+7
+8
+9
+# make ls display colors, reinforce with CLICOLOR &hellip;" />
   <meta property="fb:admins" content="122703" />
 
   <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -105,6 +123,101 @@
   <header>
     <span itemprop="name headline">
       
+        <h2 class="entry-title"><a href="/2011/08/how-to-color-code-mac-os-lions-ls-command/">How to Color Code Mac OS Lion&#8217;s &#8220;Ls&#8221; Command</a></h2>
+      
+    </span>
+    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2011/08/how-to-color-code-mac-os-lions-ls-command/">
+    
+      <p class="meta">
+        
+  
+  
+
+  
+    
+  
+
+  
+    
+  
+
+
+
+<span itemprop="datePublished" content="August 17, 2011"><time class='entry-date' datetime='2011-08-17T00:00:00+02:00'><span class='date'>August 17, 2011</span></time></span>
+<meta itemprop="dateModified" content="August 17, 2011">
+ | 
+  
+
+
+
+  <span class="byline author vcard">
+    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
+  </span>
+
+
+        
+        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
+  <meta itemprop="name" content="David Xia">
+  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
+    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
+  </div>
+</div>
+
+        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
+  
+    
+    
+    
+  
+  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
+  <meta itemprop="height" content="696">
+  <meta itemprop="width" content="696">
+</span>
+
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Stick this into your shell&rsquo;s rc file. If you use bash, .bashrc. I use zsh, so .zshrc.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="c"># make ls display colors, reinforce with CLICOLOR and LSCOLORS</span>
+</span><span class='line'><span class="nb">export </span><span class="nv">CLICOLOR</span><span class="o">=</span>1
+</span><span class='line'>
+</span><span class='line'><span class="c"># LSCOLORS order: DIR, SYM_LINK, SOCKET, PIPE, EXE, BLOCK_SP</span>
+</span><span class='line'><span class="c"># CHAR_SP, EXE_SUID, EXE_GUID, DIR_STICKY, DIR_WO_STICKY</span>
+</span><span class='line'><span class="c"># a = black, b = red, c = green, d = brown, e = blue,</span>
+</span><span class='line'><span class="c"># f = magenta g = cyan, h = light gray, x = default</span>
+</span><span class='line'><span class="c"># lowercase is bold</span>
+</span><span class='line'><span class="nb">export </span><span class="nv">LSCOLORS</span><span class="o">=</span>gxex
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This particular LSCOLORS configuration makes directors bold cyan and sym links dark blue. All the
+rest are default.</p>
+</div>
+  
+  
+
+
+    </article>
+    <br class="clear">
+  
+    
+    <article itemscope itemtype="http://schema.org/BlogPosting" >
+      
+  <header>
+    <span itemprop="name headline">
+      
         <h2 class="entry-title"><a href="/2011/08/how-to-install-pythons-matplotlib-on-mac-os-x-lion/">How to Install Python&#8217;s Matplotlib on Mac OS X Lion</a></h2>
       
     </span>
@@ -125,7 +238,7 @@
 
 
 
-<span itemprop="datePublished" content="August 16, 2011"><time class='entry-date' datetime='2011-08-16T00:00:00-04:00'><span class='date'>August 16, 2011</span></time></span>
+<span itemprop="datePublished" content="August 16, 2011"><time class='entry-date' datetime='2011-08-16T00:00:00+02:00'><span class='date'>August 16, 2011</span></time></span>
 <meta itemprop="dateModified" content="August 16, 2011">
  | 
   
@@ -208,7 +321,7 @@
 
 
 
-<span itemprop="datePublished" content="August 15, 2011"><time class='entry-date' datetime='2011-08-15T00:00:00-04:00'><span class='date'>August 15, 2011</span></time></span>
+<span itemprop="datePublished" content="August 15, 2011"><time class='entry-date' datetime='2011-08-15T00:00:00+02:00'><span class='date'>August 15, 2011</span></time></span>
 <meta itemprop="dateModified" content="August 15, 2011">
  | 
   
@@ -293,7 +406,7 @@ the pixel.</p>
 
 
 
-<span itemprop="datePublished" content="August  4, 2011"><time class='entry-date' datetime='2011-08-04T00:00:00-04:00'><span class='date'>August  4, 2011</span></time></span>
+<span itemprop="datePublished" content="August  4, 2011"><time class='entry-date' datetime='2011-08-04T00:00:00+02:00'><span class='date'>August  4, 2011</span></time></span>
 <meta itemprop="dateModified" content="August  4, 2011">
  | 
   
@@ -372,7 +485,7 @@ cap companies (<a href="http://www.google.com/finance?q=smdd">UltraPro Short Mid
 
 
 
-<span itemprop="datePublished" content="August  3, 2011"><time class='entry-date' datetime='2011-08-03T00:00:00-04:00'><span class='date'>August  3, 2011</span></time></span>
+<span itemprop="datePublished" content="August  3, 2011"><time class='entry-date' datetime='2011-08-03T00:00:00+02:00'><span class='date'>August  3, 2011</span></time></span>
 <meta itemprop="dateModified" content="August  3, 2011">
  | 
   
@@ -454,7 +567,7 @@ going West because gold was just discovered in the <a href="http://en.wikipedia.
 
 
 
-<span itemprop="datePublished" content="August  3, 2011"><time class='entry-date' datetime='2011-08-03T00:00:00-04:00'><span class='date'>August  3, 2011</span></time></span>
+<span itemprop="datePublished" content="August  3, 2011"><time class='entry-date' datetime='2011-08-03T00:00:00+02:00'><span class='date'>August  3, 2011</span></time></span>
 <meta itemprop="dateModified" content="August  3, 2011">
  | 
   
@@ -536,7 +649,7 @@ MidCap400 (SMDD). This is a 3x leveraged ETF. Yeah&hellip;</p>
 
 
 
-<span itemprop="datePublished" content="August  3, 2011"><time class='entry-date' datetime='2011-08-03T00:00:00-04:00'><span class='date'>August  3, 2011</span></time></span>
+<span itemprop="datePublished" content="August  3, 2011"><time class='entry-date' datetime='2011-08-03T00:00:00+02:00'><span class='date'>August  3, 2011</span></time></span>
 <meta itemprop="dateModified" content="August  3, 2011">
  | 
   
@@ -645,7 +758,7 @@ him.</p>
 
 
 
-<span itemprop="datePublished" content="August  1, 2011"><time class='entry-date' datetime='2011-08-01T00:00:00-04:00'><span class='date'>August  1, 2011</span></time></span>
+<span itemprop="datePublished" content="August  1, 2011"><time class='entry-date' datetime='2011-08-01T00:00:00+02:00'><span class='date'>August  1, 2011</span></time></span>
 <meta itemprop="dateModified" content="August  1, 2011">
  | 
   
@@ -734,7 +847,7 @@ using a magnifying glass or even your spectacles!</li>
 
 
 
-<span itemprop="datePublished" content="July 31, 2011"><time class='entry-date' datetime='2011-07-31T00:00:00-04:00'><span class='date'>July 31, 2011</span></time></span>
+<span itemprop="datePublished" content="July 31, 2011"><time class='entry-date' datetime='2011-07-31T00:00:00+02:00'><span class='date'>July 31, 2011</span></time></span>
 <meta itemprop="dateModified" content="July 31, 2011">
  | 
   
@@ -816,7 +929,7 @@ remorse has hit me once again.</p>
 
 
 
-<span itemprop="datePublished" content="July 28, 2011"><time class='entry-date' datetime='2011-07-28T00:00:00-04:00'><span class='date'>July 28, 2011</span></time></span>
+<span itemprop="datePublished" content="July 28, 2011"><time class='entry-date' datetime='2011-07-28T00:00:00+02:00'><span class='date'>July 28, 2011</span></time></span>
 <meta itemprop="dateModified" content="July 28, 2011">
  | 
   
@@ -877,88 +990,6 @@ automobile driving record or car insurance rates. The penalty is $50, but the co
 charge me $25 if I&rsquo;m a first time offender.</p>
 </div>
   
-  
-
-
-    </article>
-    <br class="clear">
-  
-    
-    <article itemscope itemtype="http://schema.org/BlogPosting" >
-      
-  <header>
-    <span itemprop="name headline">
-      
-        <h2 class="entry-title"><a href="/2011/07/norway-attacker-breiviks-manifesto-and-video/">Norway Attacker Breivik&#8217;s Manifesto and Video</a></h2>
-      
-    </span>
-    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2011/07/norway-attacker-breiviks-manifesto-and-video/">
-    
-      <p class="meta">
-        
-  
-  
-
-  
-    
-  
-
-  
-    
-  
-
-
-
-<span itemprop="datePublished" content="July 24, 2011"><time class='entry-date' datetime='2011-07-24T00:00:00-04:00'><span class='date'>July 24, 2011</span></time></span>
-<meta itemprop="dateModified" content="July 24, 2011">
- | 
-  
-
-
-
-  <span class="byline author vcard">
-    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
-  </span>
-
-
-        
-        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
-  <meta itemprop="name" content="David Xia">
-  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
-    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
-  </div>
-</div>
-
-        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
-  
-    
-    
-    
-  
-  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
-  <meta itemprop="height" content="696">
-  <meta itemprop="width" content="696">
-</span>
-
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Less than two days after the Oslo bombing and Utøya shootings, journalists and web denizens are
-digging up the digital finger prints left by Anders Behring Breivik. Norway&rsquo;s TV2 cited police
-sources and <a href="http://www.tv2.no/nyheter/innenriks/gjerningsmannen-la-ut-video-og-manifest-paa-nettet-3545104.html">reported</a> that Breivik uploaded a video to Youtube and a 1,500-page manifesto to
-Norwegian website <a href="http://freak.no/">Freak.no</a>.</p>
-
-<p>Both the anti-Islam, anti-Marxist manifesto and video reference the Crusades and the dangers of
-Muslim immigrants and leftist leaders toward Europe.</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="https://www.davidxia.com/2011/07/norway-attacker-breiviks-manifesto-and-video/">Read on &rarr;</a>
-    </footer>
   
 
 
@@ -1078,7 +1109,7 @@ Muslim immigrants and leftist leaders toward Europe.</p>
 <li class='category'><a href='/categories/spy-shit/'>Spy Shit (5)</a></li>
 <li class='category'><a href='/categories/startups-and-entrepreneurism/'>Startups & Entrepreneurism (4)</a></li>
 <li class='category'><a href='/categories/swimming/'>Swimming (2)</a></li>
-<li class='category'><a href='/categories/technology/'>Technology (32)</a></li>
+<li class='category'><a href='/categories/technology/'>Technology (33)</a></li>
 <li class='category'><a href='/categories/travel/'>Travel (28)</a></li>
 <li class='category'><a href='/categories/tv-and-movies/'>Tv & Movies (20)</a></li>
 <li class='category'><a href='/categories/uncategorized/'>Uncategorized (22)</a></li>

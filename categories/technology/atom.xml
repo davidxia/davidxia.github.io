@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Technology | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/technology/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2019-05-17T15:41:41-04:00</updated>
+  <updated>2019-05-26T00:51:59+02:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -14,9 +14,47 @@
 
   
   <entry>
+    <title type="html"><![CDATA[Becoming a Better Public Speaker]]></title>
+    <link href="https://www.davidxia.com/2019/05/recent-tech-talks-i-gave-on-behalf-of-spotify/"/>
+    <updated>2019-05-26T00:04:59+02:00</updated>
+    <id>https://www.davidxia.com/2019/05/recent-tech-talks-i-gave-on-behalf-of-spotify</id>
+    <content type="html"><![CDATA[<p>At the beginning of this year I set a goal of becoming a better public speaker
+and more visible in both tech and other broader causes I believe in. I&rsquo;m happy
+to say that in the last two months I gave three talks! Two were prepared talks
+with slides at tech conferences. The other was an unprepared conversation on a
+podcast. These were all technical and related to my work at Spotify. Outside
+of Spotify, I spoke for one minute at a mock political town hall in front of
+about 30 people and at a public policy forum for ~15 minutes in front of
+roughly the same number of people. But more on that later. Here are my
+technical talks. These talks wouldn&rsquo;t be possible without the help, feedback,
+and moral support from my Spotify colleagues.</p>
+
+<h2>1. Keynote at KubeCon + CloudNativeCon Europe 2019 in Barcelona on May 22, 2019</h2>
+
+<p><a href="https://kccnceu19.sched.com/event/MQbb/keynote-how-spotify-accidentally-deleted-all-its-kube-clusters-with-no-user-impact-david-xia-infrastructure-engineer-spotify">&ldquo;How Spotify Accidentally Deleted All its Kube Clusters with No User Impact&rdquo;</a></p>
+
+<iframe width="750" height="422" src="https://www.youtube.com/embed/ix0Tw8uinWs" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+
+<h2>2. Kubernetes Podcast from Google on April 23, 2019</h2>
+
+<p><a href="https://kubernetespodcast.com/episode/050-spotify/">&ldquo;Spotify, with David Xia&rdquo;</a>. Listen on <a href="https://open.spotify.com/show/0AsnxlMtXRUEeZkIO0ScpJ">Spotify here</a>.</p>
+
+<h2>3. Joint talk with Google at Google Next SF on April 11, 2019</h2>
+
+<p><a href="https://cloud.withgoogle.com/next/sf/sessions?session=HYB316">&ldquo;GKE Usage Metering: Whose Line Item Is It Anyway?&rdquo;</a></p>
+
+<iframe width="750" height="422" src="https://www.youtube.com/embed/EuBc1v27hY8?start=1036" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+
+
+]]></content>
+  </entry>
+  
+  <entry>
     <title type="html"><![CDATA[My QCon NYC 2016 Slides - Reach Production Faster With Containers in Testing]]></title>
     <link href="https://www.davidxia.com/2016/06/my-qcon-nyc-2016-slides/"/>
-    <updated>2016-06-20T17:15:49-04:00</updated>
+    <updated>2016-06-20T23:15:49+02:00</updated>
     <id>https://www.davidxia.com/2016/06/my-qcon-nyc-2016-slides</id>
     <content type="html"><![CDATA[<p>Here are the slides from my <a href="https://qconnewyork.com/ny2016/presentation/reaching-production-faster-with-containers-in-testing">QCon NYC 2016 talk titled &ldquo;Reach Production Faster with Containers in
 Testing.&rdquo;</a> in various formats. <span xmlns:dct="http://purl.org/dc/terms/" property="dct:title">All formats of &ldquo;Reach Production Faster with Containers in Testing&rdquo;</span> by <a xmlns:cc="http://creativecommons.org/ns#" href="https://www.davidxia.com/2016/06/my-qcon-nyc-2016-slides-reach-production-faster-with-containers-in-testing/" property="cc:attributionName" rel="cc:attributionURL">David Xia</a> are licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.</p>
@@ -42,7 +80,7 @@ Testing.&rdquo;</a> in various formats. <span xmlns:dct="http://purl.org/dc/term
   <entry>
     <title type="html"><![CDATA[Don't Worry About Forgetting to Cancel Your Subscription - Use a Virtual Credit Card]]></title>
     <link href="https://www.davidxia.com/2016/04/dont-worry-about-forgetting-to-cancel-your-subscription-use-a-virtual-credit-card/"/>
-    <updated>2016-04-21T08:55:32-04:00</updated>
+    <updated>2016-04-21T14:55:32+02:00</updated>
     <id>https://www.davidxia.com/2016/04/dont-worry-about-forgetting-to-cancel-your-subscription-use-a-virtual-credit-card</id>
     <content type="html"><![CDATA[<p>Almost all of us have signed up for a free trial we then forgot to cancel
 before getting charged for the next month or have felt uneasy entering credit card information
@@ -73,7 +111,7 @@ purchase and trying to get a refund.</p>
   <entry>
     <title type="html"><![CDATA[Why We Should All Care About Digital Privacy]]></title>
     <link href="https://www.davidxia.com/2015/05/why-we-should-all-care-about-digital-privacy/"/>
-    <updated>2015-05-03T00:00:00-04:00</updated>
+    <updated>2015-05-03T00:00:00+02:00</updated>
     <id>https://www.davidxia.com/2015/05/why-we-should-all-care-about-digital-privacy</id>
     <content type="html"><![CDATA[<p>I&rsquo;ve been reading and thinking a lot about digital privacy in the past two weeks. It&rsquo;s
 disconcerting that so many AMericans are resigned about the current state of digital surveillance.
@@ -183,7 +221,7 @@ each of our actions or inactions affect those around us.</p>
   <entry>
     <title type="html"><![CDATA[How to Turn the Internet Upside Down]]></title>
     <link href="https://www.davidxia.com/2015/03/how-to-turn-the-internet-upside-down/"/>
-    <updated>2015-03-15T00:00:00-04:00</updated>
+    <updated>2015-03-15T00:00:00+01:00</updated>
     <id>https://www.davidxia.com/2015/03/how-to-turn-the-internet-upside-down</id>
     <content type="html"><![CDATA[<p>I read <a href="http://www.ex-parrot.com/pete/upside-down-ternet.html" title="upside down ternet">this web page</a> many years ago that described how someone used their unencrypted WiFi
 network to prank neighbors by turning all images upside down or making them blurry or simply
@@ -321,116 +359,6 @@ iptables -I FORWARD -i br1 -o br0 -s $LAN_NET -d $PROXY_IP -p tcp --dport $PROXY
 
 
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[How to Install DD-WRT on an Asus RT-N16 Router]]></title>
-    <link href="https://www.davidxia.com/2015/03/how-to-install-dd-wrt-on-an-asus-rt-n16-router/"/>
-    <updated>2015-03-13T00:00:00-04:00</updated>
-    <id>https://www.davidxia.com/2015/03/how-to-install-dd-wrt-on-an-asus-rt-n16-router</id>
-    <content type="html"><![CDATA[<p>I&rsquo;ve known about <a href="http://en.wikipedia.org/wiki/DD-WRT" title="DD-WRT">DD-WRT</a> for a while and always wanted to play with it (partly because I
-thought it was needed to do <a href="http://www.ex-parrot.com/pete/upside-down-ternet.html" title="upside down ternet">this prank of turning the Internet upside down</a>).
-My router is leased from Time Warner and probably not supported by DD-WRT.
-So I bought an <a href="http://www.amazon.com/gp/product/B00387G6R8/ref=as_li_tl?ie=UTF8&amp;camp=1789&amp;creative=390957&amp;creativeASIN=B00387G6R8&amp;linkCode=as2&amp;tag=easiamus00-20&amp;linkId=6TECRA3HNZATDC4U" title="Asus RT-N16">Asus RT-N16 router</a> and learned how to flash DD-WRT firmware onto it. The process
-was easier than I expected but required me to read a lot and be careful.
-I sifted through mazes of documentation, blog posts, and forum threads to find the most recent
-and correct ones. I was afraid of bricking my brand new $100 Asus, but I succeeded.
-Here&rsquo;s how you can too.</p>
-
-<h2>What is DD-WRT and why would you install it?</h2>
-
-<p>DD-WRT is open-source Linux-based firmware that can replace and enhance the factory default
-firmware on many wireless routers. Once you install it, you can SSH, overclock the CPU, setup
-advanced access restrictions, change the firewall, etc.</p>
-
-<!-- more -->
-
-
-<h2>How to install DD-WRT onto an Asus RT-N16 wireless router</h2>
-
-<p>Follow <a href="http://www.dd-wrt.com/wiki/index.php/Asus_RT-N16" title="DD-WRT's installation guide for Asus RT-N16">this guide written specifically for the Asus RT-N16</a> and
-flash the initial firmware <a href="ftp://ftp.dd-wrt.com/others/eko/BrainSlayer-V24-preSP2/2010/08-12-10-r14929/broadcom_K26/dd-wrt.v24-14929_NEWD-2_K2.6_mini_RT-N16.trx" title="DD-WRT initial firmware">dd-wrt.v24-14929_NEWD-2_K2.6_mini_RT-N16.trx</a>
-<a href="http://www.dd-wrt.com/wiki/index.php/Asus_RT-N16#How_it_is_done" title="DD-WRT's installation guide for Asus RT-N16">here in step 3</a>. Then in step 7, flash the <a href="http://www.dd-wrt.com/wiki/index.php/What_is_DD-WRT%3F#K2.6_Build_Features" title="DD-WRT K2.6 build features">dd-wrt.v24-18024_NEWD-2_K2.6_mega</a> build
-to get most of the features.</p>
-
-<p>Read everything carefully and make sure to follow all the steps. If you open your router&rsquo;s web UI
-and see the below, give yourself a pat on the back.</p>
-
-<p>{% img center <a href="http://i.kinja-img.com/gawker-media/image/upload/s--K37zgSAg--/c_fit,fl_progressive,q_80,w_636/18o8kyq5au0xojpg.jpg">http://i.kinja-img.com/gawker-media/image/upload/s&#8211;K37zgSAg&#8211;/c_fit,fl_progressive,q_80,w_636/18o8kyq5au0xojpg.jpg</a> 636 403 %}</p>
-
-<h2>Setup SSH access to router</h2>
-
-<p>Go to the web UI. Click on the &ldquo;Services&rdquo; tab and scroll down to the &ldquo;Secure Shell&rdquo; section.
-Enable SSHd and add your SSH public key.</p>
-
-<p>{% img center <a href="https://i.imgur.com/5BFkP24.png">https://i.imgur.com/5BFkP24.png</a> 677 217 %}</p>
-
-<p>Now you can <code>ssh root@&lt;router's IP&gt;</code>.</p>
-
-<h2>Mount a USB hard drive for network-attached storage</h2>
-
-<p>I quickly discovered, thanks to my colleague Andrey, that the Asus has a read-only file system.
-The only way to write anything to it is to mount an external hard disk. Luckily USB disks are
-cheap, this can act as a <a href="http://en.wikipedia.org/wiki/Network-attached_storage" title="network-attached storage">file server/network-attached storage</a>, and it&rsquo;s easy to do.</p>
-
-<p>I bought a ~$25 <a href="http://www.amazon.com/gp/product/B007RB0P2I/ref=as_li_tl?ie=UTF8&amp;camp=1789&amp;creative=390957&amp;creativeASIN=B007RB0P2I&amp;linkCode=as2&amp;tag=easiamus00-20&amp;linkId=OS37UXM3XSWIXCR5" title="SanDisk Cruzer Glide USB 64GB Flash Drive">64GB Sandisk USB</a>. The first step is to <a href="http://www.dd-wrt.com/wiki/index.php/How_to_-_Format_and_Partition_External_Storage_Device" title="How To - Format And Partition External Storage Device">format and partition</a> it
-(<a href="http://www.dd-wrt.com/wiki/index.php/How_to_-_Format_and_Partition_External_Storage_Device#Linux_Command_Line_Method_.28preferred.29" title="How To - Format And Partition External Storage Device: Linux Command Line Method (preferred)">I used a Linux machine</a>). I didn&rsquo;t create the &ldquo;jffs&rdquo; partition because I had a USB instead of
-a multimedia card or &ldquo;MMC&rdquo;.</p>
-
-<p>{% img_caption center <a href="http://www.hacker9.com/wp-content/uploads/2010/11/How-to-recover-lost-password-of-Memory-Card-MMC-micro-SD-adapter.jpg">http://www.hacker9.com/wp-content/uploads/2010/11/How-to-recover-lost-password-of-Memory-Card-MMC-micro-SD-adapter.jpg</a> 215 235 example MMC %}</p>
-
-<p>Plug the USB into the Asus router and follow <a href="http://www.dd-wrt.com/wiki/index.php/USB_storage#USB_Guide_for_v24_and_v24SP1_Mega_of_DD-WRT" title="USB storage - USB Guide for v24 and v24SP1 Mega of DD-WRT">these steps here</a>. You&rsquo;ll know you&rsquo;ve mounted the
-USB correctly when you can <code>touch /opt/test</code> if <code>/opt</code> was your mount point.</p>
-
-<h2>Install extra software using ipkg</h2>
-
-<p>For someone who&rsquo;s used to advanced shells like <a href="http://fishshell.com/" title="fish shell">fish</a> and zsh, I was sad to see I was
-always root (is there a way to create more user accounts?) running sh. There&rsquo;s vi but no vim,
-no <code>--help</code> or man pages for commands, and not even error messages (you have to <code>echo $?</code>). So I
-followed <a href="http://www.dd-wrt.com/wiki/index.php/USB_storage#Option_6.2_-_Extra_software_the_Optware_way" title="USB storage - extra software the optware way">these steps</a> to install ipkg, the <a href="http://en.wikipedia.org/wiki/Ipkg" title="Wikipedia ipkg">Itsy Package Management System</a>, into <code>/opt</code>.</p>
-
-<p>I didn&rsquo;t bother creating <code>/opt/etc/profile</code>. I just use <code>ipkg-opt</code> instead of the built-in <code>ipkg</code>,
-and things seem to work. I installed the following packages:</p>
-
-<pre><code>root@DD-WRT:~# ipkg-opt list_installed
-ipkg-opt - 0.99.163-10 - The Itsy Package Manager
-ncurses - 5.7-3 - NCurses libraries
-uclibc-opt - 0.9.28-13 - micro C library for embedded Linux systems
-vim - 7.3-2 - Yet another version of the vi editor.
-Successfully terminated.
-</code></pre>
-
-<p>As I&rsquo;m writing this, I see that ipkg has been discontinued and that <a href="http://en.wikipedia.org/wiki/Opkg" title="Wikipedia opkg">opkg</a> supersedes it.
-I haven&rsquo;t tried out opkg yet.</p>
-
-<p>The background behind the limited functionality of DD-WRT&rsquo;s operating system is that it&rsquo;s built on
-top of <a href="http://en.wikipedia.org/wiki/BusyBox" title="Wikipedia BuxyBox">BusyBox</a>, a single executable providing a very stripped-down version of Linux.
-BusyBox was specifically created for <a href="http://en.wikipedia.org/wiki/Embedded_operating_system" title="Wikipedia embedded operating systems">embedded operating systems</a>.</p>
-
-<h2>Known bugs in DD-WRT v24-sp2 mega revision 18024</h2>
-
-<ul>
-<li>the router&rsquo;s <a href="http://www.dd-wrt.com/phpBB2/viewtopic.php?t=148539&amp;sid=d550bc235bccd0ea8593df413c3439b7" title="New official dd-wrt build - 18024 is out (BS)">SSH keys change everytime it reboots</a></li>
-<li>NAT loopback doesn&rsquo;t work. I worked around it with the iptables rules below.</li>
-</ul>
-
-
-<pre><code>insmod ipt_mark
-insmod xt_mark
-iptables -t mangle -A PREROUTING -i ! `get_wanface` -d `nvram get wan_ipaddr` -j MARK --set-mark 0xd001
-iptables -t nat -A POSTROUTING -m mark --mark 0xd001 -j MASQUERADE
-</code></pre>
-
-<p>This is <a href="http://www.alexlaird.com/2013/04/dd-wrt-nat-loopback-issue/" title="DD-WRT NAT loopback issue">explained here</a> where the writer claims allowing NAT loopback doesn&rsquo;t make your
-internal network less secure. I think the reason for the disabled NAT loopback is to prevent
-<a href="http://en.wikipedia.org/wiki/DNS_rebinding" title="Wikipedia DNS rebinding">DNS rebinding attacks</a>. This DefCon talk by Craig Heffner explains it nicely.</p>
-
-<iframe class="fill-width" width="560" height="315" src="https://www.youtube-nocookie.com/embed/Zazk0plSoQg?rel=0" frameborder="0" allowfullscreen></iframe>
-
-
-<p>There&rsquo;s an option to enable &ldquo;No DNS rebind&rdquo; in DD-WRT though. Maybe that prevents this
-vulnerability?</p>
 ]]></content>
   </entry>
   

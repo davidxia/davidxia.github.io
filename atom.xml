@@ -4,7 +4,7 @@
   <title><![CDATA[David Xia]]></title>
   <link href="https://www.davidxia.com/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2019-05-17T15:40:19-04:00</updated>
+  <updated>2019-05-26T00:50:52+02:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -14,9 +14,47 @@
 
   
   <entry>
+    <title type="html"><![CDATA[Becoming a Better Public Speaker]]></title>
+    <link href="https://www.davidxia.com/2019/05/recent-tech-talks-i-gave-on-behalf-of-spotify/"/>
+    <updated>2019-05-26T00:04:59+02:00</updated>
+    <id>https://www.davidxia.com/2019/05/recent-tech-talks-i-gave-on-behalf-of-spotify</id>
+    <content type="html"><![CDATA[<p>At the beginning of this year I set a goal of becoming a better public speaker
+and more visible in both tech and other broader causes I believe in. I&rsquo;m happy
+to say that in the last two months I gave three talks! Two were prepared talks
+with slides at tech conferences. The other was an unprepared conversation on a
+podcast. These were all technical and related to my work at Spotify. Outside
+of Spotify, I spoke for one minute at a mock political town hall in front of
+about 30 people and at a public policy forum for ~15 minutes in front of
+roughly the same number of people. But more on that later. Here are my
+technical talks. These talks wouldn&rsquo;t be possible without the help, feedback,
+and moral support from my Spotify colleagues.</p>
+
+<h2>1. Keynote at KubeCon + CloudNativeCon Europe 2019 in Barcelona on May 22, 2019</h2>
+
+<p><a href="https://kccnceu19.sched.com/event/MQbb/keynote-how-spotify-accidentally-deleted-all-its-kube-clusters-with-no-user-impact-david-xia-infrastructure-engineer-spotify">&ldquo;How Spotify Accidentally Deleted All its Kube Clusters with No User Impact&rdquo;</a></p>
+
+<iframe width="750" height="422" src="https://www.youtube.com/embed/ix0Tw8uinWs" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+
+<h2>2. Kubernetes Podcast from Google on April 23, 2019</h2>
+
+<p><a href="https://kubernetespodcast.com/episode/050-spotify/">&ldquo;Spotify, with David Xia&rdquo;</a>. Listen on <a href="https://open.spotify.com/show/0AsnxlMtXRUEeZkIO0ScpJ">Spotify here</a>.</p>
+
+<h2>3. Joint talk with Google at Google Next SF on April 11, 2019</h2>
+
+<p><a href="https://cloud.withgoogle.com/next/sf/sessions?session=HYB316">&ldquo;GKE Usage Metering: Whose Line Item Is It Anyway?&rdquo;</a></p>
+
+<iframe width="750" height="422" src="https://www.youtube.com/embed/EuBc1v27hY8?start=1036" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+
+
+]]></content>
+  </entry>
+  
+  <entry>
     <title type="html"><![CDATA[More About Nginx DNS Resolution Than You Ever Wanted to Know]]></title>
     <link href="https://www.davidxia.com/2019/05/more-about-nginx-dns-resolution-than-you-ever-wanted-to-know/"/>
-    <updated>2019-05-17T12:58:38-04:00</updated>
+    <updated>2019-05-17T18:58:38+02:00</updated>
     <id>https://www.davidxia.com/2019/05/more-about-nginx-dns-resolution-than-you-ever-wanted-to-know</id>
     <content type="html"><![CDATA[<p>This is a post about Nginx&rsquo;s DNS resolution behavior I didn&rsquo;t know about but wish I did before I
 started using Kubernetes (K8s).</p>
@@ -404,7 +442,7 @@ obscure Nginx behavior.</p>
   <entry>
     <title type="html"><![CDATA[Using Upstream Kubernetes Java Models Is Much Better Than Raw YAML]]></title>
     <link href="https://www.davidxia.com/2018/11/using-upstream-kubernetes-java-models-is-much-better-than-raw-yaml/"/>
-    <updated>2018-11-11T17:11:38-05:00</updated>
+    <updated>2018-11-11T23:11:38+01:00</updated>
     <id>https://www.davidxia.com/2018/11/using-upstream-kubernetes-java-models-is-much-better-than-raw-yaml</id>
     <content type="html"><![CDATA[<p>It&rsquo;s been a while since I blogged about something tech related, but I had some
 free time today.</p>
@@ -442,7 +480,7 @@ instead of parsing and rewriting raw YAML strings.</p>
   <entry>
     <title type="html"><![CDATA[Internet Meme Role Models]]></title>
     <link href="https://www.davidxia.com/2018/01/internet-meme-role-models/"/>
-    <updated>2018-01-07T11:29:18-05:00</updated>
+    <updated>2018-01-07T17:29:18+01:00</updated>
     <id>https://www.davidxia.com/2018/01/internet-meme-role-models</id>
     <content type="html"><![CDATA[<p>I&rsquo;m compiling a list of Internet meme role models. Here&rsquo;s what I have so far. These people &mdash;
 they must be real human beings &mdash; must have either gone out of their way to do the right
@@ -469,7 +507,7 @@ She <a href="https://www.youtube.com/watch?v=0ShfNQOUeAY">doesn&rsquo;t take shi
   <entry>
     <title type="html"><![CDATA[Now Max Knows How to Make a Latte]]></title>
     <link href="https://www.davidxia.com/2017/08/now-max-knows-how-to-make-a-latte/"/>
-    <updated>2017-08-30T01:19:06-04:00</updated>
+    <updated>2017-08-30T07:19:06+02:00</updated>
     <id>https://www.davidxia.com/2017/08/now-max-knows-how-to-make-a-latte</id>
     <content type="html"><![CDATA[<p>I work at a music company but am more interested in politics and history. Artists visit our
 office often.</p>
@@ -486,7 +524,7 @@ milk steaming techniques when they&rsquo;re using the office&rsquo;s $20K espres
   <entry>
     <title type="html"><![CDATA[Making Dumplings With My Grandparents]]></title>
     <link href="https://www.davidxia.com/2017/07/making-dumplings-with-my-grandparents/"/>
-    <updated>2017-07-05T22:50:03-04:00</updated>
+    <updated>2017-07-06T04:50:03+02:00</updated>
     <id>https://www.davidxia.com/2017/07/making-dumplings-with-my-grandparents</id>
     <content type="html"><![CDATA[<p>Whenever I go back home to my parents&#8217; house near Boston,
 if my maternal grandparents are there, they make hundreds of dumplings for me.
@@ -515,7 +553,7 @@ and closing the dumplings now though.</p>
   <entry>
     <title type="html"><![CDATA[Four Fascinating and Weird People]]></title>
     <link href="https://www.davidxia.com/2017/06/four-fascinating-and-weird-people/"/>
-    <updated>2017-06-01T06:36:06-04:00</updated>
+    <updated>2017-06-01T12:36:06+02:00</updated>
     <id>https://www.davidxia.com/2017/06/four-fascinating-and-weird-people</id>
     <content type="html"><![CDATA[<p>Here are the stories of four fascinating and weird people that will make you laugh, be inspired,
 or cringe. Chang and Eng Bunker were conjoined twins who married two sisters and were slave-owners
@@ -638,7 +676,7 @@ covering their genitals with patented cages and electrical shock.</p><footer><st
   <entry>
     <title type="html"><![CDATA[Useful Site for TLS Server Test]]></title>
     <link href="https://www.davidxia.com/2017/05/useful-site-for-testing-tls-server-configuration/"/>
-    <updated>2017-05-20T12:49:20-04:00</updated>
+    <updated>2017-05-20T18:49:20+02:00</updated>
     <id>https://www.davidxia.com/2017/05/useful-site-for-testing-tls-server-configuration</id>
     <content type="html"><![CDATA[<p>My home server&rsquo;s hard disk&rsquo;s partition map was somehow corrupted. So I&rsquo;m serving this website
 from <a href="https://m.do.co/c/74c553045962">Digital Ocean</a> for now instead of my apartment. While rewriting the nginx server configs,
@@ -654,7 +692,7 @@ and warn you of weak encryption, key exchange protocols, cipher suites, etc.</p>
   <entry>
     <title type="html"><![CDATA[British Virgin Islands Sailing Trip Video]]></title>
     <link href="https://www.davidxia.com/2017/05/british-virgin-islands-sailing-trip-video/"/>
-    <updated>2017-05-20T11:51:50-04:00</updated>
+    <updated>2017-05-20T17:51:50+02:00</updated>
     <id>https://www.davidxia.com/2017/05/british-virgin-islands-sailing-trip-video</id>
     <content type="html"><![CDATA[<p>I finally got around to editing the footage from the sailing trip.</p>
 
@@ -666,7 +704,7 @@ and warn you of weak encryption, key exchange protocols, cipher suites, etc.</p>
   <entry>
     <title type="html"><![CDATA[British Virgin Islands Sailing Trip]]></title>
     <link href="https://www.davidxia.com/2017/03/british-virgin-islands-sailing-trip/"/>
-    <updated>2017-03-03T21:10:36-05:00</updated>
+    <updated>2017-03-04T03:10:36+01:00</updated>
     <id>https://www.davidxia.com/2017/03/british-virgin-islands-sailing-trip</id>
     <content type="html"><![CDATA[<p>I learned the basics of sailing on a week-long sailing trip in the British Virgin Islands aboard
 a 48-foot catamaran we called Millenium Falcon.</p>
@@ -728,7 +766,7 @@ and we needed to return the charter boat on time.</p>
   <entry>
     <title type="html"><![CDATA[How to Test Your Home's Water for Lead]]></title>
     <link href="https://www.davidxia.com/2017/02/how-to-test-your-homes-water-for-lead/"/>
-    <updated>2017-02-20T19:37:52-05:00</updated>
+    <updated>2017-02-21T01:37:52+01:00</updated>
     <id>https://www.davidxia.com/2017/02/how-to-test-your-homes-water-for-lead</id>
     <content type="html"><![CDATA[<p>I read the <em>New York Times</em> article <a href="https://www.nytimes.com/interactive/2016/03/24/nyregion/how-nyc-gets-its-water-new-york-101.html">&ldquo;How New York Gets Its Water&rdquo;</a> a while ago. The end of the
 article described how you could order a free lead testing kit.</p>
@@ -761,7 +799,7 @@ federal action level of 15 micrograms per liter (μg/L). Your specific results w
   <entry>
     <title type="html"><![CDATA[What I'm Looking for in a Volunteering Position]]></title>
     <link href="https://www.davidxia.com/2016/10/what-im-looking-for-in-a-volunteering-position/"/>
-    <updated>2016-10-31T13:59:34-04:00</updated>
+    <updated>2016-10-31T18:59:34+01:00</updated>
     <id>https://www.davidxia.com/2016/10/what-im-looking-for-in-a-volunteering-position</id>
     <content type="html"><![CDATA[<h2>My Absolute Requirements</h2>
 
@@ -907,7 +945,7 @@ community, allowing it to influence key decision-makers on a range of issues ove
   <entry>
     <title type="html"><![CDATA[A Recent Family Photo]]></title>
     <link href="https://www.davidxia.com/2016/09/a-recent-family-photo/"/>
-    <updated>2016-09-18T18:29:07-04:00</updated>
+    <updated>2016-09-19T00:29:07+02:00</updated>
     <id>https://www.davidxia.com/2016/09/a-recent-family-photo</id>
     <content type="html"><![CDATA[<div class='image center'><img  src="https://i.imgur.com/mwtquEjl.jpg" width="640" height="640" title="Post-dimsum photo with my parents and maternal grandparents on their weekend visit to NYC." ><div class='caption'>Post-dimsum photo with my parents and maternal grandparents on their weekend visit to NYC.</div></div>
 
@@ -917,7 +955,7 @@ community, allowing it to influence key decision-makers on a range of issues ove
   <entry>
     <title type="html"><![CDATA[Southern UK 2016]]></title>
     <link href="https://www.davidxia.com/2016/07/southern-uk-2016/"/>
-    <updated>2016-07-24T18:09:24-04:00</updated>
+    <updated>2016-07-25T00:09:24+02:00</updated>
     <id>https://www.davidxia.com/2016/07/southern-uk-2016</id>
     <content type="html"><![CDATA[<p>My trip with my parents to southern UK in March this year. The video includes highlights from
 London, Cambridge, Seven Sisters, Jurassic Coast, Lyme Regis, and Lulworth Cove.</p>
@@ -930,7 +968,7 @@ London, Cambridge, Seven Sisters, Jurassic Coast, Lyme Regis, and Lulworth Cove.
   <entry>
     <title type="html"><![CDATA[My First Sailing Class]]></title>
     <link href="https://www.davidxia.com/2016/07/my-first-sailing-class/"/>
-    <updated>2016-07-24T13:37:56-04:00</updated>
+    <updated>2016-07-24T19:37:56+02:00</updated>
     <id>https://www.davidxia.com/2016/07/my-first-sailing-class</id>
     <content type="html"><![CDATA[<p>Last weekend a bunch of Spotify collleagues and I took our first sailing classes at Manhattan Yacht
 Club in Jersey City. I could get used to this sport. The sun was brutal though. I&rsquo;ll never get used
@@ -964,7 +1002,7 @@ to that.</p>
   <entry>
     <title type="html"><![CDATA[Spotify-organized Surfing Trip in Santa Teresa, Costa Rica 2015]]></title>
     <link href="https://www.davidxia.com/2016/07/spotify-organized-surfing-trip-in-costa-rica-2015/"/>
-    <updated>2016-07-09T10:13:29-04:00</updated>
+    <updated>2016-07-09T16:13:29+02:00</updated>
     <id>https://www.davidxia.com/2016/07/spotify-organized-surfing-trip-in-costa-rica-2015</id>
     <content type="html"><![CDATA[<p>In March 2015, about twenty colleagues and I went on a Spotify-organized surf trip to Santa Teresa,
 Costa Rica for a week of surf lessons. The company, surf, and food were unforgettable. One of Spotify&rsquo;s
@@ -1024,7 +1062,7 @@ trip. The waves could be truly terrifying.</p>
   <entry>
     <title type="html"><![CDATA[My First Open Water Swimming Event]]></title>
     <link href="https://www.davidxia.com/2016/07/my-first-open-water-swimming-event/"/>
-    <updated>2016-07-08T22:51:51-04:00</updated>
+    <updated>2016-07-09T04:51:51+02:00</updated>
     <id>https://www.davidxia.com/2016/07/my-first-open-water-swimming-event</id>
     <content type="html"><![CDATA[<p>I visited the southern UK with my parents last March. We visited the coast where I took a photo of the
 English Channel and <a href="https://www.facebook.com/davidxia2/posts/10102320113525692">posted it on Facebook</a> with the caption,
@@ -1091,7 +1129,7 @@ I know because I drank half of it.</li>
   <entry>
     <title type="html"><![CDATA[My QCon NYC 2016 Slides - Reach Production Faster With Containers in Testing]]></title>
     <link href="https://www.davidxia.com/2016/06/my-qcon-nyc-2016-slides/"/>
-    <updated>2016-06-20T17:15:49-04:00</updated>
+    <updated>2016-06-20T23:15:49+02:00</updated>
     <id>https://www.davidxia.com/2016/06/my-qcon-nyc-2016-slides</id>
     <content type="html"><![CDATA[<p>Here are the slides from my <a href="https://qconnewyork.com/ny2016/presentation/reaching-production-faster-with-containers-in-testing">QCon NYC 2016 talk titled &ldquo;Reach Production Faster with Containers in
 Testing.&rdquo;</a> in various formats. <span xmlns:dct="http://purl.org/dc/terms/" property="dct:title">All formats of &ldquo;Reach Production Faster with Containers in Testing&rdquo;</span> by <a xmlns:cc="http://creativecommons.org/ns#" href="https://www.davidxia.com/2016/06/my-qcon-nyc-2016-slides-reach-production-faster-with-containers-in-testing/" property="cc:attributionName" rel="cc:attributionURL">David Xia</a> are licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.</p>
@@ -1117,7 +1155,7 @@ Testing.&rdquo;</a> in various formats. <span xmlns:dct="http://purl.org/dc/term
   <entry>
     <title type="html"><![CDATA[My Strange Swimming Experiences]]></title>
     <link href="https://www.davidxia.com/2016/06/my-strange-swimming-experiences/"/>
-    <updated>2016-06-18T14:14:33-04:00</updated>
+    <updated>2016-06-18T20:14:33+02:00</updated>
     <id>https://www.davidxia.com/2016/06/my-strange-swimming-experiences</id>
     <content type="html"><![CDATA[<p>I&rsquo;ve had some strange swimming experiences.</p>
 
@@ -1165,7 +1203,7 @@ The water and lack of breath was a strong signal to my brain that overrode every
   <entry>
     <title type="html"><![CDATA[Confessions of a Noob Landlord IV - How to Buy a Co-op Unit]]></title>
     <link href="https://www.davidxia.com/2016/06/confessions-of-a-noob-landlord-iv-how-to-buy-a-co-op-unit/"/>
-    <updated>2016-06-15T06:57:03-04:00</updated>
+    <updated>2016-06-15T12:57:03+02:00</updated>
     <id>https://www.davidxia.com/2016/06/confessions-of-a-noob-landlord-iv-how-to-buy-a-co-op-unit</id>
     <content type="html"><![CDATA[<p><em>This is a story of I jumped through countless complex bureaucratic, legal, and financial hurdles of
 Murphy&rsquo;s Law and emerged with less liquidity and more debt. OK. I&rsquo;m being facetious, but what
@@ -1256,41 +1294,6 @@ seemed like a tangled bureaucracy. I was seriously questioning how I&rsquo;d be 
 <li><em>To be continued&hellip;</em></li>
 </ul>
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Four Years of Working at Spotify, Four Years of Shared Values]]></title>
-    <link href="https://www.davidxia.com/2016/06/four-years-of-working-at-spotify-four-years-of-shared-values/"/>
-    <updated>2016-06-13T13:01:35-04:00</updated>
-    <id>https://www.davidxia.com/2016/06/four-years-of-working-at-spotify-four-years-of-shared-values</id>
-    <content type="html"><![CDATA[<p>I can&rsquo;t believe it&rsquo;s been four years since I started working at Spotify. Every Friday, the
-Technology, Product, and Design group at Spotify&rsquo;s New York City office
-gathers to eat freshly catered snacks, introduce new hires, announce &ldquo;wins of the week,&rdquo; and
-commemorate the anniversaries of existing employees.</p>
-
-<p>Last Friday was my turn to stand before the couple hundred members of TPD. It&rsquo;s customary for people
-celebrating their employment anniversaries to speak about their favorite Spotify memory.
-I don&rsquo;t get many chances to address so many of my colleagues at
-once. So I took this opportunity to prepare a short statement. It went something like this.</p>
-
-<p>What&rsquo;s my favorite Spotify memory? I have a hard time with this question because I don&rsquo;t have a
-good answer. There&rsquo;s so many.</p>
-
-<p>I find another question more interesting. That question is, &ldquo;What, after four years, makes me look
-forward to getting up every weekday morning and working at Spotify?&rdquo; Four years is a long time to
-be doing anything continuously.</p>
-
-<p>I can tell you what&rsquo;s not the main reason. It&rsquo;s not the snacks or perks or the amazing office.
-It&rsquo;s not even Celebration X [Spotify&rsquo;s massive 10-year anniversary party in Stockholm].
-These are all great things, but they&rsquo;re not the main reason I show up everyday.</p>
-
-<p>The main reason is values. I&rsquo;ve never been at a place where I share so many values with my
-colleagues and the company. My teammates like Matt and Staffan and Mats share my values of hard
-work, competence, and personal responsibility (and beer). The company constantly strives to become
-a better version of itself through being risk-taking, passion, and compassion.</p>
-
-<p>Every day is a new memory. Every day I feel blessed to be here working with all of you. Thank you.</p>
 ]]></content>
   </entry>
   
