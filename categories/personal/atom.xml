@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Personal | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/personal/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2019-05-26T01:02:56+02:00</updated>
+  <updated>2020-04-01T12:34:35-04:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[What I'm Looking for in a Volunteering Position]]></title>
     <link href="https://www.davidxia.com/2016/10/what-im-looking-for-in-a-volunteering-position/"/>
-    <updated>2016-10-31T18:59:34+01:00</updated>
+    <updated>2016-10-31T13:59:34-04:00</updated>
     <id>https://www.davidxia.com/2016/10/what-im-looking-for-in-a-volunteering-position</id>
     <content type="html"><![CDATA[<h2>My Absolute Requirements</h2>
 
@@ -162,16 +162,16 @@ community, allowing it to influence key decision-makers on a range of issues ove
   <entry>
     <title type="html"><![CDATA[A Recent Family Photo]]></title>
     <link href="https://www.davidxia.com/2016/09/a-recent-family-photo/"/>
-    <updated>2016-09-19T00:29:07+02:00</updated>
+    <updated>2016-09-18T18:29:07-04:00</updated>
     <id>https://www.davidxia.com/2016/09/a-recent-family-photo</id>
-    <content type="html"><![CDATA[<p>{% img_caption center <a href="https://i.imgur.com/mwtquEjl.jpg">https://i.imgur.com/mwtquEjl.jpg</a> 640 640 Post-dimsum photo with my parents and maternal grandparents on their weekend visit to NYC. %}</p>
+    <content type="html"><![CDATA[<p><div class='image center <a'><img  src="href="https://i.imgur.com/mwtquEjl.jpg">https://i.imgur.com/mwtquEjl.jpg</a>&#8221; width=&#8221;640&#8221; height=&#8221;640&#8221; title=&#8221;Post-dimsum photo with my parents and maternal grandparents on their weekend visit to NYC.&#8221; ><div class='caption'>Post-dimsum photo with my parents and maternal grandparents on their weekend visit to NYC.</div></div></p>
 ]]></content>
   </entry>
   
   <entry>
     <title type="html"><![CDATA[Confessions of a Noob Landlord IV - How to Buy a Co-op Unit]]></title>
     <link href="https://www.davidxia.com/2016/06/confessions-of-a-noob-landlord-iv-how-to-buy-a-co-op-unit/"/>
-    <updated>2016-06-15T12:57:03+02:00</updated>
+    <updated>2016-06-15T06:57:03-04:00</updated>
     <id>https://www.davidxia.com/2016/06/confessions-of-a-noob-landlord-iv-how-to-buy-a-co-op-unit</id>
     <content type="html"><![CDATA[<p><em>This is a story of I jumped through countless complex bureaucratic, legal, and financial hurdles of
 Murphy&rsquo;s Law and emerged with less liquidity and more debt. OK. I&rsquo;m being facetious, but what
@@ -180,7 +180,7 @@ The events below transpired in New York City. The buying process may be differen
 but the most of the process such as contract of sale and mortgage application is the same across
 the U.S.</em></p>
 
-<p>{% img_caption center <a href="https://upload.wikimedia.org/wikipedia/commons/8/8d/Cary_Grant_Myrna_Loy_Mr_Blandings_Builds_His_Dream_House_1948.JPG">https://upload.wikimedia.org/wikipedia/commons/8/8d/Cary_Grant_Myrna_Loy_Mr_Blandings_Builds_His_Dream_House_1948.JPG</a> 640 772 By RKO radio pictures (eBay item photo front photo back) [Public domain], via Wikimedia Commons. Promotional photo of Cary Grant and Myrna Loy for the film Mr. Blandings Builds His Dream House (1948) %}</p>
+<p><div class='image center <a'><img  src="href="https://upload.wikimedia.org/wikipedia/commons/8/8d/Cary_Grant_Myrna_Loy_Mr_Blandings_Builds_His_Dream_House_1948.JPG">https://upload.wikimedia.org/wikipedia/commons/8/8d/Cary_Grant_Myrna_Loy_Mr_Blandings_Builds_His_Dream_House_1948.JPG</a>&#8221; width=&#8221;640&#8221; height=&#8221;772&#8221; title=&#8221;By RKO radio pictures (eBay item photo front photo back) [Public domain], via Wikimedia Commons. Promotional photo of Cary Grant and Myrna Loy for the film Mr. Blandings Builds His Dream House (1948)&#8221; ><div class='caption'>By RKO radio pictures (eBay item photo front photo back) [Public domain], via Wikimedia Commons. Promotional photo of Cary Grant and Myrna Loy for the film Mr. Blandings Builds His Dream House (1948)</div></div></p>
 
 <ul>
 <li>My mother found an affordable co-op unit for sale while browsing StreetEasy on her iPad
@@ -267,7 +267,7 @@ seemed like a tangled bureaucracy. I was seriously questioning how I&rsquo;d be 
   <entry>
     <title type="html"><![CDATA[Skydiving With Friends - Jumping Out of Planes Is Fun]]></title>
     <link href="https://www.davidxia.com/2016/05/skydiving-with-friends-jumping-out-of-planes-is-fun/"/>
-    <updated>2016-05-28T16:59:20+02:00</updated>
+    <updated>2016-05-28T10:59:20-04:00</updated>
     <id>https://www.davidxia.com/2016/05/skydiving-with-friends-jumping-out-of-planes-is-fun</id>
     <content type="html"><![CDATA[<p>On April 16, seven friends and I went skydiving at Skydive the Ranch in New Jersey. We rented
 a black SUV (a Hyundai that had terrible acceleration and braking) and each did a tandem dive.
@@ -297,7 +297,7 @@ crushed me.</p>
   <entry>
     <title type="html"><![CDATA[Growing Together and Apart]]></title>
     <link href="https://www.davidxia.com/2016/05/growing-together-and-apart/"/>
-    <updated>2016-05-13T16:09:28+02:00</updated>
+    <updated>2016-05-13T10:09:28-04:00</updated>
     <id>https://www.davidxia.com/2016/05/growing-together-and-apart</id>
     <content type="html"><![CDATA[<p><em>Thanks to Nanette for editing and agreeing to let me publish this and to my friends who gave me
 feedback.</em></p>

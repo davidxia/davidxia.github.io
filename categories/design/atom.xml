@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Design | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/design/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2019-05-26T01:02:56+02:00</updated>
+  <updated>2020-04-01T12:34:35-04:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -16,20 +16,20 @@
   <entry>
     <title type="html"><![CDATA[New Yorker Redesign]]></title>
     <link href="https://www.davidxia.com/2014/08/New-Yorker-Redesign/"/>
-    <updated>2014-08-27T00:00:00+02:00</updated>
+    <updated>2014-08-27T00:00:00-04:00</updated>
     <id>https://www.davidxia.com/2014/08/New-Yorker-Redesign</id>
     <content type="html"><![CDATA[<p><em>The New Yorker</em> recently redesigned their web site and made all articles free for a limited time.
 Everything looks great except for that giant sticky header that takes up at least an inch of your
 screen. I hope they get rid of it.</p>
 
-<p>{% img center <a href="https://fbcdn-sphotos-c-a.akamaihd.net/hphotos-ak-xap1/v/t1.0-9/10533444_10101414612546912_8361665153142220985_n.jpg?oh=ee288fe0748f8866836b4ddd6dd13ad5&amp;oe=547C0D89&amp;__gda__=1416912604_7a048a895f2b1729416f64fae8142c95">https://fbcdn-sphotos-c-a.akamaihd.net/hphotos-ak-xap1/v/t1.0-9/10533444_10101414612546912_8361665153142220985_n.jpg?oh=ee288fe0748f8866836b4ddd6dd13ad5&amp;oe=547C0D89&amp;__gda__=1416912604_7a048a895f2b1729416f64fae8142c95</a> 700 378 %}</p>
+<p><img class="center <a" src="href="https://fbcdn-sphotos-c-a.akamaihd.net/hphotos-ak-xap1/v/t1.0-9/10533444_10101414612546912_8361665153142220985_n.jpg?oh=ee288fe0748f8866836b4ddd6dd13ad5&amp;oe=547C0D89&amp;__gda__=1416912604_7a048a895f2b1729416f64fae8142c95">https://fbcdn-sphotos-c-a.akamaihd.net/hphotos-ak-xap1/v/t1.0-9/10533444_10101414612546912_8361665153142220985_n.jpg?oh=ee288fe0748f8866836b4ddd6dd13ad5&amp;oe=547C0D89&amp;__gda__=1416912604_7a048a895f2b1729416f64fae8142c95</a>&#8221; width=&#8221;700&#8221; height=&#8221;378&#8221;></p>
 ]]></content>
   </entry>
   
   <entry>
     <title type="html"><![CDATA[Dieter Rams – Less but Better]]></title>
     <link href="https://www.davidxia.com/2012/04/dieter-rams-less-but-better/"/>
-    <updated>2012-04-01T00:00:00+02:00</updated>
+    <updated>2012-04-01T00:00:00-04:00</updated>
     <id>https://www.davidxia.com/2012/04/dieter-rams-less-but-better</id>
     <content type="html"><![CDATA[<p>I just finished reading the monograph <a href="http://www.amazon.com/gp/product/0714849189/ref=as_li_ss_tl?ie=UTF8&amp;tag=easiamus00-20&amp;linkCode=as2&amp;camp=1789&amp;creative=390957&amp;creativeASIN=0714849189"><em>Dieter Rams: As Little Design as Possible</em></a><img src="https://www.assoc-amazon.com/e/ir?t=easiamus00-20&amp;l=as2&amp;o=1&amp;a=0714849189" alt="" />. The
 book covers the life and work of the influential German industrial designer whose hundreds of
@@ -40,9 +40,9 @@ System, Braun shavers, and the SK4 record player. These products were so success
 standard design for whole classes of products to follow. For example, I&rsquo;ve never seen a record
 player without a clear case.</p>
 
-<p>{% img center <a href="https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/606-Universal-Shelving-System.jpg/640px-606-Universal-Shelving-System.jpg">https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/606-Universal-Shelving-System.jpg/640px-606-Universal-Shelving-System.jpg</a> 540 397 606 Universal Shelving Sytem %}</p>
+<p><img class="center <a" src="href="https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/606-Universal-Shelving-System.jpg/640px-606-Universal-Shelving-System.jpg">https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/606-Universal-Shelving-System.jpg/640px-606-Universal-Shelving-System.jpg</a>&#8221; width=&#8221;540&#8221; height=&#8221;397&#8221; title=&#8221;606 Universal Shelving Sytem&#8221; ></p>
 
-<p>{% img center <a href="http://www.iainclaridge.co.uk/blog/wp-content/uploads/2012/01/sk4_1.jpg">http://www.iainclaridge.co.uk/blog/wp-content/uploads/2012/01/sk4_1.jpg</a> 470 470 SK4 record player %}</p>
+<p><img class="center <a" src="href="http://www.iainclaridge.co.uk/blog/wp-content/uploads/2012/01/sk4_1.jpg">http://www.iainclaridge.co.uk/blog/wp-content/uploads/2012/01/sk4_1.jpg</a>&#8221; width=&#8221;470&#8221; height=&#8221;470&#8221; title=&#8221;SK4 record player&#8221; ></p>
 
 <!--more-->
 
@@ -55,12 +55,10 @@ couldn&rsquo;t yet articulate were crystallized by his words.</p>
 <p>Rams&#8217; tenet that resonated with me most was the idea that aesthetic beauty requires a certain
 simplicity and humility. He disliked &ldquo;visual pollution&rdquo; and strived for calm and order:</p>
 
-<p>{% blockquote_nobr Dieter Rams, &ldquo;Ich habe einen Traum&rdquo; <em>Zeit Magazin Leben</em> no. 14, 2008 %}
-I wanted to clean up, to get rid of the chaos. But the chaos has got worse since then. Chaos
+<p><blockquote><p>I wanted to clean up, to get rid of the chaos. But the chaos has got worse since then. Chaos
 from products, noise, and pollution. We are not really in control of anything&hellip;We have too many
 things. Our world is filled with too many products with superficial attractions and little or no
-use.
-{% endblockquote_nobr %}</p>
+use.</p><footer><strong>Dieter Rams</strong> <cite>&ldquo;Ich Habe Einen Traum&rdquo; <em>Zeit Magazin Leben</em> No. 14</cite></footer></blockquote></p>
 
 <h2>On the Unsustainability of Rampant Consumerism</h2>
 
@@ -96,19 +94,17 @@ performance as well as innovation that creates entirely new markets. Can you spe
 
 <h2>Rams&#8217; House</h2>
 
-<p>{% img center <a href="http://blog.iso50.com/wp-content/uploads/2011/06/p_dieter-hallway_1710371c-on-wanken-450x281.jpg">http://blog.iso50.com/wp-content/uploads/2011/06/p_dieter-hallway_1710371c-on-wanken-450x281.jpg</a> 450 281 Dieter Rams house %}</p>
+<p><img class="center <a" src="href="http://blog.iso50.com/wp-content/uploads/2011/06/p_dieter-hallway_1710371c-on-wanken-450x281.jpg">http://blog.iso50.com/wp-content/uploads/2011/06/p_dieter-hallway_1710371c-on-wanken-450x281.jpg</a>&#8221; width=&#8221;450&#8221; height=&#8221;281&#8221; title=&#8221;Dieter Rams house&#8221; ></p>
 
-<p>{% blockquote_nobr Dieter Rams, Lovell page 141 %}
-[The] composition of these rooms represents the basic intention behind my design: simplicity,
+<p><blockquote><p>[The] composition of these rooms represents the basic intention behind my design: simplicity,
 essentiality, and openness. The objects do not boast about themselves, take center stage or
 restrict but withdraw into the background&hellip;In a world which is&hellip;destructively loud and visually
 confusing, design&hellip;help[s] generate a level of calm that allows people to come to themselves.
-(Lovell, 141)
-{% endblockquote_nobr %}</p>
+(Lovell, 141)</p><footer><strong>Dieter Rams</strong> <cite>Lovell Page 141</cite></footer></blockquote></p>
 
-<p>{% img center <a href="http://www.wallpaper.com/galleryimages/17052483/gallery/dieter_ram_book_tl010611_06.jpg">http://www.wallpaper.com/galleryimages/17052483/gallery/dieter_ram_book_tl010611_06.jpg</a> 540 340 dieter rams house %}</p>
+<p><img class="center <a" src="href="http://www.wallpaper.com/galleryimages/17052483/gallery/dieter_ram_book_tl010611_06.jpg">http://www.wallpaper.com/galleryimages/17052483/gallery/dieter_ram_book_tl010611_06.jpg</a>&#8221; width=&#8221;540&#8221; height=&#8221;340&#8221; title=&#8221;dieter rams house&#8221; ></p>
 
-<p>{% img center <a href="http://i.telegraph.co.uk/multimedia/archive/01710/p_dieter-rams-hous_1710374c.jpg">http://i.telegraph.co.uk/multimedia/archive/01710/p_dieter-rams-hous_1710374c.jpg</a> 460 289 dieter rams yard %}</p>
+<p><img class="center <a" src="href="http://i.telegraph.co.uk/multimedia/archive/01710/p_dieter-rams-hous_1710374c.jpg">http://i.telegraph.co.uk/multimedia/archive/01710/p_dieter-rams-hous_1710374c.jpg</a>&#8221; width=&#8221;460&#8221; height=&#8221;289&#8221; title=&#8221;dieter rams yard&#8221; ></p>
 
 <h2>Rams&#8217; 15 Principles</h2>
 
@@ -143,7 +139,7 @@ and even to change it?</li>
   <entry>
     <title type="html"><![CDATA[Redesign]]></title>
     <link href="https://www.davidxia.com/2012/02/redesign/"/>
-    <updated>2012-02-07T00:00:00+01:00</updated>
+    <updated>2012-02-07T00:00:00-05:00</updated>
     <id>https://www.davidxia.com/2012/02/redesign</id>
     <content type="html"><![CDATA[<p>I just finished redesigning my site. It was a lot more work than I expected. After becoming
 interested in <a href="http://www.smashingmagazine.com/2009/07/17/lessons-from-swiss-style-graphic-design/" title="Lessons From Swiss Style Graphic Design">Swiss design</a>, both philosophically and aesthetically, I was inspired by the
@@ -188,7 +184,7 @@ is this theme cannot be shipped; the upside is that it&rsquo;s truly unique to m
   <entry>
     <title type="html"><![CDATA[I'm Sticking With WordPress' Thematic Theme]]></title>
     <link href="https://www.davidxia.com/2010/10/im-sticking-with-wordpress-thematic-theme/"/>
-    <updated>2010-10-16T00:00:00+02:00</updated>
+    <updated>2010-10-16T00:00:00-04:00</updated>
     <id>https://www.davidxia.com/2010/10/im-sticking-with-wordpress-thematic-theme</id>
     <content type="html"><![CDATA[<p>I&rsquo;m going to keep my Thematic WordPress theme. Nothing beats its simplicity and minimalism. It&rsquo;s
 so crisp and clean. I don&rsquo;t put up many photos or non-textual media, and Thematic lets readers
@@ -210,7 +206,7 @@ erased. But if you have a child theme, they&rsquo;ll be preserved since they&rsq
   <entry>
     <title type="html"><![CDATA[Sexy Audio Plugin, Oh So Sexy]]></title>
     <link href="https://www.davidxia.com/2010/06/sexy-audio-plugin-oh-so-sexy/"/>
-    <updated>2010-06-30T00:00:00+02:00</updated>
+    <updated>2010-06-30T00:00:00-04:00</updated>
     <id>https://www.davidxia.com/2010/06/sexy-audio-plugin-oh-so-sexy</id>
     <content type="html"><![CDATA[<p>I&rsquo;ve just updated my WordPress audio plugin. The only time I&rsquo;ve ever used it was for <a href="/2009/06/cantonese-pick-up-lines" title="Cantonese pickup lines">this
 post</a> on Cantonese pick-up lines. This is one of my most popular posts that always brings in a

@@ -4,7 +4,7 @@
   <title><![CDATA[David Xia]]></title>
   <link href="https://www.davidxia.com/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2019-05-26T01:01:47+02:00</updated>
+  <updated>2020-04-01T12:34:35-04:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -12,6 +12,816 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[3 Levels of Load Testing GKE Workload Identity]]></title>
+    <link href="https://www.davidxia.com/2020/04/3-levels-of-load-testing-gke-workload-identity/"/>
+    <updated>2020-04-01T10:21:11-04:00</updated>
+    <id>https://www.davidxia.com/2020/04/3-levels-of-load-testing-gke-workload-identity</id>
+    <content type="html"><![CDATA[<p>I manage multitenant <a href="https://cloud.google.com/kubernetes-engine">Google Kubernetes Engine</a> (GKE) clusters for stateless backend services at
+work. Google recently graduated GKE&rsquo;s <a href="https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity">Workload Identity</a> (WI) feature to generally available
+(GA). When my team used WI during its beta stage, it seemed to fail when there were more than 16
+requests per second (RPS) on one GKE node to retrieve Google access tokens.</p>
+
+<p>Before we knew about this low RPS failure threshold, we told many internal Spotify engineering teams
+to go ahead and use the feature. In hindsight, we should&rsquo;ve load-tested the feature before making it
+generally available internally especially since it wasn&rsquo;t even GA publicly.</p>
+
+<p>My efforts to load test WI have grown more sophisticated over time. This post describes the
+progression. It&rsquo;s like the &ldquo;4 Levels of &hellip;&rdquo; <a href="https://www.youtube.com/playlist?list=PLz3-p2q6vFYUDvVUu_aPhGUV-3ROIa6d2">Epicurious Youtube videos</a>. The goal here is to find
+out at what RPS WI starts to fail and to try to learn some generalizable lessons from load testing
+vendor-managed services.</p>
+
+<h3>tl;dr lessons learned</h3>
+
+<ul>
+<li>always load test new features above and beyond what you expect your production load will be</li>
+<li>use proper load testing tools and not bash for loops</li>
+</ul>
+
+
+<h2>My specific GKE cluster configuration</h2>
+
+<ul>
+<li>GKE masters and nodes running version 1.15.9-gke.22</li>
+<li>regional cluster in Google Cloud Platform (GCP) (not on-premise)</li>
+<li>4 GKE nodes that are n1-standard-32 GCE instances in one node pool</li>
+<li>each node is configured to have a maximum of 32 Pods</li>
+<li>cluster and node pool have WI enabled</li>
+</ul>
+
+
+<h2>High level of what Workload Identity is and how it works</h2>
+
+<p>Workloads on GKE often need to access GCP resources like PubSub or CloudSQL.
+In order to do so, your workload needs to use a Google Service Account (GSA) key that is authorized to
+access those resources. So you end up creating keys for all your GSA&rsquo;s and copy-pasting
+these keys into Kubernetes Secrets for your workloads. This is insecure and not maintainable if you
+are a company that has dozens of engineering teams and hundreds of workloads.</p>
+
+<p>So GCP offered WI which allows a Kubernetes Service Account (KSA) to be associated with a GSA. If a
+workload can run with a certain KSA, it&rsquo;ll transparently get the Google access token for the
+associated GSA. No manual copy-pasting GSA keys!</p>
+
+<p>How does this work? You have to enable WI on your cluster and node pool. This creates a
+<code>gke-metadata-server</code> DaemonSet in the <code>kube-system</code> namespace. <code>gke-metadata-server</code> is the
+entrypoint to the whole WI system. Here&rsquo;s a nice <a href="https://www.youtube.com/watch?v=s4NYEJDFc0M">Google Cloud Next conference talk</a> with more
+details.</p>
+
+<p><code>gke-metadata-server</code> is the only part of WI that is exposed to GKE users, i.e. runs on machines you
+control. It&rsquo;s like the Verizon FiOS box in your basement. You control your house, but there&rsquo;s a
+little box that Verizon owns and operates in there. All other parts of WI run on GCP infrastructure
+that you can&rsquo;t see. When I saw failures with WI, it all seemed to happen in
+<code>gke-metadata-server</code>. So that&rsquo;s what I&rsquo;ll load test.</p>
+
+<p>Here&rsquo;s the <code>gke-metadata-server</code> DaemonSet YAML for reference. As of the time of this writing the
+image is <code>gke.gcr.io/gke-metadata-server:20200218_1145_RC0</code>. You might see different behavior with
+different images.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+<span class='line-number'>80</span>
+<span class='line-number'>81</span>
+<span class='line-number'>82</span>
+<span class='line-number'>83</span>
+<span class='line-number'>84</span>
+<span class='line-number'>85</span>
+<span class='line-number'>86</span>
+<span class='line-number'>87</span>
+<span class='line-number'>88</span>
+<span class='line-number'>89</span>
+<span class='line-number'>90</span>
+<span class='line-number'>91</span>
+<span class='line-number'>92</span>
+<span class='line-number'>93</span>
+<span class='line-number'>94</span>
+<span class='line-number'>95</span>
+<span class='line-number'>96</span>
+<span class='line-number'>97</span>
+<span class='line-number'>98</span>
+<span class='line-number'>99</span>
+<span class='line-number'>100</span>
+<span class='line-number'>101</span>
+<span class='line-number'>102</span>
+<span class='line-number'>103</span>
+<span class='line-number'>104</span>
+<span class='line-number'>105</span>
+<span class='line-number'>106</span>
+<span class='line-number'>107</span>
+<span class='line-number'>108</span>
+<span class='line-number'>109</span>
+<span class='line-number'>110</span>
+<span class='line-number'>111</span>
+<span class='line-number'>112</span>
+<span class='line-number'>113</span>
+<span class='line-number'>114</span>
+<span class='line-number'>115</span>
+<span class='line-number'>116</span>
+<span class='line-number'>117</span>
+<span class='line-number'>118</span>
+<span class='line-number'>119</span>
+<span class='line-number'>120</span>
+<span class='line-number'>121</span>
+<span class='line-number'>122</span>
+<span class='line-number'>123</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>apiVersion: extensions/v1beta1
+</span><span class='line'>kind: DaemonSet
+</span><span class='line'>metadata:
+</span><span class='line'>  creationTimestamp: "2019-10-15T17:04:40Z"
+</span><span class='line'>  generation: 8
+</span><span class='line'>  labels:
+</span><span class='line'>    addonmanager.kubernetes.io/mode: Reconcile
+</span><span class='line'>    k8s-app: gke-metadata-server
+</span><span class='line'>  name: gke-metadata-server
+</span><span class='line'>  namespace: kube-system
+</span><span class='line'>  resourceVersion: "138588210"
+</span><span class='line'>  selfLink: /apis/extensions/v1beta1/namespaces/kube-system/daemonsets/gke-metadata-server
+</span><span class='line'>  uid: e06885d8-ef6d-11e9-88c9-42010a8c0110
+</span><span class='line'>spec:
+</span><span class='line'>  revisionHistoryLimit: 10
+</span><span class='line'>  selector:
+</span><span class='line'>    matchLabels:
+</span><span class='line'>      k8s-app: gke-metadata-server
+</span><span class='line'>  template:
+</span><span class='line'>    metadata:
+</span><span class='line'>      annotations:
+</span><span class='line'>        components.gke.io/component-name: gke-metadata-server
+</span><span class='line'>        components.gke.io/component-version: 0.2.21
+</span><span class='line'>        scheduler.alpha.kubernetes.io/critical-pod: '"''"'
+</span><span class='line'>      creationTimestamp: null
+</span><span class='line'>      labels:
+</span><span class='line'>        addonmanager.kubernetes.io/mode: Reconcile
+</span><span class='line'>        k8s-app: gke-metadata-server
+</span><span class='line'>    spec:
+</span><span class='line'>      containers:
+</span><span class='line'>      - command:
+</span><span class='line'>        - /gke-metadata-server
+</span><span class='line'>        - --logtostderr
+</span><span class='line'>        - --token-exchange-endpoint=https://securetoken.googleapis.com/v1/identitybindingtoken
+</span><span class='line'>        - --identity-namespace=[redacted].svc.id.goog
+</span><span class='line'>        - --identity-provider-id=https://container.googleapis.com/v1/projects/[redacted]/locations/asia-east1/clusters/[redacted]
+</span><span class='line'>        - --passthrough-ksa-list=kube-system:container-watcher-pod-reader,kube-system:event-exporter-sa,kube-system:fluentd-gcp-scaler,kube-system:heapster,kube-system:kube-dns,kube-system:metadata-agent,kube-system:network-metering-agent,kube-system:securityprofile-controller,istio-system:istio-ingressgateway-service-account,istio-system:cluster-local-gateway-service-account,csm:csm-sync-agent,knative-serving:controller
+</span><span class='line'>        - --attributes=cluster-name=[redacted],cluster-uid=[redacted],cluster-location=asia-east1
+</span><span class='line'>        - --enable-identity-endpoint=true
+</span><span class='line'>        - --cluster-uid=[redacted]
+</span><span class='line'>        image: gke.gcr.io/gke-metadata-server:20200218_1145_RC0
+</span><span class='line'>        imagePullPolicy: IfNotPresent
+</span><span class='line'>        livenessProbe:
+</span><span class='line'>          failureThreshold: 3
+</span><span class='line'>          httpGet:
+</span><span class='line'>            host: 127.0.0.1
+</span><span class='line'>            path: /healthz
+</span><span class='line'>            port: 54898
+</span><span class='line'>            scheme: HTTP
+</span><span class='line'>          initialDelaySeconds: 10
+</span><span class='line'>          periodSeconds: 10
+</span><span class='line'>          successThreshold: 1
+</span><span class='line'>          timeoutSeconds: 1
+</span><span class='line'>        name: gke-metadata-server
+</span><span class='line'>        resources:
+</span><span class='line'>          limits:
+</span><span class='line'>            cpu: 100m
+</span><span class='line'>            memory: 100Mi
+</span><span class='line'>          requests:
+</span><span class='line'>            cpu: 100m
+</span><span class='line'>            memory: 100Mi
+</span><span class='line'>        securityContext:
+</span><span class='line'>          privileged: true
+</span><span class='line'>        terminationMessagePath: /dev/termination-log
+</span><span class='line'>        terminationMessagePolicy: File
+</span><span class='line'>        volumeMounts:
+</span><span class='line'>        - mountPath: /var/lib/kubelet/kubeconfig
+</span><span class='line'>          name: kubelet-credentials
+</span><span class='line'>          readOnly: true
+</span><span class='line'>        - mountPath: /var/lib/kubelet/pki/
+</span><span class='line'>          name: kubelet-certs
+</span><span class='line'>          readOnly: true
+</span><span class='line'>        - mountPath: /var/run/
+</span><span class='line'>          name: container-runtime-interface
+</span><span class='line'>        - mountPath: /etc/srv/kubernetes/pki
+</span><span class='line'>          name: kubelet-pki
+</span><span class='line'>          readOnly: true
+</span><span class='line'>        - mountPath: /etc/ssl/certs/
+</span><span class='line'>          name: ca-certificates
+</span><span class='line'>          readOnly: true
+</span><span class='line'>      dnsPolicy: Default
+</span><span class='line'>      hostNetwork: true
+</span><span class='line'>      nodeSelector:
+</span><span class='line'>        beta.kubernetes.io/os: linux
+</span><span class='line'>        iam.gke.io/gke-metadata-server-enabled: "true"
+</span><span class='line'>      priorityClassName: system-node-critical
+</span><span class='line'>      restartPolicy: Always
+</span><span class='line'>      schedulerName: default-scheduler
+</span><span class='line'>      securityContext: {}
+</span><span class='line'>      serviceAccount: gke-metadata-server
+</span><span class='line'>      serviceAccountName: gke-metadata-server
+</span><span class='line'>      terminationGracePeriodSeconds: 30
+</span><span class='line'>      tolerations:
+</span><span class='line'>      - effect: NoExecute
+</span><span class='line'>        operator: Exists
+</span><span class='line'>      - effect: NoSchedule
+</span><span class='line'>        operator: Exists
+</span><span class='line'>      volumes:
+</span><span class='line'>      - hostPath:
+</span><span class='line'>          path: /var/lib/kubelet/pki/
+</span><span class='line'>          type: Directory
+</span><span class='line'>        name: kubelet-certs
+</span><span class='line'>      - hostPath:
+</span><span class='line'>          path: /var/lib/kubelet/kubeconfig
+</span><span class='line'>          type: File
+</span><span class='line'>        name: kubelet-credentials
+</span><span class='line'>      - hostPath:
+</span><span class='line'>          path: /var/run/
+</span><span class='line'>          type: Directory
+</span><span class='line'>        name: container-runtime-interface
+</span><span class='line'>      - hostPath:
+</span><span class='line'>          path: /etc/srv/kubernetes/pki/
+</span><span class='line'>          type: Directory
+</span><span class='line'>        name: kubelet-pki
+</span><span class='line'>      - hostPath:
+</span><span class='line'>          path: /etc/ssl/certs/
+</span><span class='line'>          type: Directory
+</span><span class='line'>        name: ca-certificates
+</span><span class='line'>  templateGeneration: 8
+</span><span class='line'>  updateStrategy:
+</span><span class='line'>    rollingUpdate:
+</span><span class='line'>      maxUnavailable: 1
+</span><span class='line'>    type: RollingUpdate</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Level 1</h2>
+
+<p>What kind of load am I putting on <code>gke-metadata-server</code>? Since this DaemonSet exists to give out
+Google access tokens, I&rsquo;ll send it HTTP requests asking for such tokens.</p>
+
+<p>I built a Docker image with the following <code>Dockerfile</code>.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>FROM google/cloud-sdk
+</span><span class='line'>ENTRYPOINT while true; do for i in {1..20}; do curl -X GET https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=$(gcloud auth print-access-token) & done; wait; done;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then I created the following K8s Deployment YAML.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">apiVersion</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">apps/v1</span>
+</span><span class='line'><span class="l-Scalar-Plain">kind</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Deployment</span>
+</span><span class='line'><span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">wi-test</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">namespace</span><span class="p-Indicator">:</span> <span class="p-Indicator">[</span><span class="nv">K8S_NAMESPACE</span><span class="p-Indicator">]</span>
+</span><span class='line'><span class="l-Scalar-Plain">spec</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">replicas</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">7</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">selector</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">matchLabels</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">app</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">wi-test</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">template</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">labels</span><span class="p-Indicator">:</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">app</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">wi-test</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">spec</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">nodeSelector</span><span class="p-Indicator">:</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">kubernetes.io/hostname</span><span class="p-Indicator">:</span> <span class="p-Indicator">[</span><span class="nv">NODE-NAME</span><span class="p-Indicator">]</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">containers</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">image</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">my-docker-image</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">workload-identity-test</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I ran seven of these Pods on a single node (see the <code>nodeSelector</code> above) to target a single
+instance of <code>gke-metadata-server</code>.</p>
+
+<p>This isn&rsquo;t a great test because there&rsquo;s a lot of extra work performed by the Container in running
+<code>gcloud</code> to print a Google access token (there may be bottlenecks in this <code>gcloud</code> command itself
+which is Python code), curling the <code>googleapis.com</code> endpoint to get the token info (originally done
+to verify the token was valid). And there&rsquo;s probably bottlenecks in using a shell to do this. All in
+all, this implementation doesn&rsquo;t really let you specify a fixed RPS. You&rsquo;re at the mercy of how fast
+your Container, shell, gcloud, and the network will let you execute this. I also wasn&rsquo;t able to run
+more Pods on a single node because I was hitting the max 32 pods per node limit. There were already
+a bunch of other GKE-system level workloads like Calico that took up node capacity.</p>
+
+<h2>Level 2</h2>
+
+<p>Apply this one Pod</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">cat &lt;&lt;EOF | kubectl --context [CONTEXT] apply -f -</span>
+</span><span class='line'><span class="l-Scalar-Plain">apiVersion</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">v1</span>
+</span><span class='line'><span class="l-Scalar-Plain">kind</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Pod</span>
+</span><span class='line'><span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">wi-test</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">namespace</span><span class="p-Indicator">:</span> <span class="p-Indicator">[</span><span class="nv">K8S_NAMESPACE</span><span class="p-Indicator">]</span>
+</span><span class='line'><span class="l-Scalar-Plain">spec</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">containers</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">image</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">google/cloud-sdk</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">wi-test</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">command</span><span class="p-Indicator">:</span> <span class="p-Indicator">[</span> <span class="s">&#39;/bin/bash&#39;</span><span class="p-Indicator">,</span> <span class="s">&#39;-c&#39;</span><span class="p-Indicator">,</span> <span class="s">&#39;--&#39;</span> <span class="p-Indicator">]</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">args</span><span class="p-Indicator">:</span> <span class="p-Indicator">[</span> <span class="s">&#39;while</span><span class="nv"> </span><span class="s">true;</span><span class="nv"> </span><span class="s">do</span><span class="nv"> </span><span class="s">sleep</span><span class="nv"> </span><span class="s">30;</span><span class="nv"> </span><span class="s">done;&#39;</span> <span class="p-Indicator">]</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">securityContext</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">allowPrivilegeEscalation</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">false</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">privileged</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">false</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">readOnlyRootFilesystem</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">false</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">resources</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">limits</span><span class="p-Indicator">:</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">cpu</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">2</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">memory</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">4G</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">requests</span><span class="p-Indicator">:</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">cpu</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">2</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">memory</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">4G</span>
+</span><span class='line'><span class="l-Scalar-Plain">EOF</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then <code>kubectl exec</code> in and run this command.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">for i in {1..N}; do gcloud auth print-access-token &amp; done; wait;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Everything seemed to work fine when N was 100. When N was 200 I got a few errors like the below.
+They look like client-side errors and not server ones though.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">ERROR</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">gcloud failed to load</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">No module named &#39;ruamel.yaml.error&#39;</span>
+</span><span class='line'><span class="l-Scalar-Plain">gcloud_main = _import_gcloud_main()</span>
+</span><span class='line'><span class="l-Scalar-Plain">import googlecloudsdk.gcloud_main</span>
+</span><span class='line'><span class="l-Scalar-Plain">from googlecloudsdk.api_lib.iamcredentials import util as iamcred_util</span>
+</span><span class='line'><span class="l-Scalar-Plain">from googlecloudsdk.api_lib.util import exceptions</span>
+</span><span class='line'><span class="l-Scalar-Plain">from googlecloudsdk.core.resource import resource_printer</span>
+</span><span class='line'><span class="l-Scalar-Plain">from googlecloudsdk.core.resource import yaml_printer</span>
+</span><span class='line'><span class="l-Scalar-Plain">from googlecloudsdk.core.yaml import dict_like</span>
+</span><span class='line'><span class="l-Scalar-Plain">from googlecloudsdk.core import yaml_location_value</span>
+</span><span class='line'><span class="l-Scalar-Plain">from ruamel import yaml</span>
+</span><span class='line'><span class="l-Scalar-Plain">from ruamel.yaml.main import *</span> <span class="c1"># NOQA</span>
+</span><span class='line'><span class="l-Scalar-Plain">from ruamel.yaml.error import UnsafeLoaderWarning, YAMLError</span> <span class="c1"># NOQA</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">This usually indicates corruption in your gcloud installation or problems with your Python interpreter.</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">Please verify that the following is the path to a working Python 2.7 or 3.5+ executable</span><span class="p-Indicator">:</span>
+</span><span class='line'><span class="l-Scalar-Plain">/usr/bin/python3</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">If it is not, please set the CLOUDSDK_PYTHON environment variable to point to a working Python 2.7 or 3.5+ executable.</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">If you are still experiencing problems, please reinstall the Cloud SDK using the instructions here</span><span class="p-Indicator">:</span>
+</span><span class='line'><span class="l-Scalar-Plain">https://cloud.google.com/sdk/</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">ERROR</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">gcloud failed to load</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">cannot import name &#39;opentype&#39; from &#39;pyasn1.type&#39; (/usr/bin/../lib/google-cloud-sdk/lib/third_party/pyasn1/type/__init__.py)</span>
+</span><span class='line'><span class="l-Scalar-Plain">from google.auth.crypt import _cryptography_rsa</span>
+</span><span class='line'><span class="l-Scalar-Plain">import cryptography.exceptions</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">File &quot;/usr/bin/../lib/google-cloud-sdk/lib/gcloud.py&quot;, line 67, in main</span>
+</span><span class='line'><span class="l-Scalar-Plain">File &quot;/usr/bin/../lib/google-cloud-sdk/lib/gcloud.py&quot;, line 48, in _import_gcloud_main</span>
+</span><span class='line'><span class="l-Scalar-Plain">File &quot;/usr/lib/google-cloud-sdk/lib/googlecloudsdk/gcloud_main.py&quot;, line 33, in &lt;module&gt;</span>
+</span><span class='line'><span class="l-Scalar-Plain">File &quot;/usr/lib/google-cloud-sdk/lib/googlecloudsdk/api_lib</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>gcloud</code> does not synchronize between processes with concurrent invokations. It sometimes writes
+files to disk. So this is also not a great load test because it still doesn&rsquo;t let you achieve a
+specific RPS and has client-side bottlenecks.</p>
+
+<h2>Level 3</h2>
+
+<p>Use a proper HTTP load testing tool. A colleague told me about <a href="https://github.com/tsenart/vegeta"><code>vegeta</code></a>.
+It&rsquo;s a seemingly good tool, but, more importantly, its commands are amazing.
+<code>vegeta attack ...</code>.</p>
+
+<p>I first start a <code>golang</code> Pod that just busy-waits.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">$ cat &lt;&lt;EOF | kubectl --context [CONTEXT] apply -f -</span>
+</span><span class='line'><span class="l-Scalar-Plain">&gt; apiVersion</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">v1</span>
+</span><span class='line'><span class="p-Indicator">&gt;</span><span class="err"> kind: Pod</span>
+</span><span class='line'><span class="p-Indicator">&gt;</span><span class="err"> metadata:</span>
+</span><span class='line'><span class="p-Indicator">&gt;</span><span class="err">   name: wi-test</span>
+</span><span class='line'><span class="p-Indicator">&gt;</span><span class="err">   namespace: [NAMESPACE]</span>
+</span><span class='line'><span class="p-Indicator">&gt;</span><span class="err"> spec:</span>
+</span><span class='line'><span class="p-Indicator">&gt;</span><span class="err">   containers:</span>
+</span><span class='line'><span class="p-Indicator">&gt;</span><span class="err">   - image: golang:latest</span>
+</span><span class='line'><span class="p-Indicator">&gt;</span><span class="err">     name: wi-test</span>
+</span><span class='line'><span class="p-Indicator">&gt;</span><span class="err">     command: [ &#39;/bin/bash&#39;, &#39;-c&#39;, &#39;--&#39; ]</span>
+</span><span class='line'><span class="p-Indicator">&gt;</span><span class="err">     args: [ &#39;while true; do sleep 30; done;&#39; ]</span>
+</span><span class='line'><span class="p-Indicator">&gt;</span><span class="err">     resources:</span>
+</span><span class='line'><span class="p-Indicator">&gt;</span><span class="err">       limits:</span>
+</span><span class='line'><span class="p-Indicator">&gt;</span><span class="err">         cpu: 2</span>
+</span><span class='line'><span class="p-Indicator">&gt;</span><span class="err">         memory: 4G</span>
+</span><span class='line'><span class="p-Indicator">&gt;</span><span class="err">       requests:</span>
+</span><span class='line'><span class="p-Indicator">&gt;</span><span class="err">         cpu: 2</span>
+</span><span class='line'><span class="p-Indicator">&gt;</span><span class="err">         memory: 4G</span>
+</span><span class='line'><span class="p-Indicator">&gt;</span><span class="err"> EOF</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">pod/wi-test created</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then I get a shell in it.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">kubectl --context [CONTEXT] -n [NAMESPACE] exec -it wi-test bash</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">Defaulting container name to wi-test.</span>
+</span><span class='line'><span class="l-Scalar-Plain">Use &#39;kubectl describe pod/wi-test -n [NAMESPACE]&#39; to see all of the containers in this pod.</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">root@wi-test:/go# go get github.com/tsenart/vegeta</span>
+</span><span class='line'><span class="l-Scalar-Plain">root@wi-test:/go# vegeta -version</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">Version</span><span class="p-Indicator">:</span>
+</span><span class='line'><span class="l-Scalar-Plain">Commit</span><span class="p-Indicator">:</span>
+</span><span class='line'><span class="l-Scalar-Plain">Runtime</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">go1.14.1 linux/amd64</span>
+</span><span class='line'><span class="l-Scalar-Plain">Date</span><span class="p-Indicator">:</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Let&rsquo;s throw some load on WI! <code>my-gsa@my-project.iam.gserviceaccount.com</code> is the GSA associated with
+the KSA your workload runs as.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+<span class='line-number'>80</span>
+<span class='line-number'>81</span>
+<span class='line-number'>82</span>
+<span class='line-number'>83</span>
+<span class='line-number'>84</span>
+<span class='line-number'>85</span>
+<span class='line-number'>86</span>
+<span class='line-number'>87</span>
+<span class='line-number'>88</span>
+<span class='line-number'>89</span>
+<span class='line-number'>90</span>
+<span class='line-number'>91</span>
+<span class='line-number'>92</span>
+<span class='line-number'>93</span>
+<span class='line-number'>94</span>
+<span class='line-number'>95</span>
+<span class='line-number'>96</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">root@wi-test:/go# echo &quot;GET http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/my-gsa@my-project.iam.gserviceaccount.com/token&quot; | vegeta attack -header &#39;Metadata-Flavor</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Google&#39; -rate 10 -duration=5s | vegeta report</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">Requests      [total, rate, throughput]         50, 10.20, 10.20</span>
+</span><span class='line'><span class="l-Scalar-Plain">Duration      [total, attack, wait]             4.904s, 4.9s, 4.168ms</span>
+</span><span class='line'><span class="l-Scalar-Plain">Latencies     [min, mean, 50, 90, 95, 99, max]  4.168ms, 6.137ms, 5.039ms, 9.591ms, 10.444ms, 31.452ms, 31.452ms</span>
+</span><span class='line'><span class="l-Scalar-Plain">Bytes In      [total, mean]                     25300, 506.00</span>
+</span><span class='line'><span class="l-Scalar-Plain">Bytes Out     [total, mean]                     0, 0.00</span>
+</span><span class='line'><span class="l-Scalar-Plain">Success       [ratio]                           100.00%</span>
+</span><span class='line'><span class="l-Scalar-Plain">Status Codes  [code:count]                      200:50</span>
+</span><span class='line'><span class="l-Scalar-Plain">Error Set</span><span class="p-Indicator">:</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">root@wi-test:/go# echo &quot;GET http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/my-gsa@my-project.iam.gserviceaccount.com/token&quot; | vegeta attack -header &#39;Metadata-Flavor</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Google&#39; -rate 1000 -duration=5s | vegeta report</span>
+</span><span class='line'><span class="l-Scalar-Plain">Requests      [total, rate, throughput]         5000, 1000.20, 127.51</span>
+</span><span class='line'><span class="l-Scalar-Plain">Duration      [total, attack, wait]             31.175s, 4.999s, 26.176s</span>
+</span><span class='line'><span class="l-Scalar-Plain">Latencies     [min, mean, 50, 90, 95, 99, max]  101.972ms, 11.003s, 7.652s, 30s, 30s, 30s, 30.001s</span>
+</span><span class='line'><span class="l-Scalar-Plain">Bytes In      [total, mean]                     2011350, 402.27</span>
+</span><span class='line'><span class="l-Scalar-Plain">Bytes Out     [total, mean]                     0, 0.00</span>
+</span><span class='line'><span class="l-Scalar-Plain">Success       [ratio]                           79.50%</span>
+</span><span class='line'><span class="l-Scalar-Plain">Status Codes  [code:count]                      0:1025  200:3975</span>
+</span><span class='line'><span class="l-Scalar-Plain">Error Set</span><span class="p-Indicator">:</span>
+</span><span class='line'><span class="l-Scalar-Plain">Get &quot;http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/my-gsa@my-project.iam.gserviceaccount.com/token&quot;</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">context deadline exceeded (Client.Timeout exceeded while awaiting headers)</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">root@wi-test:/go# echo &quot;GET http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/my-gsa@my-project.iam.gserviceaccount.com/token&quot; | vegeta attack -header &#39;Metadata-Flavor</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Google&#39; -rate 100 -duration=5s | vegeta report</span>
+</span><span class='line'><span class="l-Scalar-Plain">Requests      [total, rate, throughput]         500, 100.20, 98.40</span>
+</span><span class='line'><span class="l-Scalar-Plain">Duration      [total, attack, wait]             5.081s, 4.99s, 91.244ms</span>
+</span><span class='line'><span class="l-Scalar-Plain">Latencies     [min, mean, 50, 90, 95, 99, max]  3.805ms, 106.449ms, 59.058ms, 306.334ms, 372.519ms, 506.703ms, 601.534ms</span>
+</span><span class='line'><span class="l-Scalar-Plain">Bytes In      [total, mean]                     253000, 506.00</span>
+</span><span class='line'><span class="l-Scalar-Plain">Bytes Out     [total, mean]                     0, 0.00</span>
+</span><span class='line'><span class="l-Scalar-Plain">Success       [ratio]                           100.00%</span>
+</span><span class='line'><span class="l-Scalar-Plain">Status Codes  [code:count]                      200:500</span>
+</span><span class='line'><span class="l-Scalar-Plain">Error Set</span><span class="p-Indicator">:</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">root@wi-test:/go# echo &quot;GET http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/my-gsa@my-project.iam.gserviceaccount.com/token&quot; | vegeta attack -header &#39;Metadata-Flavor</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Google&#39; -rate 500 -duration=5s | vegeta report</span>
+</span><span class='line'><span class="l-Scalar-Plain">Requests      [total, rate, throughput]         2500, 500.20, 43.29</span>
+</span><span class='line'><span class="l-Scalar-Plain">Duration      [total, attack, wait]             34.072s, 4.998s, 29.074s</span>
+</span><span class='line'><span class="l-Scalar-Plain">Latencies     [min, mean, 50, 90, 95, 99, max]  10.56ms, 12.579s, 756.03ms, 30s, 30s, 30s, 30.001s</span>
+</span><span class='line'><span class="l-Scalar-Plain">Bytes In      [total, mean]                     746350, 298.54</span>
+</span><span class='line'><span class="l-Scalar-Plain">Bytes Out     [total, mean]                     0, 0.00</span>
+</span><span class='line'><span class="l-Scalar-Plain">Success       [ratio]                           59.00%</span>
+</span><span class='line'><span class="l-Scalar-Plain">Status Codes  [code:count]                      0:1025  200:1475</span>
+</span><span class='line'><span class="l-Scalar-Plain">Error Set</span><span class="p-Indicator">:</span>
+</span><span class='line'><span class="l-Scalar-Plain">Get &quot;http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/my-gsa@my-project.iam.gserviceaccount.com/token&quot;</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">context deadline exceeded (Client.Timeout exceeded while awaiting headers)</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">root@wi-test:/go# echo &quot;GET http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/my-gsa@my-project.iam.gserviceaccount.com/token&quot; | vegeta attack -header &#39;Metadata-Flavor</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Google&#39; -rate 250 -duration=5s | vegeta report</span>
+</span><span class='line'><span class="l-Scalar-Plain">Requests      [total, rate, throughput]         1250, 250.22, 28.52</span>
+</span><span class='line'><span class="l-Scalar-Plain">Duration      [total, attack, wait]             34.996s, 4.996s, 30s</span>
+</span><span class='line'><span class="l-Scalar-Plain">Latencies     [min, mean, 50, 90, 95, 99, max]  8.331ms, 6.347s, 376.419ms, 30s, 30s, 30s, 30.001s</span>
+</span><span class='line'><span class="l-Scalar-Plain">Bytes In      [total, mean]                     504988, 403.99</span>
+</span><span class='line'><span class="l-Scalar-Plain">Bytes Out     [total, mean]                     0, 0.00</span>
+</span><span class='line'><span class="l-Scalar-Plain">Success       [ratio]                           79.84%</span>
+</span><span class='line'><span class="l-Scalar-Plain">Status Codes  [code:count]                      0:252  200:998</span>
+</span><span class='line'><span class="l-Scalar-Plain">Error Set</span><span class="p-Indicator">:</span>
+</span><span class='line'><span class="l-Scalar-Plain">Get &quot;http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/my-gsa@my-project.iam.gserviceaccount.com/token&quot;</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">context deadline exceeded (Client.Timeout exceeded while awaiting headers)</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">root@wi-test:/go# echo &quot;GET http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/my-gsa@my-project.iam.gserviceaccount.com/token&quot; | vegeta attack -header &#39;Metadata-Flavor</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Google&#39; -rate 200 -duration=5s | vegeta report</span>
+</span><span class='line'><span class="l-Scalar-Plain">Requests      [total, rate, throughput]         1000, 200.20, 28.28</span>
+</span><span class='line'><span class="l-Scalar-Plain">Duration      [total, attack, wait]             32.43s, 4.995s, 27.435s</span>
+</span><span class='line'><span class="l-Scalar-Plain">Latencies     [min, mean, 50, 90, 95, 99, max]  9.985ms, 2.739s, 188.509ms, 797.058ms, 30s, 30s, 30s</span>
+</span><span class='line'><span class="l-Scalar-Plain">Bytes In      [total, mean]                     464002, 464.00</span>
+</span><span class='line'><span class="l-Scalar-Plain">Bytes Out     [total, mean]                     0, 0.00</span>
+</span><span class='line'><span class="l-Scalar-Plain">Success       [ratio]                           91.70%</span>
+</span><span class='line'><span class="l-Scalar-Plain">Status Codes  [code:count]                      0:83  200:917</span>
+</span><span class='line'><span class="l-Scalar-Plain">Error Set</span><span class="p-Indicator">:</span>
+</span><span class='line'><span class="l-Scalar-Plain">Get &quot;http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/my-gsa@my-project.iam.gserviceaccount.com/token&quot;</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">context deadline exceeded (Client.Timeout exceeded while awaiting headers)</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">root@wi-test:/go# echo &quot;GET http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/my-gsa@my-project.iam.gserviceaccount.com/token&quot; | vegeta attack -header &#39;Metadata-Flavor</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Google&#39; -rate 150 -duration=5s | vegeta report</span>
+</span><span class='line'><span class="l-Scalar-Plain">Requests      [total, rate, throughput]         750, 150.20, 146.53</span>
+</span><span class='line'><span class="l-Scalar-Plain">Duration      [total, attack, wait]             5.118s, 4.993s, 125.078ms</span>
+</span><span class='line'><span class="l-Scalar-Plain">Latencies     [min, mean, 50, 90, 95, 99, max]  3.747ms, 224.285ms, 171.325ms, 460.236ms, 549.18ms, 682.161ms, 892.25ms</span>
+</span><span class='line'><span class="l-Scalar-Plain">Bytes In      [total, mean]                     379500, 506.00</span>
+</span><span class='line'><span class="l-Scalar-Plain">Bytes Out     [total, mean]                     0, 0.00</span>
+</span><span class='line'><span class="l-Scalar-Plain">Success       [ratio]                           100.00%</span>
+</span><span class='line'><span class="l-Scalar-Plain">Status Codes  [code:count]                      200:750</span>
+</span><span class='line'><span class="l-Scalar-Plain">Error Set</span><span class="p-Indicator">:</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">root@wi-test:/go# echo &quot;GET http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/my-gsa@my-project.iam.gserviceaccount.com/token&quot; | vegeta attack -header &#39;Metadata-Flavor</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Google&#39; -rate 175 -duration=5s | vegeta report</span>
+</span><span class='line'><span class="l-Scalar-Plain">Requests      [total, rate, throughput]         875, 175.20, 24.46</span>
+</span><span class='line'><span class="l-Scalar-Plain">Duration      [total, attack, wait]             34.097s, 4.994s, 29.103s</span>
+</span><span class='line'><span class="l-Scalar-Plain">Latencies     [min, mean, 50, 90, 95, 99, max]  3.704ms, 1.687s, 231.652ms, 708.672ms, 2.432s, 30s, 30s</span>
+</span><span class='line'><span class="l-Scalar-Plain">Bytes In      [total, mean]                     422004, 482.29</span>
+</span><span class='line'><span class="l-Scalar-Plain">Bytes Out     [total, mean]                     0, 0.00</span>
+</span><span class='line'><span class="l-Scalar-Plain">Success       [ratio]                           95.31%</span>
+</span><span class='line'><span class="l-Scalar-Plain">Status Codes  [code:count]                      0:41  200:834</span>
+</span><span class='line'><span class="l-Scalar-Plain">Error Set</span><span class="p-Indicator">:</span>
+</span><span class='line'><span class="l-Scalar-Plain">Get &quot;http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/my-gsa@my-project.iam.gserviceaccount.com/token&quot;</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">context deadline exceeded (Client.Timeout exceeded while awaiting headers)</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">root@wi-test:/go# echo &quot;GET http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/my-gsa@my-project.iam.gserviceaccount.com/token&quot; | vegeta attack -header &#39;Metadata-Flavor</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Google&#39; -rate 165 -duration=5s | vegeta report</span>
+</span><span class='line'><span class="l-Scalar-Plain">Requests      [total, rate, throughput]         825, 165.20, 23.61</span>
+</span><span class='line'><span class="l-Scalar-Plain">Duration      [total, attack, wait]             34.6s, 4.994s, 29.606s</span>
+</span><span class='line'><span class="l-Scalar-Plain">Latencies     [min, mean, 50, 90, 95, 99, max]  3.483ms, 558.613ms, 222.111ms, 531.49ms, 622.473ms, 11.851s, 30s</span>
+</span><span class='line'><span class="l-Scalar-Plain">Bytes In      [total, mean]                     413402, 501.09</span>
+</span><span class='line'><span class="l-Scalar-Plain">Bytes Out     [total, mean]                     0, 0.00</span>
+</span><span class='line'><span class="l-Scalar-Plain">Success       [ratio]                           99.03%</span>
+</span><span class='line'><span class="l-Scalar-Plain">Status Codes  [code:count]                      0:8  200:817</span>
+</span><span class='line'><span class="l-Scalar-Plain">Error Set</span><span class="p-Indicator">:</span>
+</span><span class='line'><span class="l-Scalar-Plain">Get &quot;http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/my-gsa@my-project.iam.gserviceaccount.com/token&quot;</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">context deadline exceeded (Client.Timeout exceeded while awaiting headers)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After more bisection, I found that this specific instance of <code>gke-metadata-server</code>
+starts to fail around 150RPS. When it does fail, p99 latency skyrockets from less than 1 second to
+30 seconds. This is usually a sign of a rate limiter or quota.</p>
+
+<p>How have you tried load testing WI or other GKE features? What&rsquo;re your favorite load testing tools
+for these cases, and what interesting behavior have you found?</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Becoming a Better Public Speaker]]></title>
@@ -54,7 +864,7 @@ and moral support from my Spotify colleagues.</p>
   <entry>
     <title type="html"><![CDATA[More About Nginx DNS Resolution Than You Ever Wanted to Know]]></title>
     <link href="https://www.davidxia.com/2019/05/more-about-nginx-dns-resolution-than-you-ever-wanted-to-know/"/>
-    <updated>2019-05-17T18:58:38+02:00</updated>
+    <updated>2019-05-17T12:58:38-04:00</updated>
     <id>https://www.davidxia.com/2019/05/more-about-nginx-dns-resolution-than-you-ever-wanted-to-know</id>
     <content type="html"><![CDATA[<p>This is a post about Nginx&rsquo;s DNS resolution behavior I didn&rsquo;t know about but wish I did before I
 started using Kubernetes (K8s).</p>
@@ -442,7 +1252,7 @@ obscure Nginx behavior.</p>
   <entry>
     <title type="html"><![CDATA[Using Upstream Kubernetes Java Models Is Much Better Than Raw YAML]]></title>
     <link href="https://www.davidxia.com/2018/11/using-upstream-kubernetes-java-models-is-much-better-than-raw-yaml/"/>
-    <updated>2018-11-11T23:11:38+01:00</updated>
+    <updated>2018-11-11T17:11:38-05:00</updated>
     <id>https://www.davidxia.com/2018/11/using-upstream-kubernetes-java-models-is-much-better-than-raw-yaml</id>
     <content type="html"><![CDATA[<p>It&rsquo;s been a while since I blogged about something tech related, but I had some
 free time today.</p>
@@ -480,7 +1290,7 @@ instead of parsing and rewriting raw YAML strings.</p>
   <entry>
     <title type="html"><![CDATA[Internet Meme Role Models]]></title>
     <link href="https://www.davidxia.com/2018/01/internet-meme-role-models/"/>
-    <updated>2018-01-07T17:29:18+01:00</updated>
+    <updated>2018-01-07T11:29:18-05:00</updated>
     <id>https://www.davidxia.com/2018/01/internet-meme-role-models</id>
     <content type="html"><![CDATA[<p>I&rsquo;m compiling a list of Internet meme role models. Here&rsquo;s what I have so far. These people &mdash;
 they must be real human beings &mdash; must have either gone out of their way to do the right
@@ -507,7 +1317,7 @@ She <a href="https://www.youtube.com/watch?v=0ShfNQOUeAY">doesn&rsquo;t take shi
   <entry>
     <title type="html"><![CDATA[Now Max Knows How to Make a Latte]]></title>
     <link href="https://www.davidxia.com/2017/08/now-max-knows-how-to-make-a-latte/"/>
-    <updated>2017-08-30T07:19:06+02:00</updated>
+    <updated>2017-08-30T01:19:06-04:00</updated>
     <id>https://www.davidxia.com/2017/08/now-max-knows-how-to-make-a-latte</id>
     <content type="html"><![CDATA[<p>I work at a music company but am more interested in politics and history. Artists visit our
 office often.</p>
@@ -524,7 +1334,7 @@ milk steaming techniques when they&rsquo;re using the office&rsquo;s $20K espres
   <entry>
     <title type="html"><![CDATA[Making Dumplings With My Grandparents]]></title>
     <link href="https://www.davidxia.com/2017/07/making-dumplings-with-my-grandparents/"/>
-    <updated>2017-07-06T04:50:03+02:00</updated>
+    <updated>2017-07-05T22:50:03-04:00</updated>
     <id>https://www.davidxia.com/2017/07/making-dumplings-with-my-grandparents</id>
     <content type="html"><![CDATA[<p>Whenever I go back home to my parents&#8217; house near Boston,
 if my maternal grandparents are there, they make hundreds of dumplings for me.
@@ -553,7 +1363,7 @@ and closing the dumplings now though.</p>
   <entry>
     <title type="html"><![CDATA[Four Fascinating and Weird People]]></title>
     <link href="https://www.davidxia.com/2017/06/four-fascinating-and-weird-people/"/>
-    <updated>2017-06-01T12:36:06+02:00</updated>
+    <updated>2017-06-01T06:36:06-04:00</updated>
     <id>https://www.davidxia.com/2017/06/four-fascinating-and-weird-people</id>
     <content type="html"><![CDATA[<p>Here are the stories of four fascinating and weird people that will make you laugh, be inspired,
 or cringe. Chang and Eng Bunker were conjoined twins who married two sisters and were slave-owners
@@ -676,7 +1486,7 @@ covering their genitals with patented cages and electrical shock.</p><footer><st
   <entry>
     <title type="html"><![CDATA[Useful Site for TLS Server Test]]></title>
     <link href="https://www.davidxia.com/2017/05/useful-site-for-testing-tls-server-configuration/"/>
-    <updated>2017-05-20T18:49:20+02:00</updated>
+    <updated>2017-05-20T12:49:20-04:00</updated>
     <id>https://www.davidxia.com/2017/05/useful-site-for-testing-tls-server-configuration</id>
     <content type="html"><![CDATA[<p>My home server&rsquo;s hard disk&rsquo;s partition map was somehow corrupted. So I&rsquo;m serving this website
 from <a href="https://m.do.co/c/74c553045962">Digital Ocean</a> for now instead of my apartment. While rewriting the nginx server configs,
@@ -692,7 +1502,7 @@ and warn you of weak encryption, key exchange protocols, cipher suites, etc.</p>
   <entry>
     <title type="html"><![CDATA[British Virgin Islands Sailing Trip Video]]></title>
     <link href="https://www.davidxia.com/2017/05/british-virgin-islands-sailing-trip-video/"/>
-    <updated>2017-05-20T17:51:50+02:00</updated>
+    <updated>2017-05-20T11:51:50-04:00</updated>
     <id>https://www.davidxia.com/2017/05/british-virgin-islands-sailing-trip-video</id>
     <content type="html"><![CDATA[<p>I finally got around to editing the footage from the sailing trip.</p>
 
@@ -704,7 +1514,7 @@ and warn you of weak encryption, key exchange protocols, cipher suites, etc.</p>
   <entry>
     <title type="html"><![CDATA[British Virgin Islands Sailing Trip]]></title>
     <link href="https://www.davidxia.com/2017/03/british-virgin-islands-sailing-trip/"/>
-    <updated>2017-03-04T03:10:36+01:00</updated>
+    <updated>2017-03-03T21:10:36-05:00</updated>
     <id>https://www.davidxia.com/2017/03/british-virgin-islands-sailing-trip</id>
     <content type="html"><![CDATA[<p>I learned the basics of sailing on a week-long sailing trip in the British Virgin Islands aboard
 a 48-foot catamaran we called Millenium Falcon.</p>
@@ -766,7 +1576,7 @@ and we needed to return the charter boat on time.</p>
   <entry>
     <title type="html"><![CDATA[How to Test Your Home's Water for Lead]]></title>
     <link href="https://www.davidxia.com/2017/02/how-to-test-your-homes-water-for-lead/"/>
-    <updated>2017-02-21T01:37:52+01:00</updated>
+    <updated>2017-02-20T19:37:52-05:00</updated>
     <id>https://www.davidxia.com/2017/02/how-to-test-your-homes-water-for-lead</id>
     <content type="html"><![CDATA[<p>I read the <em>New York Times</em> article <a href="https://www.nytimes.com/interactive/2016/03/24/nyregion/how-nyc-gets-its-water-new-york-101.html">&ldquo;How New York Gets Its Water&rdquo;</a> a while ago. The end of the
 article described how you could order a free lead testing kit.</p>
@@ -799,7 +1609,7 @@ federal action level of 15 micrograms per liter (μg/L). Your specific results w
   <entry>
     <title type="html"><![CDATA[What I'm Looking for in a Volunteering Position]]></title>
     <link href="https://www.davidxia.com/2016/10/what-im-looking-for-in-a-volunteering-position/"/>
-    <updated>2016-10-31T18:59:34+01:00</updated>
+    <updated>2016-10-31T13:59:34-04:00</updated>
     <id>https://www.davidxia.com/2016/10/what-im-looking-for-in-a-volunteering-position</id>
     <content type="html"><![CDATA[<h2>My Absolute Requirements</h2>
 
@@ -945,7 +1755,7 @@ community, allowing it to influence key decision-makers on a range of issues ove
   <entry>
     <title type="html"><![CDATA[A Recent Family Photo]]></title>
     <link href="https://www.davidxia.com/2016/09/a-recent-family-photo/"/>
-    <updated>2016-09-19T00:29:07+02:00</updated>
+    <updated>2016-09-18T18:29:07-04:00</updated>
     <id>https://www.davidxia.com/2016/09/a-recent-family-photo</id>
     <content type="html"><![CDATA[<div class='image center'><img  src="https://i.imgur.com/mwtquEjl.jpg" width="640" height="640" title="Post-dimsum photo with my parents and maternal grandparents on their weekend visit to NYC." ><div class='caption'>Post-dimsum photo with my parents and maternal grandparents on their weekend visit to NYC.</div></div>
 
@@ -955,7 +1765,7 @@ community, allowing it to influence key decision-makers on a range of issues ove
   <entry>
     <title type="html"><![CDATA[Southern UK 2016]]></title>
     <link href="https://www.davidxia.com/2016/07/southern-uk-2016/"/>
-    <updated>2016-07-25T00:09:24+02:00</updated>
+    <updated>2016-07-24T18:09:24-04:00</updated>
     <id>https://www.davidxia.com/2016/07/southern-uk-2016</id>
     <content type="html"><![CDATA[<p>My trip with my parents to southern UK in March this year. The video includes highlights from
 London, Cambridge, Seven Sisters, Jurassic Coast, Lyme Regis, and Lulworth Cove.</p>
@@ -968,7 +1778,7 @@ London, Cambridge, Seven Sisters, Jurassic Coast, Lyme Regis, and Lulworth Cove.
   <entry>
     <title type="html"><![CDATA[My First Sailing Class]]></title>
     <link href="https://www.davidxia.com/2016/07/my-first-sailing-class/"/>
-    <updated>2016-07-24T19:37:56+02:00</updated>
+    <updated>2016-07-24T13:37:56-04:00</updated>
     <id>https://www.davidxia.com/2016/07/my-first-sailing-class</id>
     <content type="html"><![CDATA[<p>Last weekend a bunch of Spotify collleagues and I took our first sailing classes at Manhattan Yacht
 Club in Jersey City. I could get used to this sport. The sun was brutal though. I&rsquo;ll never get used
@@ -1002,7 +1812,7 @@ to that.</p>
   <entry>
     <title type="html"><![CDATA[Spotify-organized Surfing Trip in Santa Teresa, Costa Rica 2015]]></title>
     <link href="https://www.davidxia.com/2016/07/spotify-organized-surfing-trip-in-costa-rica-2015/"/>
-    <updated>2016-07-09T16:13:29+02:00</updated>
+    <updated>2016-07-09T10:13:29-04:00</updated>
     <id>https://www.davidxia.com/2016/07/spotify-organized-surfing-trip-in-costa-rica-2015</id>
     <content type="html"><![CDATA[<p>In March 2015, about twenty colleagues and I went on a Spotify-organized surf trip to Santa Teresa,
 Costa Rica for a week of surf lessons. The company, surf, and food were unforgettable. One of Spotify&rsquo;s
@@ -1062,7 +1872,7 @@ trip. The waves could be truly terrifying.</p>
   <entry>
     <title type="html"><![CDATA[My First Open Water Swimming Event]]></title>
     <link href="https://www.davidxia.com/2016/07/my-first-open-water-swimming-event/"/>
-    <updated>2016-07-09T04:51:51+02:00</updated>
+    <updated>2016-07-08T22:51:51-04:00</updated>
     <id>https://www.davidxia.com/2016/07/my-first-open-water-swimming-event</id>
     <content type="html"><![CDATA[<p>I visited the southern UK with my parents last March. We visited the coast where I took a photo of the
 English Channel and <a href="https://www.facebook.com/davidxia2/posts/10102320113525692">posted it on Facebook</a> with the caption,
@@ -1129,7 +1939,7 @@ I know because I drank half of it.</li>
   <entry>
     <title type="html"><![CDATA[My QCon NYC 2016 Slides - Reach Production Faster With Containers in Testing]]></title>
     <link href="https://www.davidxia.com/2016/06/my-qcon-nyc-2016-slides/"/>
-    <updated>2016-06-20T23:15:49+02:00</updated>
+    <updated>2016-06-20T17:15:49-04:00</updated>
     <id>https://www.davidxia.com/2016/06/my-qcon-nyc-2016-slides</id>
     <content type="html"><![CDATA[<p>Here are the slides from my <a href="https://qconnewyork.com/ny2016/presentation/reaching-production-faster-with-containers-in-testing">QCon NYC 2016 talk titled &ldquo;Reach Production Faster with Containers in
 Testing.&rdquo;</a> in various formats. <span xmlns:dct="http://purl.org/dc/terms/" property="dct:title">All formats of &ldquo;Reach Production Faster with Containers in Testing&rdquo;</span> by <a xmlns:cc="http://creativecommons.org/ns#" href="https://www.davidxia.com/2016/06/my-qcon-nyc-2016-slides-reach-production-faster-with-containers-in-testing/" property="cc:attributionName" rel="cc:attributionURL">David Xia</a> are licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.</p>
@@ -1155,7 +1965,7 @@ Testing.&rdquo;</a> in various formats. <span xmlns:dct="http://purl.org/dc/term
   <entry>
     <title type="html"><![CDATA[My Strange Swimming Experiences]]></title>
     <link href="https://www.davidxia.com/2016/06/my-strange-swimming-experiences/"/>
-    <updated>2016-06-18T20:14:33+02:00</updated>
+    <updated>2016-06-18T14:14:33-04:00</updated>
     <id>https://www.davidxia.com/2016/06/my-strange-swimming-experiences</id>
     <content type="html"><![CDATA[<p>I&rsquo;ve had some strange swimming experiences.</p>
 
@@ -1197,103 +2007,6 @@ person because his wake was bigger than I&rsquo;m used to. I tilted my head to t
 just as his wake hit me. Water unexpectedly entered my mouth and nose. I was surprised by how my
 brain went into auto-pilot emergency mode. I tensed up and began to flail involuntarily.
 The water and lack of breath was a strong signal to my brain that overrode everything else.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Confessions of a Noob Landlord IV - How to Buy a Co-op Unit]]></title>
-    <link href="https://www.davidxia.com/2016/06/confessions-of-a-noob-landlord-iv-how-to-buy-a-co-op-unit/"/>
-    <updated>2016-06-15T12:57:03+02:00</updated>
-    <id>https://www.davidxia.com/2016/06/confessions-of-a-noob-landlord-iv-how-to-buy-a-co-op-unit</id>
-    <content type="html"><![CDATA[<p><em>This is a story of I jumped through countless complex bureaucratic, legal, and financial hurdles of
-Murphy&rsquo;s Law and emerged with less liquidity and more debt. OK. I&rsquo;m being facetious, but what
-happened to me is the easiest and most straightforward way to buy a property. Seriously.
-The events below transpired in New York City. The buying process may be different in other areas,
-but the most of the process such as contract of sale and mortgage application is the same across
-the U.S.</em></p>
-
-<div class='image center'><img  src="https://upload.wikimedia.org/wikipedia/commons/8/8d/Cary_Grant_Myrna_Loy_Mr_Blandings_Builds_His_Dream_House_1948.JPG" width="640" height="772" title="By RKO radio pictures (eBay item photo front photo back) [Public domain], via Wikimedia Commons. Promotional photo of Cary Grant and Myrna Loy for the film Mr. Blandings Builds His Dream House (1948)" ><div class='caption'>By RKO radio pictures (eBay item photo front photo back) [Public domain], via Wikimedia Commons. Promotional photo of Cary Grant and Myrna Loy for the film Mr. Blandings Builds His Dream House (1948)</div></div>
-
-
-<ul>
-<li>My mother found an affordable co-op unit for sale while browsing StreetEasy on her iPad
-during Christmas vacation in 2015.</li>
-<li>We noticed the listing was made by the seller himself. I emailed him that night.</li>
-<li>The seller promptly called me. I scheduled a viewing of the unit which is at the top
-of a six-floor walk-up.</li>
-<li>My parents and I climbed the six flights of stairs and met the seller who was a nice man named
-Alan. We walked around and inspected his unit.</li>
-<li>We asked Alan about the apartment&rsquo;s condition, the co-op&rsquo;s financials and rules, the property
-manager, etc.</li>
-<li>We sat down with Alan, chatted, and negotiated. My mother pointed out neither party has a broker
-which is good because brokers take a 6% commission. We felt out Alan on how many offers he&rsquo;s
-received and what they are.</li>
-<li>My mother verbally offered Alan 94% of the listing price. He said he&rsquo;ll see. My mom seemed
-confident he&rsquo;d take it. I was impressed by her ability to knock off over $20K right off the bat.</li>
-</ul>
-
-
-<!--more-->
-
-
-<ul>
-<li>My parents and I started looking for a mortgage broker and an attorney who&rsquo;s good with co-op
-purchases. (They were professional and competent. Contact me if you want a referral.)</li>
-<li>We decided how much money we wanted to borrow and how long. I settled on a 15-year mortgage at a
-great interest rate of 2.875%. I minimized closing and discount points in order to pay less money
-up front.</li>
-<li>My mortgage broker Deborah started collecting relevant documents from me to start the mortgage
-approval process. These include but aren&rsquo;t limited to bank statements, pay stubs (W2), federal
-income tax returns (1040). I didn&rsquo;t have to use a mortgage broker and could&rsquo;ve shopped around
-myself simply by applying online at various commercial banks&#8217; websites. But I&rsquo;m pretty busy,
-and the broker&rsquo;s fee would be paid by the lender in my case.</li>
-<li>Alan accepted our verbal offer and sent over a contract of sale. This document is a major
-checkpoint. It stated what, when, and how we would exchange property and money. Once I signed it
-and included a contract deposit (10% of the purchase price), it meant Alan and I were in a
-legally binding agreement and that he wasn&rsquo;t considering any other offers.
-
-<ul>
-<li>If I reneged, Alan could keep my contract deposit.</li>
-<li>I&rsquo;m not sure what legal recourse or damages I could pursue if Alan reneged. The contract
-vaguely stated:
-
-<blockquote><p>In the event of a default or misrepresentation by Seller, Purchaser shall have such remedies
-as Purchaser is entitled to at law or in equity, including specific performance, because
-the Unit and possession thereof cannot be duplicated.</p></blockquote></li>
-</ul>
-</li>
-<li>Our respective attorneys went back and forth modifying the contract of sale with riders that
-protected each of us, respectively. For example, my attorney Andrew added a clause stipulating
-the wall Alan built to divide the bedroom into two bedrooms was approved by the co-op board and
-I would get a written approval letter at closing. Alan&rsquo;s attorney Michael added a clause stating
-I couldn&rsquo;t back out of the sale if the maintenance increased after I&rsquo;d signed the contract.</li>
-<li>I signed the contract on January 25, 2016. And I expected a counter-signed copy back shortly.</li>
-<li>So I waited.</li>
-<li>And waited.</li>
-<li>And waited&hellip;</li>
-<li>It seems that the more sellers there are on the contract, the more likely it there are to be
-issues. In my case, there were a total of three sellers. Two of them were individuals:
-Alan and his ex-wife. The third seller was the estate of Alan&rsquo;s deceased father. This estate
-had two executors: Alan and his sister.</li>
-<li>If you&rsquo;re not confused yet, you will be.</li>
-<li>Alan told me his ex-wife wasn&rsquo;t being cooperative with the sale but that a court order would
-help convince her as a last resort.</li>
-<li>Meanwhile, my mortgage broker Deborah was busy securing a lender for me. I also needed to have
-the unit appraised which depended on the contract being fully signed.</li>
-<li>On February 4, Deborah tells me the co-op has an insurance policy that&rsquo;s shared with other
-buildings. She said most lenders won&rsquo;t underwrite a mortgage in a building with a pooled policy.
-She said she&rsquo;ll try other lenders.</li>
-<li>After an entire month (March 5 to be precise), Alan successfully compelled his ex-wife to sign
-with the issuance of a court order. This allowed me to schedule the appraisal.</li>
-<li>Meanwhile, I still hadn&rsquo;t secured the mortgage. Guaranteed Rate, Citi, Chase, Wells and various
-portfolio lenders all refused. With each lender that turned me down because of
-the co-op insurance policy, the more likely it seemed that Deborah and I would have to somehow
-convince the co-op board to buy a new individual policy. The property management company would
-also have to complete lots of paperwork. I&rsquo;ve never met the board, and the management company
-seemed like a tangled bureaucracy. I was seriously questioning how I&rsquo;d be able to pull this off.</li>
-<li><em>To be continued&hellip;</em></li>
-</ul>
-
 ]]></content>
   </entry>
   
