@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Programming & Software | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/programming-and-software/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2020-04-13T13:18:06-04:00</updated>
+  <updated>2020-04-13T13:33:26-04:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -12,6 +12,340 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[How to Expose a Localhost-only Endpoint on GKE]]></title>
+    <link href="https://www.davidxia.com/2020/04/how-to-expose-a-localhost-only-endpoint-on-gke/"/>
+    <updated>2020-04-13T12:24:46-04:00</updated>
+    <id>https://www.davidxia.com/2020/04/how-to-expose-a-localhost-only-endpoint-on-gke</id>
+    <content type="html"><![CDATA[<p>In my <a href="/2020/04/3-levels-of-load-testing-gke-workload-identity/">previous post</a> I wrote about how to load test GKE Workload Identity. In this post I&rsquo;ll
+describe how to get metrics from gke-metadata-server, the part of Workload Identity that runs on
+your GKE clusters&#8217; nodes. This solution is a temporary workaround until GKE provides a better way to
+get metrics on gke-metadata-server.</p>
+
+<p>Gke-metadata-server runs as a K8s DaemonSet. It exposes metrics about itself in <a href="https://github.com/prometheus/docs/blob/master/content/docs/instrumenting/exposition_formats.md#text-based-format">Prometheus
+text-based format</a>. I want to have an external scraper make HTTP requests to periodically collect
+these metrics. Unfortunately, the Prometheus HTTP server only listens on the Container&rsquo;s <code>localhost</code>
+interface. <strong>So how can we expose these metrics, i.e. make the HTTP endpoint available externally?</strong></p>
+
+<h3>tl;dr lessons learned</h3>
+
+<ul>
+<li><code>socat</code> is awesome.</li>
+<li>If something you need is running on a computer you control, you can always find a way extract info
+from it if you&rsquo;re resourceful enough.</li>
+</ul>
+
+
+<h2>My specific GKE cluster configuration</h2>
+
+<ul>
+<li>GKE masters and nodes running version 1.15.9-gke.22</li>
+<li>regional cluster in Google Cloud Platform (GCP) (not on-premise)</li>
+<li>6 GKE nodes that are n1-standard-32 GCE instances in one node pool</li>
+<li>each node is configured to have a maximum of 32 Pods</li>
+<li>cluster and node pool have WI enabled</li>
+</ul>
+
+
+<p>Notice the DaemonSet is configured with <code>.spec.template.spec.hostNetwork: true</code> below. This means
+the HTTP server is also listening on the GKE node&rsquo;s <code>localhost</code> interface.</p>
+
+<pre><code class="yaml">apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  labels:
+    addonmanager.kubernetes.io/mode: Reconcile
+    k8s-app: gke-metadata-server
+  name: gke-metadata-server
+  namespace: kube-system
+spec:
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      k8s-app: gke-metadata-server
+  template:
+    metadata:
+      annotations:
+        components.gke.io/component-name: gke-metadata-server
+        components.gke.io/component-version: 0.2.21
+        scheduler.alpha.kubernetes.io/critical-pod: '"''"'
+      creationTimestamp: null
+      labels:
+        addonmanager.kubernetes.io/mode: Reconcile
+        k8s-app: gke-metadata-server
+    spec:
+      containers:
+      - command:
+        - /gke-metadata-server
+        - --logtostderr
+        - --token-exchange-endpoint=https://securetoken.googleapis.com/v1/identitybindingtoken
+        - --identity-namespace=[REDACTED]
+        - --identity-provider-id=https://container.googleapis.com/v1/projects/[REDACTED]/locations/europe-west1/clusters/[REDACTED]
+        - --passthrough-ksa-list=kube-system:container-watcher-pod-reader,kube-system:event-exporter-sa,kube-system:fluentd-gcp-scaler,kube-system:heapster,kube-system:kube-dns,kube-system:metadata-agent,kube-system:network-metering-agent,kube-system:securityprofile-controller,istio-system:istio-ingressgateway-service-account,istio-system:cluster-local-gateway-service-account,csm:csm-sync-agent,knative-serving:controller
+        - --attributes=cluster-name=[REDACTED],cluster-uid=[REDACTED],cluster-location=europe-west1
+        - --enable-identity-endpoint=true
+        - --cluster-uid=[REDACTED]
+        image: gke.gcr.io/gke-metadata-server:20200218_1145_RC0
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            host: 127.0.0.1
+            path: /healthz
+            port: 54898
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        name: gke-metadata-server
+        resources:
+          limits:
+            cpu: 100m
+            memory: 100Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        securityContext:
+          privileged: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /var/lib/kubelet/kubeconfig
+          name: kubelet-credentials
+          readOnly: true
+        - mountPath: /var/lib/kubelet/pki/
+          name: kubelet-certs
+          readOnly: true
+        - mountPath: /var/run/
+          name: container-runtime-interface
+        - mountPath: /etc/srv/kubernetes/pki
+          name: kubelet-pki
+          readOnly: true
+        - mountPath: /etc/ssl/certs/
+          name: ca-certificates
+          readOnly: true
+      dnsPolicy: Default
+      hostNetwork: true
+      nodeSelector:
+        beta.kubernetes.io/os: linux
+        iam.gke.io/gke-metadata-server-enabled: "true"
+      priorityClassName: system-node-critical
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      serviceAccount: gke-metadata-server
+      serviceAccountName: gke-metadata-server
+      terminationGracePeriodSeconds: 30
+      tolerations:
+      - effect: NoExecute
+        operator: Exists
+      - effect: NoSchedule
+        operator: Exists
+      volumes:
+      - hostPath:
+          path: /var/lib/kubelet/pki/
+          type: Directory
+        name: kubelet-certs
+      - hostPath:
+          path: /var/lib/kubelet/kubeconfig
+          type: File
+        name: kubelet-credentials
+      - hostPath:
+          path: /var/run/
+          type: Directory
+        name: container-runtime-interface
+      - hostPath:
+          path: /etc/srv/kubernetes/pki/
+          type: Directory
+        name: kubelet-pki
+      - hostPath:
+          path: /etc/ssl/certs/
+          type: Directory
+        name: ca-certificates
+  templateGeneration: 7
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 1
+    type: RollingUpdate
+</code></pre>
+
+<p>We can run a separate workload on this cluster that uses <a href="https://linux.die.net/man/1/socat"><code>socat</code></a> to proxy HTTP requests to
+gke-metadata-server. <code>socat</code> stands for socket cat and is a multipurpose relay. It&rsquo;s <code>netcat</code> on
+steroids and can relay any kind of packets not just TCP and UDP.</p>
+
+<p>This proxy is deployed as a DaemonSet to make it easy to have a one-to-one
+correspondence with each node-local gke-metadata-server Pod. The DaemonSet will also need to have
+<code>.spec.template.spec.hostNetwork: true</code> so that it can share the same network namespace.</p>
+
+<p>Here&rsquo;s the proxy DaemonSet YAML. I use the Docker image <a href="https://hub.docker.com/r/alpine/socat/tags"><code>alpine/socat:1.7.3.4-r0</code></a> which is a
+tiny 3.61MB. The arguments <code>["TCP-LISTEN:54899,reuseaddr,fork", "TCP:127.0.0.1:54898"]</code> tell socat
+to forward traffic from <code>0.0.0.0:54899</code> to <code>127.0.0.1:54898</code> which is where the Prometheus metrics
+are. <code>fork</code> tells socat to</p>
+
+<blockquote><p>After establishing a connection, handles its channel in a child process and keeps the parent
+process attempting to produce more connections, either by listening or by connecting in a loop</p></blockquote>
+
+<p>&mdash; <a href="http://www.dest-unreach.org/socat/doc/socat.html#OPTION_FORK">http://www.dest-unreach.org/socat/doc/socat.html#OPTION_FORK</a></p>
+
+<pre><code>cat proxy-daemonset.yaml
+
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: gke-metadata-server-metrics-proxy
+  namespace: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: gke-metadata-server-metrics-proxy
+  template:
+    metadata:
+      labels:
+        app: gke-metadata-server-metrics-proxy
+    spec:
+      hostNetwork: true
+      containers:
+      - name: gke-metadata-server-metrics-proxy
+        image: alpine/socat:1.7.3.4-r0@sha256:6786951b55e321e3968ba1c3786cb79b768f85d83d438f085336442b3bcef67a
+        args: ["TCP-LISTEN:54899,reuseaddr,fork", "TCP:127.0.0.1:54898"]
+        ports:
+        - name: prom-metrics
+          containerPort: 54899
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            host: 127.0.0.1
+            path: /metricz
+            port: 54899
+            scheme: HTTP
+        resources:
+          limits:
+            cpu: 100m
+            memory: 100Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+</code></pre>
+
+<p>Apply the DaemonSet.</p>
+
+<pre><code>kubectl --context [CONTEXT] apply -f proxy-daemonset.yaml
+</code></pre>
+
+<p>Now make an HTTP request to any GKE node IP at port 54899.</p>
+
+<pre><code>kubectl --context [CONTEXT] -n monitoring get pods --selector app=gke-metadata-server-metrics-proxy -o wide
+
+NAME                                      READY   STATUS    RESTARTS   AGE     IP              NODE                             NOMINATED NODE   READINESS GATES
+gke-metadata-server-metrics-proxy-dvlpg   1/1     Running   0          4d19h   10.200.208.6    my-cluster-n1-s-32-dfabe6b6-38px   &lt;none&gt;           &lt;none&gt;
+gke-metadata-server-metrics-proxy-dx4lq   1/1     Running   0          4d19h   10.200.208.8    my-cluster-n1-s-32-dfabe6b6-mnlg   &lt;none&gt;           &lt;none&gt;
+gke-metadata-server-metrics-proxy-j9p49   1/1     Running   0          4d19h   10.200.208.7    my-cluster-n1-s-32-dfabe6b6-vv9s   &lt;none&gt;           &lt;none&gt;
+gke-metadata-server-metrics-proxy-jvvjw   1/1     Running   0          4d19h   10.200.208.12   my-cluster-n1-s-32-192fa3d9-wb2c   &lt;none&gt;           &lt;none&gt;
+gke-metadata-server-metrics-proxy-k5sqd   1/1     Running   0          4d19h   10.200.208.10   my-cluster-n1-s-32-55dd75ff-6l40   &lt;none&gt;           &lt;none&gt;
+gke-metadata-server-metrics-proxy-tdhkn   1/1     Running   0          4d19h   10.200.208.9    my-cluster-n1-s-32-55dd75ff-jqgk   &lt;none&gt;           &lt;none&gt;
+
+http GET '10.200.208.6:54899/metricz' | head -n 20
+
+# HELP go_gc_duration_seconds A summary of the GC invocation durations.
+# TYPE go_gc_duration_seconds summary
+go_gc_duration_seconds{quantile="0"} 2.8295e-05
+go_gc_duration_seconds{quantile="0.25"} 3.6269e-05
+go_gc_duration_seconds{quantile="0.5"} 5.2122e-05
+go_gc_duration_seconds{quantile="0.75"} 7.585e-05
+go_gc_duration_seconds{quantile="1"} 0.099987877
+go_gc_duration_seconds_sum 7.738486774
+go_gc_duration_seconds_count 6809
+# HELP go_goroutines Number of goroutines that currently exist.
+# TYPE go_goroutines gauge
+go_goroutines 47
+# HELP go_info Information about the Go environment.
+# TYPE go_info gauge
+go_info{version="go1.14rc1"} 1
+# HELP go_memstats_alloc_bytes Number of bytes allocated and still in use.
+# TYPE go_memstats_alloc_bytes gauge
+go_memstats_alloc_bytes 2.4743056e+07
+# HELP go_memstats_alloc_bytes_total Total number of bytes allocated, even if freed.
+# TYPE go_memstats_alloc_bytes_total counter
+</code></pre>
+
+<p>Voila. The important metrics are:</p>
+
+<ul>
+<li><code>metadata_server_request_count</code></li>
+<li><code>metadata_server_request_durations_bucket</code></li>
+</ul>
+
+
+<p>I have these <a href="https://prometheus.io/docs/prometheus/latest/configuration/recording_rules/#recording-rules">Prometheus recording rules</a> to calculate RPS and request
+duration percentiles.</p>
+
+<pre><code>groups:
+- name: gke-metadata-server
+  rules:
+  # Compute a 5-minute rate for the counter `metadata_server_request_count`.
+  - record: metadata_server_request_count:rate5m
+    expr: rate(metadata_server_request_count[5m])
+  # Compute latency percentiles for the histogram metric
+  # `metadata_server_request_durations_bucket` over 5-minute increments for each label
+  # combination.
+  - record: metadata_server_request_duration:p99
+    expr: histogram_quantile(0.99, rate(metadata_server_request_durations_bucket[5m]))
+  - record: metadata_server_request_duration:p95
+    expr: histogram_quantile(0.95, rate(metadata_server_request_durations_bucket[5m]))
+  - record: metadata_server_request_duration:p90
+    expr: histogram_quantile(0.90, rate(metadata_server_request_durations_bucket[5m]))
+  - record: metadata_server_request_duration:p50
+    expr: histogram_quantile(0.50, rate(metadata_server_request_durations_bucket[5m]))
+  - record: metadata_server_request_duration:mean
+    expr: rate(metadata_server_request_durations_sum[5m]) / rate(metadata_server_request_durations_count[5m])
+  # Compute latency percentiles for the histogram metric
+  # `metadata_server_request_durations_bucket` over 5-minute increments and aggregate all
+  # labels. We must aggregate here instead of in Grafana because averaging percentiles doesn’t
+  # work. To compute a percentile, you need the original population of events. The math is just
+  # broken. An average of a percentile is meaningless.
+  - record: metadata_server_all_request_duration:p99
+    expr: histogram_quantile(0.99, sum(rate(metadata_server_request_durations_bucket[5m])) by (le))
+  - record: metadata_server_all_request_duration:p95
+    expr: histogram_quantile(0.95, sum(rate(metadata_server_request_durations_bucket[5m])) by (le))
+  - record: metadata_server_all_request_duration:p90
+    expr: histogram_quantile(0.90, sum(rate(metadata_server_request_durations_bucket[5m])) by (le))
+  - record: metadata_server_all_request_duration:p50
+    expr: histogram_quantile(0.50, sum(rate(metadata_server_request_durations_bucket[5m])) by (le))
+  - record: metadata_server_all_request_duration:mean
+    expr: rate(metadata_server_request_durations_sum[5m]) / rate(metadata_server_request_durations_count[5m])
+  # Compute latency percentiles for the histogram metric `outgoing_request_latency_bucket` over
+  # 5-minute increments for each label combination.
+  - record: outgoing_request_latency:p99
+    expr: histogram_quantile(0.99, rate(outgoing_request_latency_bucket[5m]))
+  - record: outgoing_request_latency:p95
+    expr: histogram_quantile(0.95, rate(outgoing_request_latency_bucket[5m]))
+  - record: outgoing_request_latency:p90
+    expr: histogram_quantile(0.90, rate(outgoing_request_latency_bucket[5m]))
+  - record: outgoing_request_latency:p50
+    expr: histogram_quantile(0.50, rate(outgoing_request_latency_bucket[5m]))
+  - record: outgoing_request_latency:mean
+    expr: rate(outgoing_request_latency_sum[5m]) / rate(outgoing_request_latency_count[5m])
+  # Compute latency percentiles for the histogram metric `outgoing_request_latency_bucket` over
+  # 5-minute increments and aggregate all labels. We must aggregate here instead of in Grafana
+  # because averaging percentiles doesn’t work. To compute a percentile, you need the original
+  # population of events. The math is just broken. An average of a percentile is meaningless.
+  - record: outgoing_all_request_latency:p99
+    expr: histogram_quantile(0.99, sum(rate(outgoing_request_latency_bucket[5m])) by (le))
+  - record: outgoing_all_request_latency:p95
+    expr: histogram_quantile(0.95, sum(rate(outgoing_request_latency_bucket[5m])) by (le))
+  - record: outgoing_all_request_latency:p90
+    expr: histogram_quantile(0.90, sum(rate(outgoing_request_latency_bucket[5m])) by (le))
+  - record: outgoing_all_request_latency:p50
+    expr: histogram_quantile(0.50, sum(rate(outgoing_request_latency_bucket[5m])) by (le))
+  - record: outgoing_all_request_latency:mean
+    expr: rate(outgoing_request_latency_sum[5m]) / rate(outgoing_request_latency_count[5m])
+</code></pre>
+
+<p>Thanks to <a href="https://twitter.com/mikedanese">@mikedanese</a> for the intial idea of using <code>socat</code>.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[3 Levels of Load Testing GKE Workload Identity]]></title>
@@ -23,7 +357,7 @@ work. Google recently graduated GKE&rsquo;s <a href="https://cloud.google.com/ku
 (GA). When my team used WI during its beta stage, it seemed to fail when there were more than 16
 requests per second (RPS) on one GKE node to retrieve Google access tokens.</p>
 
-<p>Before we knew about this low RPS failure threshold, we told many internal Spotify engineering teams
+<p>Before we knew about this low RPS failure threshold, we told many internal engineering teams
 to go ahead and use the feature. In hindsight, we should&rsquo;ve load-tested the feature before making it
 generally available internally especially since it wasn&rsquo;t even GA publicly.</p>
 
@@ -782,32 +1116,6 @@ and warn you of weak encryption, key exchange protocols, cipher suites, etc.</p>
 <p><a href="https://mozilla.github.io/server-side-tls/ssl-config-generator/">Mozilla&rsquo;s TLS configuration generator</a> is useful for providing secure defaults.</p>
 
 <p>I&rsquo;m proud to say this site has an A.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[My QCon NYC 2016 Slides - Reach Production Faster With Containers in Testing]]></title>
-    <link href="https://www.davidxia.com/2016/06/my-qcon-nyc-2016-slides/"/>
-    <updated>2016-06-20T17:15:49-04:00</updated>
-    <id>https://www.davidxia.com/2016/06/my-qcon-nyc-2016-slides</id>
-    <content type="html"><![CDATA[<p>Here are the slides from my <a href="https://qconnewyork.com/ny2016/presentation/reaching-production-faster-with-containers-in-testing">QCon NYC 2016 talk titled &ldquo;Reach Production Faster with Containers in
-Testing.&rdquo;</a> in various formats. <span xmlns:dct="http://purl.org/dc/terms/" property="dct:title">All formats of &ldquo;Reach Production Faster with Containers in Testing&rdquo;</span> by <a xmlns:cc="http://creativecommons.org/ns#" href="https://www.davidxia.com/2016/06/my-qcon-nyc-2016-slides-reach-production-faster-with-containers-in-testing/" property="cc:attributionName" rel="cc:attributionURL">David Xia</a> are licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.</p>
-
-<iframe src="//www.slideshare.net/slideshow/embed_code/key/p1uEfRmocwplbk" width="595" height="485" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" style="border:1px solid #CCC; border-width:1px; margin-bottom:5px; max-width: 100%;" allowfullscreen> </iframe>
-
-
-<p> <div style="margin-bottom:5px"> <strong> <a href="//www.slideshare.net/DavidXia/qcon-nyc-2016-reach-production-faster-with-containers-in-testing" title="QCon NYC 2016: Reach Production Faster with Containers in Testing" target="_blank">QCon NYC 2016: Reach Production Faster with Containers in Testing</a> </strong> from <strong><a href="//www.slideshare.net/DavidXia" target="_blank">David Xia</a></strong> </div></p>
-
-<p>More formats here:</p>
-
-<ul>
-<li><a href="https://drive.google.com/file/d/0By_v8MtsRMKkSloyT3gxalRuYjQ/view?usp=sharing">PDF</a></li>
-<li><a href="https://drive.google.com/file/d/0By_v8MtsRMKkSm9BVW5uWFR5TFk/view?usp=sharing">Keynote</a></li>
-<li><a href="https://drive.google.com/file/d/0By_v8MtsRMKkRkpQWk5paUZOUW8/view?usp=sharing">PowerPoint</a></li>
-</ul>
-
-
-<p><img class="center <a" src="href="https://i.imgur.com/w0P47Ugl.jpg">https://i.imgur.com/w0P47Ugl.jpg</a>&#8221; width=&#8221;640&#8221; height=&#8221;619&#8221;></p>
 ]]></content>
   </entry>
   

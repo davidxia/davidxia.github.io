@@ -1,0 +1,978 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <title>How to Expose a Localhost-only Endpoint on GKE - David Xia</title>
+  <meta name="author" content="David Xia">
+
+  
+  <meta name="description" content="How to Expose a Localhost-only Endpoint on GKE April 13, 2020 | By David Xia In my previous post I wrote about how to load test GKE Workload Identity. In this &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="https://www.davidxia.com/2020/04/how-to-expose-a-localhost-only-endpoint-on-gke/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="David Xia" type="application/atom+xml">
+
+  <meta property="og:site_name" content="David Xia" />
+  <meta property="og:title" content="How to Expose a Localhost-only Endpoint on GKE - David Xia" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://www.davidxia.com/2020/04/how-to-expose-a-localhost-only-endpoint-on-gke/" />
+  <meta property="og:image" content="https://i.imgur.com/BJPOY0D.jpg" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:description" content="How to Expose a Localhost-only Endpoint on GKE April 13, 2020 | By David Xia In my previous post I wrote about how to load test GKE Workload Identity. In this &hellip;" />
+  <meta property="fb:admins" content="122703" />
+
+  <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+  <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+<![endif]-->
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-25283538-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+      google_ad_client: "ca-pub-1777254647176109",
+      enable_page_level_ads: true
+    });
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <div class="navbar" role="navigation">
+    <div class="container">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <h1><a class="navbar-brand" href="/">David Xia</a></h1>
+      </div>
+      <div class="navbar-collapse collapse">
+        <ul class="nav navbar-nav">
+          <li><a href="/about">About</a></li>
+          <li><a href="/work">Work</a></li>
+          <li><a href="/contact">Contact</a></li>
+        </ul>
+      </div><!--/.navbar-collapse -->
+    </div>
+  </div>
+</hgroup>
+
+</header>
+  <div itemscope itemtype="https://schema.org/Brand">
+  <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
+</div>
+
+  <div class="container main">
+    <div class="row">
+      <div class="col-md-8">
+  <article itemscope itemtype="http://schema.org/BlogPosting" class="hentry first" role="article">
+    
+  <header>
+    <span itemprop="name headline">
+      
+        <h2 class="entry-title">How to Expose a Localhost-only Endpoint on GKE</h2>
+      
+    </span>
+    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2020/04/how-to-expose-a-localhost-only-endpoint-on-gke/">
+    
+      <p class="meta">
+        
+  
+  
+
+  
+    
+  
+
+  
+    
+  
+
+
+
+<span itemprop="datePublished" content="April 13, 2020"><time class='entry-date' datetime='2020-04-13T12:24:46-04:00'><span class='date'>April 13, 2020</span></time></span>
+<meta itemprop="dateModified" content="April 13, 2020">
+ | 
+  
+
+
+
+  <span class="byline author vcard">
+    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
+  </span>
+
+
+        
+        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
+  <meta itemprop="name" content="David Xia">
+  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
+    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
+  </div>
+</div>
+
+        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
+  
+    
+    
+    
+  
+  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
+  <meta itemprop="height" content="696">
+  <meta itemprop="width" content="696">
+</span>
+
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>In my <a href="/2020/04/3-levels-of-load-testing-gke-workload-identity/">previous post</a> I wrote about how to load test GKE Workload Identity. In this post I&rsquo;ll
+describe how to get metrics from gke-metadata-server, the part of Workload Identity that runs on
+your GKE clusters&#8217; nodes. This solution is a temporary workaround until GKE provides a better way to
+get metrics on gke-metadata-server.</p>
+
+<p>Gke-metadata-server runs as a K8s DaemonSet. It exposes metrics about itself in <a href="https://github.com/prometheus/docs/blob/master/content/docs/instrumenting/exposition_formats.md#text-based-format">Prometheus
+text-based format</a>. I want to have an external scraper make HTTP requests to periodically collect
+these metrics. Unfortunately, the Prometheus HTTP server only listens on the Container&rsquo;s <code>localhost</code>
+interface. <strong>So how can we expose these metrics, i.e. make the HTTP endpoint available externally?</strong></p>
+
+<h3>tl;dr lessons learned</h3>
+
+<ul>
+<li><code>socat</code> is awesome.</li>
+<li>If something you need is running on a computer you control, you can always find a way extract info
+from it if you&rsquo;re resourceful enough.</li>
+</ul>
+
+
+<h2>My specific GKE cluster configuration</h2>
+
+<ul>
+<li>GKE masters and nodes running version 1.15.9-gke.22</li>
+<li>regional cluster in Google Cloud Platform (GCP) (not on-premise)</li>
+<li>6 GKE nodes that are n1-standard-32 GCE instances in one node pool</li>
+<li>each node is configured to have a maximum of 32 Pods</li>
+<li>cluster and node pool have WI enabled</li>
+</ul>
+
+
+<p>Notice the DaemonSet is configured with <code>.spec.template.spec.hostNetwork: true</code> below. This means
+the HTTP server is also listening on the GKE node&rsquo;s <code>localhost</code> interface.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+<span class='line-number'>80</span>
+<span class='line-number'>81</span>
+<span class='line-number'>82</span>
+<span class='line-number'>83</span>
+<span class='line-number'>84</span>
+<span class='line-number'>85</span>
+<span class='line-number'>86</span>
+<span class='line-number'>87</span>
+<span class='line-number'>88</span>
+<span class='line-number'>89</span>
+<span class='line-number'>90</span>
+<span class='line-number'>91</span>
+<span class='line-number'>92</span>
+<span class='line-number'>93</span>
+<span class='line-number'>94</span>
+<span class='line-number'>95</span>
+<span class='line-number'>96</span>
+<span class='line-number'>97</span>
+<span class='line-number'>98</span>
+<span class='line-number'>99</span>
+<span class='line-number'>100</span>
+<span class='line-number'>101</span>
+<span class='line-number'>102</span>
+<span class='line-number'>103</span>
+<span class='line-number'>104</span>
+<span class='line-number'>105</span>
+<span class='line-number'>106</span>
+<span class='line-number'>107</span>
+<span class='line-number'>108</span>
+<span class='line-number'>109</span>
+<span class='line-number'>110</span>
+<span class='line-number'>111</span>
+<span class='line-number'>112</span>
+<span class='line-number'>113</span>
+<span class='line-number'>114</span>
+<span class='line-number'>115</span>
+<span class='line-number'>116</span>
+<span class='line-number'>117</span>
+<span class='line-number'>118</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">apiVersion</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">extensions/v1beta1</span>
+</span><span class='line'><span class="l-Scalar-Plain">kind</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">DaemonSet</span>
+</span><span class='line'><span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">labels</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">addonmanager.kubernetes.io/mode</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Reconcile</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">k8s-app</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">gke-metadata-server</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">gke-metadata-server</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">namespace</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">kube-system</span>
+</span><span class='line'><span class="l-Scalar-Plain">spec</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">revisionHistoryLimit</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">10</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">selector</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">matchLabels</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">k8s-app</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">gke-metadata-server</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">template</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">annotations</span><span class="p-Indicator">:</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">components.gke.io/component-name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">gke-metadata-server</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">components.gke.io/component-version</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">0.2.21</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">scheduler.alpha.kubernetes.io/critical-pod</span><span class="p-Indicator">:</span> <span class="s">&#39;&quot;</span><span class="se">&#39;&#39;</span><span class="s">&quot;&#39;</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">creationTimestamp</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">null</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">labels</span><span class="p-Indicator">:</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">addonmanager.kubernetes.io/mode</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Reconcile</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">k8s-app</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">gke-metadata-server</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">spec</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">containers</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">command</span><span class="p-Indicator">:</span>
+</span><span class='line'>        <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">/gke-metadata-server</span>
+</span><span class='line'>        <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">--logtostderr</span>
+</span><span class='line'>        <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">--token-exchange-endpoint=https://securetoken.googleapis.com/v1/identitybindingtoken</span>
+</span><span class='line'>        <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">--identity-namespace=[REDACTED]</span>
+</span><span class='line'>        <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">--identity-provider-id=https://container.googleapis.com/v1/projects/[REDACTED]/locations/europe-west1/clusters/[REDACTED]</span>
+</span><span class='line'>        <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">--passthrough-ksa-list=kube-system:container-watcher-pod-reader,kube-system:event-exporter-sa,kube-system:fluentd-gcp-scaler,kube-system:heapster,kube-system:kube-dns,kube-system:metadata-agent,kube-system:network-metering-agent,kube-system:securityprofile-controller,istio-system:istio-ingressgateway-service-account,istio-system:cluster-local-gateway-service-account,csm:csm-sync-agent,knative-serving:controller</span>
+</span><span class='line'>        <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">--attributes=cluster-name=[REDACTED],cluster-uid=[REDACTED],cluster-location=europe-west1</span>
+</span><span class='line'>        <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">--enable-identity-endpoint=true</span>
+</span><span class='line'>        <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">--cluster-uid=[REDACTED]</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">image</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">gke.gcr.io/gke-metadata-server:20200218_1145_RC0</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">imagePullPolicy</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">IfNotPresent</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">livenessProbe</span><span class="p-Indicator">:</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">failureThreshold</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">3</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">httpGet</span><span class="p-Indicator">:</span>
+</span><span class='line'>            <span class="l-Scalar-Plain">host</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">127.0.0.1</span>
+</span><span class='line'>            <span class="l-Scalar-Plain">path</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">/healthz</span>
+</span><span class='line'>            <span class="l-Scalar-Plain">port</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">54898</span>
+</span><span class='line'>            <span class="l-Scalar-Plain">scheme</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">HTTP</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">initialDelaySeconds</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">10</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">periodSeconds</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">10</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">successThreshold</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">1</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">timeoutSeconds</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">1</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">gke-metadata-server</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">resources</span><span class="p-Indicator">:</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">limits</span><span class="p-Indicator">:</span>
+</span><span class='line'>            <span class="l-Scalar-Plain">cpu</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">100m</span>
+</span><span class='line'>            <span class="l-Scalar-Plain">memory</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">100Mi</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">requests</span><span class="p-Indicator">:</span>
+</span><span class='line'>            <span class="l-Scalar-Plain">cpu</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">100m</span>
+</span><span class='line'>            <span class="l-Scalar-Plain">memory</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">100Mi</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">securityContext</span><span class="p-Indicator">:</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">privileged</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">true</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">terminationMessagePath</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">/dev/termination-log</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">terminationMessagePolicy</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">File</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">volumeMounts</span><span class="p-Indicator">:</span>
+</span><span class='line'>        <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">mountPath</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">/var/lib/kubelet/kubeconfig</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">kubelet-credentials</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">readOnly</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">true</span>
+</span><span class='line'>        <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">mountPath</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">/var/lib/kubelet/pki/</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">kubelet-certs</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">readOnly</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">true</span>
+</span><span class='line'>        <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">mountPath</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">/var/run/</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">container-runtime-interface</span>
+</span><span class='line'>        <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">mountPath</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">/etc/srv/kubernetes/pki</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">kubelet-pki</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">readOnly</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">true</span>
+</span><span class='line'>        <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">mountPath</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">/etc/ssl/certs/</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">ca-certificates</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">readOnly</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">true</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">dnsPolicy</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Default</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">hostNetwork</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">true</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">nodeSelector</span><span class="p-Indicator">:</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">beta.kubernetes.io/os</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">linux</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">iam.gke.io/gke-metadata-server-enabled</span><span class="p-Indicator">:</span> <span class="s">&quot;true&quot;</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">priorityClassName</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">system-node-critical</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">restartPolicy</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Always</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">schedulerName</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">default-scheduler</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">securityContext</span><span class="p-Indicator">:</span> <span class="p-Indicator">{}</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">serviceAccount</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">gke-metadata-server</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">serviceAccountName</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">gke-metadata-server</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">terminationGracePeriodSeconds</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">30</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">tolerations</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">effect</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">NoExecute</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">operator</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Exists</span>
+</span><span class='line'>      <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">effect</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">NoSchedule</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">operator</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Exists</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">volumes</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">hostPath</span><span class="p-Indicator">:</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">path</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">/var/lib/kubelet/pki/</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">type</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Directory</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">kubelet-certs</span>
+</span><span class='line'>      <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">hostPath</span><span class="p-Indicator">:</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">path</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">/var/lib/kubelet/kubeconfig</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">type</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">File</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">kubelet-credentials</span>
+</span><span class='line'>      <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">hostPath</span><span class="p-Indicator">:</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">path</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">/var/run/</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">type</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Directory</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">container-runtime-interface</span>
+</span><span class='line'>      <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">hostPath</span><span class="p-Indicator">:</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">path</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">/etc/srv/kubernetes/pki/</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">type</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Directory</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">kubelet-pki</span>
+</span><span class='line'>      <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">hostPath</span><span class="p-Indicator">:</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">path</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">/etc/ssl/certs/</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">type</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Directory</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">ca-certificates</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">templateGeneration</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">7</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">updateStrategy</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">rollingUpdate</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">maxUnavailable</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">1</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">type</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">RollingUpdate</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We can run a separate workload on this cluster that uses <a href="https://linux.die.net/man/1/socat"><code>socat</code></a> to proxy HTTP requests to
+gke-metadata-server. <code>socat</code> stands for socket cat and is a multipurpose relay. It&rsquo;s <code>netcat</code> on
+steroids and can relay any kind of packets not just TCP and UDP.</p>
+
+<p>This proxy is deployed as a DaemonSet to make it easy to have a one-to-one
+correspondence with each node-local gke-metadata-server Pod. The DaemonSet will also need to have
+<code>.spec.template.spec.hostNetwork: true</code> so that it can share the same network namespace.</p>
+
+<p>Here&rsquo;s the proxy DaemonSet YAML. I use the Docker image <a href="https://hub.docker.com/r/alpine/socat/tags"><code>alpine/socat:1.7.3.4-r0</code></a> which is a
+tiny 3.61MB. The arguments <code>["TCP-LISTEN:54899,reuseaddr,fork", "TCP:127.0.0.1:54898"]</code> tell socat
+to forward traffic from <code>0.0.0.0:54899</code> to <code>127.0.0.1:54898</code> which is where the Prometheus metrics
+are. <code>fork</code> tells socat to</p>
+
+<blockquote><p>After establishing a connection, handles its channel in a child process and keeps the parent
+process attempting to produce more connections, either by listening or by connecting in a loop</p></blockquote>
+
+<p>&mdash; <a href="http://www.dest-unreach.org/socat/doc/socat.html#OPTION_FORK">http://www.dest-unreach.org/socat/doc/socat.html#OPTION_FORK</a></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">cat proxy-daemonset.yaml</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">apiVersion</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">apps/v1</span>
+</span><span class='line'><span class="l-Scalar-Plain">kind</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">DaemonSet</span>
+</span><span class='line'><span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">gke-metadata-server-metrics-proxy</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">namespace</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">monitoring</span>
+</span><span class='line'><span class="l-Scalar-Plain">spec</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">selector</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">matchLabels</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">app</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">gke-metadata-server-metrics-proxy</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">template</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">labels</span><span class="p-Indicator">:</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">app</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">gke-metadata-server-metrics-proxy</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">spec</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">hostNetwork</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">true</span>
+</span><span class='line'>      <span class="l-Scalar-Plain">containers</span><span class="p-Indicator">:</span>
+</span><span class='line'>      <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">gke-metadata-server-metrics-proxy</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">image</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">alpine/socat:1.7.3.4-r0@sha256:6786951b55e321e3968ba1c3786cb79b768f85d83d438f085336442b3bcef67a</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">args</span><span class="p-Indicator">:</span> <span class="p-Indicator">[</span><span class="s">&quot;TCP-LISTEN:54899,reuseaddr,fork&quot;</span><span class="p-Indicator">,</span> <span class="s">&quot;TCP:127.0.0.1:54898&quot;</span><span class="p-Indicator">]</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">ports</span><span class="p-Indicator">:</span>
+</span><span class='line'>        <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">prom-metrics</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">containerPort</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">54899</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">protocol</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">TCP</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">livenessProbe</span><span class="p-Indicator">:</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">httpGet</span><span class="p-Indicator">:</span>
+</span><span class='line'>            <span class="l-Scalar-Plain">host</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">127.0.0.1</span>
+</span><span class='line'>            <span class="l-Scalar-Plain">path</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">/metricz</span>
+</span><span class='line'>            <span class="l-Scalar-Plain">port</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">54899</span>
+</span><span class='line'>            <span class="l-Scalar-Plain">scheme</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">HTTP</span>
+</span><span class='line'>        <span class="l-Scalar-Plain">resources</span><span class="p-Indicator">:</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">limits</span><span class="p-Indicator">:</span>
+</span><span class='line'>            <span class="l-Scalar-Plain">cpu</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">100m</span>
+</span><span class='line'>            <span class="l-Scalar-Plain">memory</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">100Mi</span>
+</span><span class='line'>          <span class="l-Scalar-Plain">requests</span><span class="p-Indicator">:</span>
+</span><span class='line'>            <span class="l-Scalar-Plain">cpu</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">100m</span>
+</span><span class='line'>            <span class="l-Scalar-Plain">memory</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">100Mi</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Apply the DaemonSet.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">kubectl --context [CONTEXT] apply -f proxy-daemonset.yaml</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now make an HTTP request to any GKE node IP at port 54899.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">kubectl --context [CONTEXT] -n monitoring get pods --selector app=gke-metadata-server-metrics-proxy -o wide</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">NAME                                      READY   STATUS    RESTARTS   AGE     IP              NODE                             NOMINATED NODE   READINESS GATES</span>
+</span><span class='line'><span class="l-Scalar-Plain">gke-metadata-server-metrics-proxy-dvlpg   1/1     Running   0          4d19h   10.200.208.6    my-cluster-n1-s-32-dfabe6b6-38px   &lt;none&gt;           &lt;none&gt;</span>
+</span><span class='line'><span class="l-Scalar-Plain">gke-metadata-server-metrics-proxy-dx4lq   1/1     Running   0          4d19h   10.200.208.8    my-cluster-n1-s-32-dfabe6b6-mnlg   &lt;none&gt;           &lt;none&gt;</span>
+</span><span class='line'><span class="l-Scalar-Plain">gke-metadata-server-metrics-proxy-j9p49   1/1     Running   0          4d19h   10.200.208.7    my-cluster-n1-s-32-dfabe6b6-vv9s   &lt;none&gt;           &lt;none&gt;</span>
+</span><span class='line'><span class="l-Scalar-Plain">gke-metadata-server-metrics-proxy-jvvjw   1/1     Running   0          4d19h   10.200.208.12   my-cluster-n1-s-32-192fa3d9-wb2c   &lt;none&gt;           &lt;none&gt;</span>
+</span><span class='line'><span class="l-Scalar-Plain">gke-metadata-server-metrics-proxy-k5sqd   1/1     Running   0          4d19h   10.200.208.10   my-cluster-n1-s-32-55dd75ff-6l40   &lt;none&gt;           &lt;none&gt;</span>
+</span><span class='line'><span class="l-Scalar-Plain">gke-metadata-server-metrics-proxy-tdhkn   1/1     Running   0          4d19h   10.200.208.9    my-cluster-n1-s-32-55dd75ff-jqgk   &lt;none&gt;           &lt;none&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">http GET &#39;10.200.208.6:54899/metricz&#39; | head -n 20</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain"># HELP go_gc_duration_seconds A summary of the GC invocation durations.</span>
+</span><span class='line'><span class="l-Scalar-Plain"># TYPE go_gc_duration_seconds summary</span>
+</span><span class='line'><span class="l-Scalar-Plain">go_gc_duration_seconds{quantile=&quot;0&quot;} 2.8295e-05</span>
+</span><span class='line'><span class="l-Scalar-Plain">go_gc_duration_seconds{quantile=&quot;0.25&quot;} 3.6269e-05</span>
+</span><span class='line'><span class="l-Scalar-Plain">go_gc_duration_seconds{quantile=&quot;0.5&quot;} 5.2122e-05</span>
+</span><span class='line'><span class="l-Scalar-Plain">go_gc_duration_seconds{quantile=&quot;0.75&quot;} 7.585e-05</span>
+</span><span class='line'><span class="l-Scalar-Plain">go_gc_duration_seconds{quantile=&quot;1&quot;} 0.099987877</span>
+</span><span class='line'><span class="l-Scalar-Plain">go_gc_duration_seconds_sum 7.738486774</span>
+</span><span class='line'><span class="l-Scalar-Plain">go_gc_duration_seconds_count 6809</span>
+</span><span class='line'><span class="l-Scalar-Plain"># HELP go_goroutines Number of goroutines that currently exist.</span>
+</span><span class='line'><span class="l-Scalar-Plain"># TYPE go_goroutines gauge</span>
+</span><span class='line'><span class="l-Scalar-Plain">go_goroutines 47</span>
+</span><span class='line'><span class="l-Scalar-Plain"># HELP go_info Information about the Go environment.</span>
+</span><span class='line'><span class="l-Scalar-Plain"># TYPE go_info gauge</span>
+</span><span class='line'><span class="l-Scalar-Plain">go_info{version=&quot;go1.14rc1&quot;} 1</span>
+</span><span class='line'><span class="l-Scalar-Plain"># HELP go_memstats_alloc_bytes Number of bytes allocated and still in use.</span>
+</span><span class='line'><span class="l-Scalar-Plain"># TYPE go_memstats_alloc_bytes gauge</span>
+</span><span class='line'><span class="l-Scalar-Plain">go_memstats_alloc_bytes 2.4743056e+07</span>
+</span><span class='line'><span class="l-Scalar-Plain"># HELP go_memstats_alloc_bytes_total Total number of bytes allocated, even if freed.</span>
+</span><span class='line'><span class="l-Scalar-Plain"># TYPE go_memstats_alloc_bytes_total counter</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Voila. The important metrics are:</p>
+
+<ul>
+<li><code>metadata_server_request_count</code></li>
+<li><code>metadata_server_request_durations_bucket</code></li>
+</ul>
+
+
+<p>I have these <a href="https://prometheus.io/docs/prometheus/latest/configuration/recording_rules/#recording-rules">Prometheus recording rules</a> to calculate RPS and request
+duration percentiles.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">groups</span><span class="p-Indicator">:</span>
+</span><span class='line'><span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">gke-metadata-server</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">rules</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="c1"># Compute a 5-minute rate for the counter `metadata_server_request_count`.</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">record</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">metadata_server_request_count:rate5m</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">expr</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">rate(metadata_server_request_count[5m])</span>
+</span><span class='line'>  <span class="c1"># Compute latency percentiles for the histogram metric</span>
+</span><span class='line'>  <span class="c1"># `metadata_server_request_durations_bucket` over 5-minute increments for each label</span>
+</span><span class='line'>  <span class="c1"># combination.</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">record</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">metadata_server_request_duration:p99</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">expr</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">histogram_quantile(0.99, rate(metadata_server_request_durations_bucket[5m]))</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">record</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">metadata_server_request_duration:p95</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">expr</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">histogram_quantile(0.95, rate(metadata_server_request_durations_bucket[5m]))</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">record</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">metadata_server_request_duration:p90</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">expr</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">histogram_quantile(0.90, rate(metadata_server_request_durations_bucket[5m]))</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">record</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">metadata_server_request_duration:p50</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">expr</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">histogram_quantile(0.50, rate(metadata_server_request_durations_bucket[5m]))</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">record</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">metadata_server_request_duration:mean</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">expr</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">rate(metadata_server_request_durations_sum[5m]) / rate(metadata_server_request_durations_count[5m])</span>
+</span><span class='line'>  <span class="c1"># Compute latency percentiles for the histogram metric</span>
+</span><span class='line'>  <span class="c1"># `metadata_server_request_durations_bucket` over 5-minute increments and aggregate all</span>
+</span><span class='line'>  <span class="c1"># labels. We must aggregate here instead of in Grafana because averaging percentiles doesn’t</span>
+</span><span class='line'>  <span class="c1"># work. To compute a percentile, you need the original population of events. The math is just</span>
+</span><span class='line'>  <span class="c1"># broken. An average of a percentile is meaningless.</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">record</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">metadata_server_all_request_duration:p99</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">expr</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">histogram_quantile(0.99, sum(rate(metadata_server_request_durations_bucket[5m])) by (le))</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">record</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">metadata_server_all_request_duration:p95</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">expr</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">histogram_quantile(0.95, sum(rate(metadata_server_request_durations_bucket[5m])) by (le))</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">record</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">metadata_server_all_request_duration:p90</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">expr</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">histogram_quantile(0.90, sum(rate(metadata_server_request_durations_bucket[5m])) by (le))</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">record</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">metadata_server_all_request_duration:p50</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">expr</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">histogram_quantile(0.50, sum(rate(metadata_server_request_durations_bucket[5m])) by (le))</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">record</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">metadata_server_all_request_duration:mean</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">expr</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">rate(metadata_server_request_durations_sum[5m]) / rate(metadata_server_request_durations_count[5m])</span>
+</span><span class='line'>  <span class="c1"># Compute latency percentiles for the histogram metric `outgoing_request_latency_bucket` over</span>
+</span><span class='line'>  <span class="c1"># 5-minute increments for each label combination.</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">record</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">outgoing_request_latency:p99</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">expr</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">histogram_quantile(0.99, rate(outgoing_request_latency_bucket[5m]))</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">record</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">outgoing_request_latency:p95</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">expr</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">histogram_quantile(0.95, rate(outgoing_request_latency_bucket[5m]))</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">record</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">outgoing_request_latency:p90</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">expr</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">histogram_quantile(0.90, rate(outgoing_request_latency_bucket[5m]))</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">record</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">outgoing_request_latency:p50</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">expr</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">histogram_quantile(0.50, rate(outgoing_request_latency_bucket[5m]))</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">record</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">outgoing_request_latency:mean</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">expr</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">rate(outgoing_request_latency_sum[5m]) / rate(outgoing_request_latency_count[5m])</span>
+</span><span class='line'>  <span class="c1"># Compute latency percentiles for the histogram metric `outgoing_request_latency_bucket` over</span>
+</span><span class='line'>  <span class="c1"># 5-minute increments and aggregate all labels. We must aggregate here instead of in Grafana</span>
+</span><span class='line'>  <span class="c1"># because averaging percentiles doesn’t work. To compute a percentile, you need the original</span>
+</span><span class='line'>  <span class="c1"># population of events. The math is just broken. An average of a percentile is meaningless.</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">record</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">outgoing_all_request_latency:p99</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">expr</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">histogram_quantile(0.99, sum(rate(outgoing_request_latency_bucket[5m])) by (le))</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">record</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">outgoing_all_request_latency:p95</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">expr</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">histogram_quantile(0.95, sum(rate(outgoing_request_latency_bucket[5m])) by (le))</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">record</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">outgoing_all_request_latency:p90</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">expr</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">histogram_quantile(0.90, sum(rate(outgoing_request_latency_bucket[5m])) by (le))</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">record</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">outgoing_all_request_latency:p50</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">expr</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">histogram_quantile(0.50, sum(rate(outgoing_request_latency_bucket[5m])) by (le))</span>
+</span><span class='line'>  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">record</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">outgoing_all_request_latency:mean</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">expr</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">rate(outgoing_request_latency_sum[5m]) / rate(outgoing_request_latency_count[5m])</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Thanks to <a href="https://twitter.com/mikedanese">@mikedanese</a> for the intial idea of using <code>socat</code>.</p>
+</div>
+
+
+    <ul class="post-meta">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </ul>
+    <footer>
+      <p class="meta">
+        
+
+<span class="categories">
+  
+    Categories: <a class='category' href='/categories/programming-and-software/'>Programming & Software</a>
+  
+</span>
+
+
+      </p>
+      
+        <div class="sharing">
+  
+    <a id="custom-tweet-button" title="tweet about How to Expose a localhost-only Endpoint on GKE" href="https://twitter.com/share?url=https%3A%2F%2Fwww.davidxia.com%2F2020%2F04%2Fhow-to-expose-a-localhost-only-endpoint-on-gke%2F&text=How%20to%20Expose%20a%20localhost-only%20Endpoint%20on%20GKE&via=davidxia_" target="_blank" rel="nofollow">tweet</a>
+  
+  
+    <a id="custom-google-share-button" title="share How to Expose a localhost-only Endpoint on GKE" href="https://plus.google.com/share?url=https%3A%2F%2Fwww.davidxia.com%2F2020%2F04%2Fhow-to-expose-a-localhost-only-endpoint-on-gke%2F" target="_blank" rel="nofollow">Google+</a>
+  
+  
+    <a id="custom-facebook-share-button" title="share How to Expose a localhost-only Endpoint on GKE on Facebook" href="http://www.facebook.com/sharer.php?u=https%3A%2F%2Fwww.davidxia.com%2F2020%2F04%2Fhow-to-expose-a-localhost-only-endpoint-on-gke%2F&t=How%20to%20Expose%20a%20localhost-only%20Endpoint%20on%20GKE" target="_blank" rel="nofollow">facebook</a>
+  
+</div>
+
+      
+      <div class="meta np-page-links-div">
+        
+          <div class="basic-alignment left col-md-6">
+            <a class="np-page-link" href="/2020/04/3-levels-of-load-testing-gke-workload-identity/" title="Previous Post: 3 Levels of Load Testing GKE Workload Identity">&larr; 3 Levels of Load Testing GKE Workload Identity</a>
+          </div>
+        
+        
+        <div class="clear"></div>
+      </div>
+    </footer>
+  </article>
+  
+    <section>
+      <h1>Comments</h1>
+      <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+    </section>
+  
+</div>
+
+<div class="col-md-4">
+  <aside class="well sidebar-nav">
+    
+      
+<section>
+  <h3>About</h3>
+  <p>I&#8217;m David Xia. I write software and occasionally prose.</p>
+</section>
+
+
+<!-- side nav ad -->
+<ins class="adsbygoogle"
+     style="display:inline-block;width:300px;height:250px"
+     data-ad-client="ca-pub-1777254647176109"
+     data-ad-slot="8066618875"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+
+<section>
+  <h3>Elsewhere</h3>
+  <span itemscope itemtype="http://schema.org/Person">
+  <ul>
+    
+    <li><a itemprop="sameAs" href="https://twitter.com/davidxia_" rel="me" title="David Xia’s " target="_self">Twitter</a></li>
+    
+    <li><a itemprop="sameAs" href="https://www.facebook.com/david.xia2" rel="me" title="David Xia’s " target="_self">Facebook</a></li>
+    
+    <li><a itemprop="sameAs" href="https://www.snapchat.com/add/david.xia2" rel="me" title="David Xia’s " target="_self">Snapchat</a></li>
+    
+    <li><a itemprop="sameAs" href="https://github.com/davidxia2" rel="me" title="David Xia’s " target="_self">GitHub</a></li>
+    
+    <li><a itemprop="sameAs" href="https://keybase.io/davidxia" rel="me" title="David Xia’s " target="_self">Keybase</a></li>
+    
+    <li><a itemprop="sameAs" href="https://www.instagram.com/david.xia/" rel="me" title="David Xia’s " target="_self">Instagram</a></li>
+    
+    <li><a itemprop="sameAs" href="https://www.youtube.com/user/dx314152653" rel="me" title="David Xia’s " target="_self">Youtube</a></li>
+    
+    <li><a itemprop="sameAs" href="https://www.linkedin.com/in/davidweixia" rel="me" title="David Xia’s " target="_self">LinkedIn</a></li>
+    
+    <li><a itemprop="sameAs" href="https://plus.google.com/111695463592724886678?rel=author" rel="me" title="David Xia’s " target="_self">Google+</a></li>
+    
+    <li><a itemprop="sameAs" href="https://vimeo.com/davidxia" rel="me" title="David Xia’s " target="_self">Vimeo</a></li>
+    
+    <li><a itemprop="sameAs" href="https://stackoverflow.com/users/553994/david-xia" rel="me" title="David Xia’s " target="_self">StackOverflow</a></li>
+    
+  </ul>
+  </span>
+</section>
+
+<section>
+  <h3>Wise Words</h3>
+  <p id="rquote"></p>
+  <p id="rquote_source"></p>
+  <script text="javascript">
+    var quotesObjs = [{"quote":"job = just over broke"},{"quote":"ISAF = I suck at fighting, I saw Americans fighting","source":"American troops in Afghanistan"},{"quote":"army = ain’t ready for Marines yet","source":"US Army"},{"quote":"Here’s to the crazy ones. The rebels. The troublemakers. The ones who see things differently. While some may see them as the crazy ones, we see genius. Because the people who are crazy enough to think they can change the world, are the ones who do.","source":"Apple's Think Different ad"},{"quote":"The cure for boredom is curiosity. There is no cure for curiosity.","source":"Dorothy Parker"},{"quote":"Unfettered by that, they proceeded to indulge themselves in sensual pleasures like sheep.","source":"Al-Ghazali, The Rescuer From Error"},{"quote":"More confusion – more nonsense, – and the nonsense, as usual, dangerous nonsense.","source":"Jeremy Bentham, Anarchical Fallacies"},{"quote":"Marriage is the grave of confidence and love.","source":"Olympe de Gouges in The Rights of Woman on the contemporary sad state of marriage"},{"quote":"Christian troops, we are told, are excellent. I deny this. Is someone going to show me some?","source":"Jean-Jacques Rousseau, On the Social Contract (Book IV, Ch VIII)"},{"quote":"Being powerful is like being a lady. If you have to tell people you are, you aren’t.","source":"Margaret Thatcher"},{"quote":"Weniger, aber besser (Less, but better)","source":"Dieter Rams"},{"quote":"There are two major products that came out of Berkeley: LSD and UNIX. We don't believe this to be a coincidence.","source":"Jeremy S. Anderson"},{"quote":"[Linux] is not some crazy drug-induced microkernel...","source":"Linus Torvalds, Linux Kernel Mailing List"},{"quote":"Good design is as little design as possible.","source":"Dieter Rams"},{"quote":"I don’t care to belong to any club that will have me as a member.","source":"Groucho Marx"},{"quote":"Part of the secret of a success in life is to eat what you like and let the food fight it out inside.","source":"Mark Twain"},{"quote":"Before you speak, ask yourself: Is it necessary? Is it true? Does it improve upon the silence?","source":"Shirdi Sai Baba"},{"quote":"It is not the critic who counts; not the man who points out how the strong man stumbles, or where the doer of deeds could have done them better. The credit belongs to the man who is actually in the arena, whose face is marred by dust and sweat and blood.","source":"Theodore Roosevelt"},{"quote":"Above all else, try something.","source":"Franklin Roosevelt"},{"quote":"If you are going through hell, keep going.","source":"Winston Churchill"},{"quote":"Workers work hard enough to not be fired, and owners pay just enough so that workers don't quit."},{"quote":"Bulls make money, and bears make money; but pigs get slaughtered.","source":"the Street"},{"quote":"Profits are made when something is bought; not when it is sold."},{"quote":"In this world nothing is certain but death and taxes.","source":"Benjamin Franklin"},{"quote":"The only difference between death and taxes is that on occasion death is relatively painless."},{"quote":"The only man never to be redeemed is the man without passion.","source":"Atlas Shrugged"},{"quote":"I believe a lecture should be like a woman's skirt. Long enough to cover the subject, short enough to keep it interesting.","source":"René Morel"},{"quote":"It is easy in the world to live after the world's opinion; it is easy in solitude to live after our own; but the great man is he who in the midst of the crowd keeps with perfect sweetness the independence of solitude.","source":"Ralph Waldo Emerson"},{"quote":"The happiness of those who want to be popular depends on others; the happiness of those who seek pleasure fluctuates with moods outside their control; but the happiness of the wise grows out of their own free acts.","source":"Marcus Aurelius"},{"quote":"The difference between raising boys and girls is that with boys, you have to worry about one penis. With girls, you have to worry about all the penises.","source":"Anonymous"},{"quote":"Some pretend to be rich, yet have nothing; others pretend to be poor, yet have great wealth.","source":"Proverbs 13:7"},{"quote":"I returned, and saw under the sun, that the race is not to the swift, nor the battle to the strong, neither bread to the wise, nor yet riches to men of understanding, nor yet favor to men of skill; but time and chance happeneth to them all.","source":"Ecclesiastes 9:11"},{"quote":"A banker is a fellow who lends you his umbrella when the sun is shining, but wants it back the minute it begins to rain.","source":"Mark Twain"},{"quote":"No group of professionals meets except to conspire against the public at large.","source":"Mark Twain"},{"quote":"If you simplify your English, you are freed from the worst follies of orthodoxy. Political language...is designed to make lies sound truthful and murder respectable, and to give an appearance of solidity to pure wind.","source":"George Orwell in Politics and the English Language"},{"quote":"Neither can his mind be thought to be in tune, whose words do jarre, nor his reason in frame, whose sentence is preposterous.","source":"Ben Jonson"},{"quote":"A lack of visual clarity in arranging evidence is a sign of lack of intellectual clarity in reasoning about evidence.","source":"Tufte in Visual Explanations"},{"quote":"For the love of money is the root of all evil: which while some coveted after, they have erred from the faith, and pierced themselves through with many sorrows.","source":"St. Paul in his First Letter to Timothy"}];
+    quoteObj = quotesObjs[Math.floor(Math.random() * quotesObjs.length)];
+    document.getElementById('rquote').innerHTML = quoteObj.quote;
+    document.getElementById('rquote_source').innerHTML = quoteObj.source;
+  </script>
+</section>
+
+<section>
+  <h3>RSS Links</h3>
+  <p><a href="/atom.xml">All posts</a></p>
+</section>
+
+<section class="last">
+  <h3>Categories</h3>
+  <ul id="categories">
+    <li class='category'><a href='/categories/business/'>Business (9)</a></li>
+<li class='category'><a href='/categories/career/'>Career (16)</a></li>
+<li class='category'><a href='/categories/china/'>China (13)</a></li>
+<li class='category'><a href='/categories/chinese-culture/'>Chinese Culture (12)</a></li>
+<li class='category'><a href='/categories/columbia-university/'>Columbia University (27)</a></li>
+<li class='category'><a href='/categories/computer-science/'>Computer Science (7)</a></li>
+<li class='category'><a href='/categories/current-events/'>Current Events (43)</a></li>
+<li class='category'><a href='/categories/design/'>Design (6)</a></li>
+<li class='category'><a href='/categories/economy/'>Economy (11)</a></li>
+<li class='category'><a href='/categories/electronics/'>Electronics (3)</a></li>
+<li class='category'><a href='/categories/food-and-drink/'>Food & Drink (12)</a></li>
+<li class='category'><a href='/categories/friends/'>Friends (15)</a></li>
+<li class='category'><a href='/categories/information-security/'>Information Security (8)</a></li>
+<li class='category'><a href='/categories/internet/'>Internet (28)</a></li>
+<li class='category'><a href='/categories/journalism/'>Journalism (13)</a></li>
+<li class='category'><a href='/categories/math/'>Math (10)</a></li>
+<li class='category'><a href='/categories/nature-and-outdoors/'>Nature & Outdoors (12)</a></li>
+<li class='category'><a href='/categories/new-york-city/'>New York City (17)</a></li>
+<li class='category'><a href='/categories/personal/'>Personal (55)</a></li>
+<li class='category'><a href='/categories/photography/'>Photography (3)</a></li>
+<li class='category'><a href='/categories/programming-and-software/'>Programming & Software (48)</a></li>
+<li class='category'><a href='/categories/spy-shit/'>Spy Shit (5)</a></li>
+<li class='category'><a href='/categories/startups-and-entrepreneurism/'>Startups & Entrepreneurism (4)</a></li>
+<li class='category'><a href='/categories/swimming/'>Swimming (2)</a></li>
+<li class='category'><a href='/categories/technology/'>Technology (33)</a></li>
+<li class='category'><a href='/categories/travel/'>Travel (28)</a></li>
+<li class='category'><a href='/categories/tv-and-movies/'>Tv & Movies (20)</a></li>
+<li class='category'><a href='/categories/uncategorized/'>Uncategorized (22)</a></li>
+<li class='category'><a href='/categories/wellesley/'>Wellesley (6)</a></li>
+<li class='category'><a href='/categories/woodworking/'>Woodworking (3)</a></li>
+<li class='category'><a href='/categories/writing-and-literature/'>Writing & Literature (17)</a></li>
+
+  </ul>
+</section>
+
+    
+  </aside>
+</div>
+
+
+    </div>
+    <footer class="page-footer" role="contentinfo"><script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="/javascripts/bootstrap.min.js"></script>
+<script src="/javascripts/davidxia.min.js"></script>
+
+<p class="copyright-info">
+  https://www.davidxia.com and all contents copyright 2009-2020 by David Xia,
+  unless otherwise noted. Contents under
+  <a href="http://creativecommons.org/licenses/by-nc-sa/3.0/">Creative Commons License</a>
+</p>
+
+</footer>
+    
+
+<script type="text/javascript">
+      var disqus_shortname = 'davidxia';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'https://www.davidxia.com/2020/04/how-to-expose-a-localhost-only-endpoint-on-gke/';
+        var disqus_url = 'https://www.davidxia.com/2020/04/how-to-expose-a-localhost-only-endpoint-on-gke/';
+        var disqus_script = 'embed.min.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+  </div>
+</body>
+</html>

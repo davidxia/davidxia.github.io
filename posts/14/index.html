@@ -10,8 +10,8 @@
   <meta name="author" content="David Xia">
 
   
-  <meta name="description" content="These are some of my favorite acronyms. I like them not only because they are funny but also
-because they sometimes contain a kernel of truth. I&rsquo;ll be &hellip;">
+  <meta name="description" content="My WordPress blog is installed in a subdirectory in my document root. This keeps the document root
+tidier. The problem is that the cookie titled &ldquo; &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -31,8 +31,8 @@ because they sometimes contain a kernel of truth. I&rsquo;ll be &hellip;">
   <meta property="og:url" content="https://www.davidxia.com/posts/14/" />
   <meta property="og:image" content="https://i.imgur.com/BJPOY0D.jpg" />
   <meta property="og:locale" content="en_US" />
-  <meta property="og:description" content="These are some of my favorite acronyms. I like them not only because they are funny but also
-because they sometimes contain a kernel of truth. I&rsquo;ll be &hellip;" />
+  <meta property="og:description" content="My WordPress blog is installed in a subdirectory in my document root. This keeps the document root
+tidier. The problem is that the cookie titled &ldquo; &hellip;" />
   <meta property="fb:admins" content="122703" />
 
   <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -103,6 +103,88 @@ because they sometimes contain a kernel of truth. I&rsquo;ll be &hellip;" />
   
     
     <article itemscope itemtype="http://schema.org/BlogPosting" class="first">
+      
+  <header>
+    <span itemprop="name headline">
+      
+        <h2 class="entry-title"><a href="/2011/09/wordpress-logged-in-cookie-problem-and-solution/">WordPress Logged-in Cookie Problem and Solution</a></h2>
+      
+    </span>
+    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2011/09/wordpress-logged-in-cookie-problem-and-solution/">
+    
+      <p class="meta">
+        
+  
+  
+
+  
+    
+  
+
+  
+    
+  
+
+
+
+<span itemprop="datePublished" content="September 11, 2011"><time class='entry-date' datetime='2011-09-11T00:00:00-04:00'><span class='date'>September 11, 2011</span></time></span>
+<meta itemprop="dateModified" content="September 11, 2011">
+ | 
+  
+
+
+
+  <span class="byline author vcard">
+    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
+  </span>
+
+
+        
+        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
+  <meta itemprop="name" content="David Xia">
+  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
+    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
+  </div>
+</div>
+
+        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
+  
+    
+    
+    
+  
+  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
+  <meta itemprop="height" content="696">
+  <meta itemprop="width" content="696">
+</span>
+
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>My WordPress blog is installed in a subdirectory in my document root. This keeps the document root
+tidier. The problem is that the cookie titled &ldquo;wordpress_logged_in_somerandomhash&rdquo; that tells
+WordPress you&rsquo;re logged has its path set to <a href="http://www.yoursite.com/subdirectory">http://www.yoursite.com/subdirectory</a>. You can still
+log into the admin console. But when you visit your blog at <a href="http://www.yoursite.com">http://www.yoursite.com</a>, WordPress
+doesn&rsquo;t think you&rsquo;re logged in because your browser doesn&rsquo;t send the
+wordpress_logged_in_somerandomhash cookie.</p>
+
+<p>This is not a huge problem, but I wanted that nice banner on the top that allows me to have admin
+functions. I also wanted each post to have an &ldquo;edit&rdquo; link for easy editing.</p>
+
+<p>Figuring this out took me all afternoon. The solution is to define &ldquo;COOKIEPATH&rdquo; in your config.php
+file. Just add <code>define('COOKIEPATH', '/');</code> to the <strong>beginning</strong> of <code>config.php</code>.</p>
+</div>
+  
+  
+
+
+    </article>
+    <br class="clear">
+  
+    
+    <article itemscope itemtype="http://schema.org/BlogPosting" >
       
   <header>
     <span itemprop="name headline">
@@ -1003,88 +1085,6 @@ the lookout for squirrels, we don&rsquo;t need the law getting an earful of the 
     </article>
     <br class="clear">
   
-    
-    <article itemscope itemtype="http://schema.org/BlogPosting" >
-      
-  <header>
-    <span itemprop="name headline">
-      
-        <h2 class="entry-title"><a href="/2011/08/wordpress-brute-force-attack-script/">WordPress Brute Force Attack Script</a></h2>
-      
-    </span>
-    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2011/08/wordpress-brute-force-attack-script/">
-    
-      <p class="meta">
-        
-  
-  
-
-  
-    
-  
-
-  
-    
-  
-
-
-
-<span itemprop="datePublished" content="August 27, 2011"><time class='entry-date' datetime='2011-08-27T00:00:00-04:00'><span class='date'>August 27, 2011</span></time></span>
-<meta itemprop="dateModified" content="August 27, 2011">
- | 
-  
-
-
-
-  <span class="byline author vcard">
-    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
-  </span>
-
-
-        
-        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
-  <meta itemprop="name" content="David Xia">
-  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
-    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
-  </div>
-</div>
-
-        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
-  
-    
-    
-    
-  
-  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
-  <meta itemprop="height" content="696">
-  <meta itemprop="width" content="696">
-</span>
-
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><strong>The information provided on davidxia.com is to be used for educational purposes only. I&rsquo;m not
-responsible for any misuse of this information. The following is meant to help you develop a
-<a href="http://searchsecurity.techtarget.com/definition/cracker">cracking</a> defensive attitude to prevent such attacks. In no way should you use this
-information to cause any kind of damage directly or indirectly.</strong></p>
-
-<p>I started writing a Python script for <a href="http://en.wikipedia.org/wiki/Brute_force_attack">brute forcing</a> WordPress&#8217; login page. Then I found this
-script by <a href="http://rstcenter.com/forum/members/puricel/">PuRiCeL</a>. I modified it a bit.</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="https://www.davidxia.com/2011/08/wordpress-brute-force-attack-script/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-    <br class="clear">
-  
   <div class="pagination">
     
     <div class="col-md-4">
@@ -1194,7 +1194,7 @@ script by <a href="http://rstcenter.com/forum/members/puricel/">PuRiCeL</a>. I m
 <li class='category'><a href='/categories/new-york-city/'>New York City (17)</a></li>
 <li class='category'><a href='/categories/personal/'>Personal (55)</a></li>
 <li class='category'><a href='/categories/photography/'>Photography (3)</a></li>
-<li class='category'><a href='/categories/programming-and-software/'>Programming & Software (47)</a></li>
+<li class='category'><a href='/categories/programming-and-software/'>Programming & Software (48)</a></li>
 <li class='category'><a href='/categories/spy-shit/'>Spy Shit (5)</a></li>
 <li class='category'><a href='/categories/startups-and-entrepreneurism/'>Startups & Entrepreneurism (4)</a></li>
 <li class='category'><a href='/categories/swimming/'>Swimming (2)</a></li>
