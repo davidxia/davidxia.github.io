@@ -10,7 +10,8 @@
   <meta name="author" content="David Xia">
 
   
-  <meta name="description" content="My trips to Stockholm and San Fran in September this year. ">
+  <meta name="description" content="I&rsquo;m reading The C Programming Language and trying to remember C&rsquo;s standard library
+functions for IO and their system call equivalents. I couldn& &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -30,7 +31,8 @@
   <meta property="og:url" content="https://www.davidxia.com/posts/9/" />
   <meta property="og:image" content="https://i.imgur.com/BJPOY0D.jpg" />
   <meta property="og:locale" content="en_US" />
-  <meta property="og:description" content="My trips to Stockholm and San Fran in September this year. " />
+  <meta property="og:description" content="I&rsquo;m reading The C Programming Language and trying to remember C&rsquo;s standard library
+functions for IO and their system call equivalents. I couldn& &hellip;" />
   <meta property="fb:admins" content="122703" />
 
   <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -101,6 +103,206 @@
   
     
     <article itemscope itemtype="http://schema.org/BlogPosting" class="first">
+      
+  <header>
+    <span itemprop="name headline">
+      
+        <h2 class="entry-title"><a href="/2012/12/c-stdlib-io-functions-and-system-call-equivalents/">C Stdlib IO Functions and System Call Equivalents</a></h2>
+      
+    </span>
+    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2012/12/c-stdlib-io-functions-and-system-call-equivalents/">
+    
+      <p class="meta">
+        
+  
+  
+
+  
+    
+  
+
+  
+    
+  
+
+
+
+<span itemprop="datePublished" content="December 10, 2012"><time class='entry-date' datetime='2012-12-10T00:00:00-05:00'><span class='date'>December 10, 2012</span></time></span>
+<meta itemprop="dateModified" content="December 10, 2012">
+ | 
+  
+
+
+
+  <span class="byline author vcard">
+    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
+  </span>
+
+
+        
+        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
+  <meta itemprop="name" content="David Xia">
+  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
+    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
+  </div>
+</div>
+
+        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
+  
+    
+    
+    
+  
+  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
+  <meta itemprop="height" content="696">
+  <meta itemprop="width" content="696">
+</span>
+
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>I&rsquo;m reading <a href="http://www.amazon.com/gp/product/0131103628/ref=as_li_ss_tl?ie=UTF8&amp;camp=1789&amp;creative=390957&amp;creativeASIN=0131103628&amp;linkCode=as2&amp;tag=easiamus00-20"><em>The C Programming Language</em></a><img src="https://www.assoc-amazon.com/e/ir?t=easiamus00-20&amp;l=as2&amp;o=1&amp;a=0131103628" alt="" /> and trying to remember C&rsquo;s standard library
+functions for IO and their system call equivalents. I couldn&rsquo;t find a side-by-side chart online,
+so I created this to help me.</p>
+
+<div style="overflow-x: scroll;">
+  <table style="width: 75em;">
+    <tbody>
+      <tr>
+        <th></th>
+        <th>C stdlib</th>
+        <th>return value</th>
+        <th>header</th>
+        <th>system call</th>
+        <th>return value</th>
+        <th>header</th>
+      </tr>
+      <tr>
+        <td>files</td>
+        <td>file pointer FILE *fp</td>
+        <td></td>
+        <td>stdio.h</td>
+        <td>file descriptor int td</td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>streams</td>
+        <td>stdin, stdout, stderr</td>
+        <td></td>
+        <td>stdio.h</td>
+        <td>0, 1, 2</td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>open</td>
+        <td>FILE *fopen(char *name, char *mode)</td>
+        <td>file pointer on success, NULL on failure</td>
+        <td>stdio.h</td>
+        <td>int open(char *name, int flags, int perms)</td>
+        <td>file descriptor on success, -1 on error</td>
+        <td>fctnl.h</td>
+      </tr>
+      <tr>
+        <td>create</td>
+        <td>(fopen creates file if it doesn&#8217;t exist)</td>
+        <td></td>
+        <td></td>
+        <td>int creat(char *name, int perms)</td>
+        <td></td>
+        <td>fctnl.h</td>
+      </tr>
+      <tr>
+        <td>read</td>
+        <td>int getc(FILE *fp); getchar = getc(stdin)</td>
+        <td>next char, EOF on end of file or error</td>
+        <td>stdio.h</td>
+        <td>int read(int fd, char *buf, int n)</td>
+        <td>number bytes read, 0 on EOF, -1 on error</td>
+        <td>stdio.h</td>
+      </tr>
+      <tr>
+        <td>read</td>
+        <td>char *fgets(char *line, int maxline); gets = fgets(stdin)</td>
+        <td>*line on success, NULL on EOF or error</td>
+        <td>stdio.h</td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>write</td>
+        <td>int putc(int c, FILE *fp)</td>
+        <td>char written on success, EOF on error</td>
+        <td>stdio.h</td>
+        <td>int write(int fd, char *buf, int n)</td>
+        <td>number bytes written, 0 on EOF, -1 on error</td>
+        <td>stdio.h</td>
+      </tr>
+      <tr>
+        <td>write</td>
+        <td>int fputs(char *line, FILE *fp); puts = fputs(stout)</td>
+        <td>non-negative int on success, EOF on error</td>
+        <td>stdio.h</td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>close</td>
+        <td>int fclose(FILE *fp)</td>
+        <td>0 on success</td>
+        <td>stdio.h</td>
+        <td>int close(int fd)</td>
+        <td>0 on success</td>
+        <td>unistd.h</td>
+      </tr>
+      <tr>
+        <td>perms</td>
+        <td>r, w, a</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>flags</td>
+        <td>O_RDONLY, O_WRONLY, O_RDWR</td>
+        <td>fctnl.h</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>BUFSIZ</td>
+        <td>stdio.h</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+
+</div>
+  
+  
+
+
+    </article>
+    <br class="clear">
+  
+    
+    <article itemscope itemtype="http://schema.org/BlogPosting" >
       
   <header>
     <span itemprop="name headline">
@@ -858,87 +1060,6 @@ and third round was an on-site interview.</p>
     </article>
     <br class="clear">
   
-    
-    <article itemscope itemtype="http://schema.org/BlogPosting" >
-      
-  <header>
-    <span itemprop="name headline">
-      
-        <h2 class="entry-title"><a href="/2012/05/craftsmanship/">Craftsmanship</a></h2>
-      
-    </span>
-    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2012/05/craftsmanship/">
-    
-      <p class="meta">
-        
-  
-  
-
-  
-    
-  
-
-  
-    
-  
-
-
-
-<span itemprop="datePublished" content="May 30, 2012"><time class='entry-date' datetime='2012-05-30T00:00:00-04:00'><span class='date'>May 30, 2012</span></time></span>
-<meta itemprop="dateModified" content="May 30, 2012">
- | 
-  
-
-
-
-  <span class="byline author vcard">
-    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
-  </span>
-
-
-        
-        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
-  <meta itemprop="name" content="David Xia">
-  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
-    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
-  </div>
-</div>
-
-        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
-  
-    
-    
-    
-  
-  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
-  <meta itemprop="height" content="696">
-  <meta itemprop="width" content="696">
-</span>
-
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>One of my favorite classes during middle school was woodworking. Our first project was to make
-small wooden trays from pine and ply wood. I learned to cut wood with a miter saw, glue them
-together, and correctly hammer a nail. The class moved onto drills and various electric saws like
-the jigsaw, circular saw, and planer. (We were never allowed to use the table saw, however, as the
-exposed blade was too risky to trust with eleven-year-olds.) With these tools I made a two-level
-shelf that could be placed on desk to hold paper and various knick knacks.</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="https://www.davidxia.com/2012/05/craftsmanship/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-    <br class="clear">
-  
   <div class="pagination">
     
     <div class="col-md-4">
@@ -1048,7 +1169,7 @@ shelf that could be placed on desk to hold paper and various knick knacks.</p>
 <li class='category'><a href='/categories/new-york-city/'>New York City (17)</a></li>
 <li class='category'><a href='/categories/personal/'>Personal (55)</a></li>
 <li class='category'><a href='/categories/photography/'>Photography (3)</a></li>
-<li class='category'><a href='/categories/programming-and-software/'>Programming & Software (48)</a></li>
+<li class='category'><a href='/categories/programming-and-software/'>Programming & Software (49)</a></li>
 <li class='category'><a href='/categories/spy-shit/'>Spy Shit (5)</a></li>
 <li class='category'><a href='/categories/startups-and-entrepreneurism/'>Startups & Entrepreneurism (4)</a></li>
 <li class='category'><a href='/categories/swimming/'>Swimming (2)</a></li>

@@ -10,8 +10,44 @@
   <meta name="author" content="David Xia">
 
   
-  <meta name="description" content="My friend Adam Urban wrote an exciting series of posts at his blog Aimful Wanderings. He&rsquo;s
-currently studying abroad in Australia and has had a good &hellip;">
+  <meta name="description" content="This Perl script scrapes The New York Times website. 1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -31,8 +67,44 @@ currently studying abroad in Australia and has had a good &hellip;">
   <meta property="og:url" content="https://www.davidxia.com/posts/24/" />
   <meta property="og:image" content="https://i.imgur.com/BJPOY0D.jpg" />
   <meta property="og:locale" content="en_US" />
-  <meta property="og:description" content="My friend Adam Urban wrote an exciting series of posts at his blog Aimful Wanderings. He&rsquo;s
-currently studying abroad in Australia and has had a good &hellip;" />
+  <meta property="og:description" content="This Perl script scrapes The New York Times website. 1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38 &hellip;" />
   <meta property="fb:admins" content="122703" />
 
   <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -103,6 +175,314 @@ currently studying abroad in Australia and has had a good &hellip;" />
   
     
     <article itemscope itemtype="http://schema.org/BlogPosting" class="first">
+      
+  <header>
+    <span itemprop="name headline">
+      
+        <h2 class="entry-title"><a href="/2010/10/new-york-times-perl-web-scraper/">New York Times Perl Web Scraper</a></h2>
+      
+    </span>
+    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2010/10/new-york-times-perl-web-scraper/">
+    
+      <p class="meta">
+        
+  
+  
+
+  
+    
+  
+
+  
+    
+  
+
+
+
+<span itemprop="datePublished" content="October  1, 2010"><time class='entry-date' datetime='2010-10-01T00:00:00-04:00'><span class='date'>October  1, 2010</span></time></span>
+<meta itemprop="dateModified" content="October  1, 2010">
+ | 
+  
+
+
+
+  <span class="byline author vcard">
+    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
+  </span>
+
+
+        
+        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
+  <meta itemprop="name" content="David Xia">
+  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
+    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
+  </div>
+</div>
+
+        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
+  
+    
+    
+    
+  
+  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
+  <meta itemprop="height" content="696">
+  <meta itemprop="width" content="696">
+</span>
+
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>This Perl script scrapes <em>The New York Times</em> website.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+<span class='line-number'>80</span>
+<span class='line-number'>81</span>
+<span class='line-number'>82</span>
+<span class='line-number'>83</span>
+<span class='line-number'>84</span>
+<span class='line-number'>85</span>
+<span class='line-number'>86</span>
+<span class='line-number'>87</span>
+<span class='line-number'>88</span>
+<span class='line-number'>89</span>
+<span class='line-number'>90</span>
+<span class='line-number'>91</span>
+<span class='line-number'>92</span>
+<span class='line-number'>93</span>
+<span class='line-number'>94</span>
+<span class='line-number'>95</span>
+<span class='line-number'>96</span>
+<span class='line-number'>97</span>
+<span class='line-number'>98</span>
+<span class='line-number'>99</span>
+<span class='line-number'>100</span>
+<span class='line-number'>101</span>
+<span class='line-number'>102</span>
+<span class='line-number'>103</span>
+<span class='line-number'>104</span>
+<span class='line-number'>105</span>
+<span class='line-number'>106</span>
+<span class='line-number'>107</span>
+<span class='line-number'>108</span>
+<span class='line-number'>109</span>
+<span class='line-number'>110</span>
+<span class='line-number'>111</span>
+<span class='line-number'>112</span>
+<span class='line-number'>113</span>
+<span class='line-number'>114</span>
+<span class='line-number'>115</span>
+<span class='line-number'>116</span>
+<span class='line-number'>117</span>
+</pre></td><td class='code'><pre><code class='perl'><span class='line'><span class="c1">#!/usr/bin/env perl</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">use</span> <span class="n">strict</span><span class="p">;</span>
+</span><span class='line'><span class="k">use</span> <span class="nn">LWP::</span><span class="n">UserAgent</span><span class="p">;</span>
+</span><span class='line'><span class="k">use</span> <span class="nn">HTTP::</span><span class="n">Cookies</span><span class="p">;</span>
+</span><span class='line'><span class="k">use</span> <span class="nn">HTML::</span><span class="n">TreeBuilder</span> <span class="mi">3</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">my</span> <span class="nv">$OUTPUT_FILE</span> <span class="o">=</span> <span class="s">&#39;nyt_top_stories.txt&#39;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># User agent needs to accept cookies to access NYT</span>
+</span><span class='line'><span class="k">my</span> <span class="nv">$cookie</span> <span class="o">=</span> <span class="s">&#39;nyt_cookie.lwp&#39;</span><span class="p">;</span>
+</span><span class='line'><span class="k">my</span> <span class="nv">$cookie_jar</span> <span class="o">=</span> <span class="nn">HTTP::</span><span class="n">Cookies</span><span class="o">-&gt;</span><span class="k">new</span><span class="p">(</span><span class="s">&#39;file&#39;</span> <span class="o">=&gt;</span> <span class="nv">$cookie</span><span class="p">,</span> <span class="s">&#39;autosave&#39;</span> <span class="o">=&gt;</span> <span class="mi">1</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">my</span> <span class="nv">$content</span> <span class="o">=</span> <span class="n">get_html</span><span class="p">(</span><span class="s">&#39;http://global.nytimes.com/&#39;</span><span class="p">);</span>
+</span><span class='line'><span class="k">my</span> <span class="nv">$tree</span> <span class="o">=</span> <span class="nn">HTML::</span><span class="n">TreeBuilder</span><span class="o">-&gt;</span><span class="n">new_from_content</span><span class="p">(</span><span class="nv">$content</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Stores homepage URLS</span>
+</span><span class='line'><span class="k">my</span> <span class="nv">@urls</span><span class="p">;</span>
+</span><span class='line'><span class="n">scan_nyt_tree</span><span class="p">(</span><span class="nv">$tree</span><span class="p">,</span> <span class="s">&#39;http://global.nytimes.com/&#39;</span><span class="p">);</span>
+</span><span class='line'><span class="nv">$tree</span><span class="o">-&gt;</span><span class="nb">delete</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">unlink</span> <span class="nv">$OUTPUT_FILE</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Scrape article from each URL</span>
+</span><span class='line'><span class="k">foreach</span> <span class="p">(</span><span class="nv">@urls</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nv">$content</span> <span class="o">=</span> <span class="n">get_html</span><span class="p">(</span><span class="nv">$_</span><span class="p">);</span>
+</span><span class='line'>    <span class="c1"># Replace all newline characters, needed for $rawtext extraction</span>
+</span><span class='line'>    <span class="nv">$content</span> <span class="o">=~</span> <span class="sr">s/\n//g</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1"># Extracts headline, byline, dateline, and raw text</span>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$headline</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="nv">$content</span> <span class="o">=~</span> <span class="sr">m/&lt;nyt_headline .*?&gt;(.*?)&lt; \/NYT_HEADLINE&gt;/</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nv">$headline</span> <span class="o">=</span> <span class="nv">$1</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$byline</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="nv">$content</span> <span class="o">=~</span> <span class="sr">m/&lt;nyt_byline .*?&gt;.*?&lt;a \shref.*?&gt;(.*?)&lt; \/a&gt;/</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nv">$byline</span> <span class="o">=</span> <span class="nv">$1</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$dateline</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="nv">$content</span> <span class="o">=~</span> <span class="sr">m/class=&quot;dateline&quot;&gt;.*?Published:\s+([\w\s,]+)&lt; \//</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nv">$dateline</span> <span class="o">=</span> <span class="nv">$1</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$rawtext</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="nv">$content</span> <span class="o">=~</span> <span class="sr">m/&lt;NYT_TEXT.*?&gt;(.*)&lt; \/NYT_TEXT&gt;/</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nv">$rawtext</span> <span class="o">=</span> <span class="nv">$1</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1"># Parses article&#39;s text by extracting everything between &lt;p&gt; tags</span>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$text</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">while</span> <span class="p">(</span><span class="nv">$rawtext</span> <span class="o">=~</span> <span class="sr">m/&lt;/</span><span class="n">p</span><span class="o">&gt;</span><span class="sr">&lt;p&gt;</span><span class="p">(</span><span class="o">.*</span><span class="p">?)</span><span class="o">&lt;</span> <span class="o">\</span><span class="sr">/p&gt;/g</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nv">$text</span> <span class="o">.=</span> <span class="s">&quot;\n\n$1&quot;</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="nv">$text</span> <span class="o">=~</span> <span class="sr">s/ +/ /g</span><span class="p">;</span>              <span class="c1"># REPLACE MUTLIPLE SPACES WITH ONE</span>
+</span><span class='line'>    <span class="nv">$text</span> <span class="o">=~</span> <span class="sr">s/&lt; .*?&gt;//g</span><span class="p">;</span>           <span class="c1"># REMOVE HTML TAGS</span>
+</span><span class='line'>    <span class="nv">$text</span> <span class="o">=~</span> <span class="sr">s/&amp;mdash;/--/g</span><span class="p">;</span>        <span class="c1"># REPLACE HTML EM-DASH CODE WITH 2 HYPHENS</span>
+</span><span class='line'>    <span class="nv">$text</span> <span class="o">=~</span> <span class="sr">s/&#39;|&amp;lsquo;/&#39;/g</span><span class="p">;</span> <span class="c1"># REPLACE SMART APOSTROPHES WITH &#39;</span>
+</span><span class='line'>    <span class="nv">$text</span> <span class="o">=~</span> <span class="sr">s/&quot;|&amp;rdquo;/&quot;/g</span><span class="p">;</span> <span class="c1"># REPLACE SMART QUOTATIONS WITH &quot;</span>
+</span><span class='line'>    <span class="nv">$text</span> <span class="o">=~</span> <span class="sr">s/&amp;nbsp;/ /g</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nb">open</span><span class="p">(</span><span class="n">OUTPUT</span><span class="p">,</span> <span class="s">&quot;&gt;&gt;$OUTPUT_FILE&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">die</span><span class="p">(</span><span class="s">&quot;Cannot open $OUTPUT_FILE\n&quot;</span><span class="p">);</span>
+</span><span class='line'>    <span class="k">print</span> <span class="n">OUTPUT</span> <span class="s">&quot;$headline\n$byline\n$dateline$text\n\n\n&quot;</span><span class="p">;</span>
+</span><span class='line'>    <span class="nb">close</span><span class="p">(</span><span class="n">OUTPUT</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Stores a web page&#39;s HTML as string</span>
+</span><span class='line'><span class="k">sub </span><span class="nf">get_html</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$url</span> <span class="o">=</span> <span class="nv">$_</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$browser</span> <span class="o">=</span> <span class="nn">LWP::</span><span class="n">UserAgent</span><span class="o">-&gt;</span><span class="k">new</span><span class="p">();</span>
+</span><span class='line'>    <span class="nv">$browser</span><span class="o">-&gt;</span><span class="n">cookie_jar</span><span class="p">(</span><span class="nv">$cookie_jar</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1"># $response declared out here to be accessible after while loop</span>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$response</span><span class="p">;</span>
+</span><span class='line'>    <span class="c1"># Prevents inifinite loops</span>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$redirect_limit</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$x</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1"># Sends GET request, follows redirects until response code 200 received</span>
+</span><span class='line'>    <span class="c1"># Stores successful request URL</span>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$responseCode</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">while</span> <span class="p">(</span><span class="nv">$responseCode</span> <span class="o">!=</span> <span class="mi">200</span> <span class="o">&amp;&amp;</span> <span class="nv">$x</span> <span class="o">&lt;</span> <span class="nv">$redirect_limit</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nv">$response</span> <span class="o">=</span> <span class="nv">$browser</span><span class="o">-&gt;</span><span class="n">get</span><span class="p">(</span><span class="nv">$url</span><span class="p">);</span>
+</span><span class='line'>        <span class="nv">$responseCode</span> <span class="o">=</span> <span class="nv">$response</span><span class="o">-&gt;</span><span class="n">code</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">print</span> <span class="s">&quot;$url\n&quot;</span><span class="p">;</span>
+</span><span class='line'>        <span class="c1">#print &quot;response code: $responseCode\n&quot;;</span>
+</span><span class='line'>        <span class="nv">$url</span> <span class="o">=</span> <span class="nv">$response</span><span class="o">-&gt;</span><span class="n">header</span><span class="p">(</span><span class="s">&#39;Location&#39;</span><span class="p">);</span>
+</span><span class='line'>        <span class="nv">$x</span><span class="o">++</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">return</span> <span class="nv">$response</span><span class="o">-&gt;</span><span class="n">content</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Picks out URLs of top NYT articles</span>
+</span><span class='line'><span class="k">sub </span><span class="nf">scan_nyt_tree</span> <span class="p">{</span>
+</span><span class='line'>   <span class="k">my</span> <span class="p">(</span><span class="nv">$root</span><span class="p">,</span> <span class="nv">$docbase</span><span class="p">)</span> <span class="o">=</span> <span class="nv">@_</span><span class="p">;</span>
+</span><span class='line'>   <span class="k">foreach</span> <span class="k">my</span> <span class="nv">$div</span> <span class="p">(</span><span class="nv">$root</span><span class="o">-&gt;</span><span class="n">find_by_tag_name</span><span class="p">(</span><span class="s">&#39;div&#39;</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>       <span class="k">my</span> <span class="nv">$class</span> <span class="o">=</span> <span class="nv">$div</span><span class="o">-&gt;</span><span class="n">attr</span><span class="p">(</span><span class="s">&#39;class&#39;</span><span class="p">)</span> <span class="o">||</span> <span class="k">next</span><span class="p">;</span>
+</span><span class='line'>       <span class="k">if</span> <span class="p">(</span><span class="nv">$class</span> <span class="ow">eq</span> <span class="s">&#39;story&#39;</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>           <span class="k">my</span> <span class="nv">@children</span> <span class="o">=</span> <span class="nv">$div</span><span class="o">-&gt;</span><span class="n">content_list</span><span class="p">;</span>
+</span><span class='line'>           <span class="k">for</span> <span class="p">(</span><span class="k">my</span> <span class="nv">$i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nv">$i</span> <span class="o">&lt;</span> <span class="o">=</span> <span class="nv">$#children</span><span class="p">;</span> <span class="nv">$i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>               <span class="k">if</span> <span class="p">(</span><span class="nb">ref</span> <span class="nv">$children</span><span class="p">[</span><span class="nv">$i</span><span class="p">]</span> <span class="ow">and</span>
+</span><span class='line'>                   <span class="p">(</span><span class="nv">$children</span><span class="p">[</span><span class="nv">$i</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">tag</span> <span class="ow">eq</span> <span class="s">&#39;h2&#39;</span> <span class="o">||</span>
+</span><span class='line'>                   <span class="nv">$children</span><span class="p">[</span><span class="nv">$i</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">tag</span> <span class="ow">eq</span> <span class="s">&#39;h3&#39;</span> <span class="o">||</span>
+</span><span class='line'>                   <span class="nv">$children</span><span class="p">[</span><span class="nv">$i</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">tag</span> <span class="ow">eq</span> <span class="s">&#39;h5&#39;</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>                   <span class="k">my</span> <span class="nv">@grandchildren</span> <span class="o">=</span> <span class="nv">$children</span><span class="p">[</span><span class="nv">$i</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">content_list</span><span class="p">;</span>
+</span><span class='line'>                       <span class="c1"># Search sibling if 1st grandchild not &lt;a&gt;</span>
+</span><span class='line'>                       <span class="k">if</span> <span class="p">(</span><span class="nb">ref</span> <span class="nv">$grandchildren</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> <span class="nv">$grandchildren</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">tag</span> <span class="ow">eq</span> <span class="s">&#39;a&#39;</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>                       <span class="nb">push</span> <span class="p">(</span><span class="nv">@urls</span><span class="p">,</span> <span class="n">URI</span><span class="o">-&gt;</span><span class="n">new_abs</span><span class="p">(</span><span class="nv">$grandchildren</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">attr</span><span class="p">(</span><span class="s">&#39;href&#39;</span><span class="p">)</span> <span class="o">||</span> <span class="k">next</span><span class="p">,</span> <span class="nv">$docbase</span><span class="p">));</span>
+</span><span class='line'>                   <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>               <span class="p">}</span>
+</span><span class='line'>           <span class="p">}</span>
+</span><span class='line'>       <span class="p">}</span>
+</span><span class='line'>   <span class="p">}</span>
+</span><span class='line'>   <span class="k">return</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
+    <br class="clear">
+  
+    
+    <article itemscope itemtype="http://schema.org/BlogPosting" >
       
   <header>
     <span itemprop="name headline">
@@ -971,94 +1351,6 @@ still surprisingly strong. Being linked by the below sites <em>probably</em> he
     </article>
     <br class="clear">
   
-    
-    <article itemscope itemtype="http://schema.org/BlogPosting" >
-      
-  <header>
-    <span itemprop="name headline">
-      
-        <h2 class="entry-title"><a href="/2010/09/how-to-manipulate-statistics-and-create-organizational-dysfunction/">How to Manipulate Statistics and Create Organizational Dysfunction</a></h2>
-      
-    </span>
-    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2010/09/how-to-manipulate-statistics-and-create-organizational-dysfunction/">
-    
-      <p class="meta">
-        
-  
-  
-
-  
-    
-  
-
-  
-    
-  
-
-
-
-<span itemprop="datePublished" content="September 15, 2010"><time class='entry-date' datetime='2010-09-15T00:00:00-04:00'><span class='date'>September 15, 2010</span></time></span>
-<meta itemprop="dateModified" content="September 15, 2010">
- | 
-  
-
-
-
-  <span class="byline author vcard">
-    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
-  </span>
-
-
-        
-        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
-  <meta itemprop="name" content="David Xia">
-  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
-    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
-  </div>
-</div>
-
-        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
-  
-    
-    
-    
-  
-  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
-  <meta itemprop="height" content="696">
-  <meta itemprop="width" content="696">
-</span>
-
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Mark Twain once said, &ldquo;There are three kinds of lies: lies, damned lies and statistics.&rdquo; This is
-wonderfully exemplified in <a href="http://www.thisamericanlife.org/radio-archives/episode/414/right-to-remain-silent">last week&#8217;s radio program</a> from <a href="http://www.thisamericanlife.org/">This American Life</a>. The show
-described how the New York Police Department&rsquo;s <a href="http://www.nyc.gov/html/nypd/html/precincts/precinct_081.shtml">81st Precinct</a> distorted crime statistics. So
-what did police officer Adrian Schoolcraft do when his supervisors told him to downgrade real
-crimes into lesser ones? He began secretly recording his commanding and fellow officers on the job
-– for 17 months. Ever since Schoolcraft blew the whistle on these abuses (helped by this
-<a href="http://www.villagevoice.com/2010-05-04/news/the-nypd-tapes-inside-bed-stuy-s-81st-precinct/">five-part series</a> in the <em>Village Voice</em>), the NYPD&rsquo;s 81st has been hit with four
-investigations and numerous class action lawsuits.</p>
-
-<p>But this is more than just a story of unscrupulous police and careerist commanding officers. It&rsquo;s
-a story of how workplace statistics and performance metrics can create pervasive organizational
-dysfunction. <a href="http://www.google.com/search?sourceid=chrome&amp;ie=UTF-8&amp;q=compstat">CompStat</a> is the name of the NYPD&rsquo;s accountability process. According to the
-<em><a href="http://www.policechiefmagazine.org/magazine/index.cfm?fuseaction=display&amp;article_id=998&amp;issue_id=92006#2">Police Chief Magazine</a></em>, CompStat&rsquo;s purpose is to</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="https://www.davidxia.com/2010/09/how-to-manipulate-statistics-and-create-organizational-dysfunction/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-    <br class="clear">
-  
   <div class="pagination">
     
     <div class="col-md-4">
@@ -1168,7 +1460,7 @@ dysfunction. <a href="http://www.google.com/search?sourceid=chrome&amp;ie=UTF-8&
 <li class='category'><a href='/categories/new-york-city/'>New York City (17)</a></li>
 <li class='category'><a href='/categories/personal/'>Personal (55)</a></li>
 <li class='category'><a href='/categories/photography/'>Photography (3)</a></li>
-<li class='category'><a href='/categories/programming-and-software/'>Programming & Software (48)</a></li>
+<li class='category'><a href='/categories/programming-and-software/'>Programming & Software (49)</a></li>
 <li class='category'><a href='/categories/spy-shit/'>Spy Shit (5)</a></li>
 <li class='category'><a href='/categories/startups-and-entrepreneurism/'>Startups & Entrepreneurism (4)</a></li>
 <li class='category'><a href='/categories/swimming/'>Swimming (2)</a></li>

@@ -10,8 +10,8 @@
   <meta name="author" content="David Xia">
 
   
-  <meta name="description" content="I got bored so I learned how to setup HTTPS on the admin parts of my WordPress blog. At first I
-was generating self-signed certificates because I read that &hellip;">
+  <meta name="description" content="I spent yesterday optimizing the performance of this site. I love fast page loads and have little
+patience for sluggish performance. Here&rsquo;s what I did. 1 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -31,8 +31,8 @@ was generating self-signed certificates because I read that &hellip;">
   <meta property="og:url" content="https://www.davidxia.com/posts/11/" />
   <meta property="og:image" content="https://i.imgur.com/BJPOY0D.jpg" />
   <meta property="og:locale" content="en_US" />
-  <meta property="og:description" content="I got bored so I learned how to setup HTTPS on the admin parts of my WordPress blog. At first I
-was generating self-signed certificates because I read that &hellip;" />
+  <meta property="og:description" content="I spent yesterday optimizing the performance of this site. I love fast page loads and have little
+patience for sluggish performance. Here&rsquo;s what I did. 1 &hellip;" />
   <meta property="fb:admins" content="122703" />
 
   <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -103,6 +103,114 @@ was generating self-signed certificates because I read that &hellip;" />
   
     
     <article itemscope itemtype="http://schema.org/BlogPosting" class="first">
+      
+  <header>
+    <span itemprop="name headline">
+      
+        <h2 class="entry-title"><a href="/2012/03/how-i-increased-my-wordpress-sites-speed/">How I Increased My WordPress Site&#8217;s Speed</a></h2>
+      
+    </span>
+    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2012/03/how-i-increased-my-wordpress-sites-speed/">
+    
+      <p class="meta">
+        
+  
+  
+
+  
+    
+  
+
+  
+    
+  
+
+
+
+<span itemprop="datePublished" content="March  2, 2012"><time class='entry-date' datetime='2012-03-02T00:00:00-05:00'><span class='date'>March  2, 2012</span></time></span>
+<meta itemprop="dateModified" content="March  2, 2012">
+ | 
+  
+
+
+
+  <span class="byline author vcard">
+    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
+  </span>
+
+
+        
+        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
+  <meta itemprop="name" content="David Xia">
+  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
+    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
+  </div>
+</div>
+
+        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
+  
+    
+    
+    
+  
+  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
+  <meta itemprop="height" content="696">
+  <meta itemprop="width" content="696">
+</span>
+
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>I spent yesterday optimizing the performance of this site. I love fast page loads and have little
+patience for sluggish performance. Here&rsquo;s what I did.</p>
+
+<p><strong>1. Leverage browser caching</strong></p>
+
+<p>Tell your web server to set expiration headers for static resources so browsers know to store them
+in local disk. This will keep requests off the network altogether. I use Apache:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;IfModule mod_expires.c&gt;
+</span><span class='line'>    ExpiresActive On
+</span><span class='line'>    ExpiresDefault "access plus 300 seconds"
+</span><span class='line'>    ExpiresByType text/css "access plus 1 month"
+</span><span class='line'>    ExpiresByType text/javascript "access plus 1 month"
+</span><span class='line'>    ExpiresByType application/javascript "access plus 1 month"
+</span><span class='line'>    ExpiresByType application/x-javascript "access plus 1 month"
+</span><span class='line'>    ExpiresByType image/gif "access plus 1 month"
+</span><span class='line'>    ExpiresByType image/jpg "access plus 1 month"
+</span><span class='line'>    ExpiresByType image/png "access plus 1 month"
+</span><span class='line'>&lt;/IfModule&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="https://www.davidxia.com/2012/03/how-i-increased-my-wordpress-sites-speed/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+    <br class="clear">
+  
+    
+    <article itemscope itemtype="http://schema.org/BlogPosting" >
       
   <header>
     <span itemprop="name headline">
@@ -849,87 +957,6 @@ designer <a href="http://www.subtraction.com/" title="Khoi Vinh's personal websi
     </article>
     <br class="clear">
   
-    
-    <article itemscope itemtype="http://schema.org/BlogPosting" >
-      
-  <header>
-    <span itemprop="name headline">
-      
-        <h2 class="entry-title"><a href="/2012/02/the-origin-of-the-world-wide-web/">The Origin of the World Wide Web</a></h2>
-      
-    </span>
-    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2012/02/the-origin-of-the-world-wide-web/">
-    
-      <p class="meta">
-        
-  
-  
-
-  
-    
-  
-
-  
-    
-  
-
-
-
-<span itemprop="datePublished" content="February  1, 2012"><time class='entry-date' datetime='2012-02-01T00:00:00-05:00'><span class='date'>February  1, 2012</span></time></span>
-<meta itemprop="dateModified" content="February  1, 2012">
- | 
-  
-
-
-
-  <span class="byline author vcard">
-    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
-  </span>
-
-
-        
-        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
-  <meta itemprop="name" content="David Xia">
-  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
-    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
-  </div>
-</div>
-
-        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
-  
-    
-    
-    
-  
-  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
-  <meta itemprop="height" content="696">
-  <meta itemprop="width" content="696">
-</span>
-
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>I&rsquo;m reading Tim Berners-Lee&rsquo;s book <em><a href="http://www.amazon.com/gp/product/006251587X/ref=as_li_ss_tl?ie=UTF8&amp;tag=easiamus00-20&amp;linkCode=as2&amp;camp=1789&amp;creative=390957&amp;creativeASIN=006251587X">Weaving the Web</a></em><img src="https://www.assoc-amazon.com/e/ir?t=easiamus00-20&amp;l=as2&amp;o=1&amp;a=006251587X" alt="" /> about how he conceived of and
-designed the world wide web.</p>
-
-<p>For a long time I never really got the distinction between the &ldquo;Internet&rdquo; and the &ldquo;world wide
-web.&rdquo; To me they were the same thing, and they might be for many other folks too. But in hindsight
-this is just a testament to how successful Berners-Lee&rsquo;s creation is.</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="https://www.davidxia.com/2012/02/the-origin-of-the-world-wide-web/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-    <br class="clear">
-  
   <div class="pagination">
     
     <div class="col-md-4">
@@ -1039,7 +1066,7 @@ this is just a testament to how successful Berners-Lee&rsquo;s creation is.</p>
 <li class='category'><a href='/categories/new-york-city/'>New York City (17)</a></li>
 <li class='category'><a href='/categories/personal/'>Personal (55)</a></li>
 <li class='category'><a href='/categories/photography/'>Photography (3)</a></li>
-<li class='category'><a href='/categories/programming-and-software/'>Programming & Software (48)</a></li>
+<li class='category'><a href='/categories/programming-and-software/'>Programming & Software (49)</a></li>
 <li class='category'><a href='/categories/spy-shit/'>Spy Shit (5)</a></li>
 <li class='category'><a href='/categories/startups-and-entrepreneurism/'>Startups & Entrepreneurism (4)</a></li>
 <li class='category'><a href='/categories/swimming/'>Swimming (2)</a></li>
