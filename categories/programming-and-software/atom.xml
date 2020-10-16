@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Programming & Software | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/programming-and-software/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2020-04-21T00:40:16-04:00</updated>
+  <updated>2020-10-16T17:19:30-04:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -12,6 +12,246 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[How to Analyze Mobile App Traffic and Reverse Engineer Its Non-Public API]]></title>
+    <link href="https://www.davidxia.com/2020/10/how-to-analyze-mobile-app-traffic-and-reverse-engineer-its-non-public-api/"/>
+    <updated>2020-10-16T17:08:35-04:00</updated>
+    <id>https://www.davidxia.com/2020/10/how-to-analyze-mobile-app-traffic-and-reverse-engineer-its-non-public-api</id>
+    <content type="html"><![CDATA[<p>Have you ever wanted to analyze the traffic between a mobile app and its servers or reverse engineer
+a mobile app&rsquo;s non-public API? Here&rsquo;s one way.</p>
+
+<p>The basic principle is to proxy the traffic from the app through a computer you control on which you
+can capture and analyze traffic. If the app you&rsquo;re interested in is using an unencrypted protocol
+like HTTP, this is pretty easy. Just run a proxy on your computer and configure your mobile device
+to proxy network traffic through your computer&rsquo;s IP.</p>
+
+<!-- more -->
+
+
+<p>Most apps these days, however, use encrypted protocols like HTTPS (or are even required to by
+default by mobile OSes). Data at the TCP layer and below like IP addresses and port numbers are
+visible in plaintext, but all application level data at the HTTPS layer is encrypted. So you run a
+proxy that supports HTTPS on your computer, but then your app doesn&rsquo;t trust the self-signed TLS
+certificate your computer presents. Mobile apps used to trust certificates that the mobile device&rsquo;s
+system trusted. So you could just download the self-signed certificate onto the mobile device and
+configure the mobile OS to trust it. But these days mobile app frameworks let developers customize
+their app&rsquo;s network security settings (<a href="https://developer.android.com/training/articles/security-config.html">like so for Android</a>).</p>
+
+<p>Let&rsquo;s say your mobile app has custom trust anchors or pins certificates. What do you do now? You can
+either</p>
+
+<ol>
+<li>disable the certificate check completely</li>
+<li>or alter the certificate check</li>
+</ol>
+
+
+<p>I&rsquo;m not familiar with how to do this on iOS (there seem to be good resources out there <a href="https://www.guardsquare.com/en/blog/iOS-SSL-certificate-pinning-bypassing">like
+this</a>) so will show how to do option two on Android.</p>
+
+<h2>Setup mobile device and app</h2>
+
+<p>I don&rsquo;t have an Android so used an emulator called <a href="https://www.genymotion.com/">Genymotion</a>. I created a Samsung Galaxy S9
+virtual device which is has a recent enough Android OS to run most mobile apps. In order to install
+the mobile app from the Google Play Store I had to install <a href="https://docs.genymotion.com/paas/7.0/07_Installing_OpenGApps.html#from-the-open-gapps-website">OpenGApps</a>. I think I&rsquo;m also able to
+download the APK from the web and drag and drop it into the emulator to install.</p>
+
+<!-- installed Hinge APK from here by drag and drop into emulator window
+https://hinge-app.en.uptodown.com/android/download -->
+
+
+<h2>Install Charles Proxy TLS certificate on device</h2>
+
+<p>To install the <a href="https://www.charlesproxy.com/documentation/using-charles/ssl-certificates/">Charles cert</a>, I had to open <a href="http://www.charlesproxy.com/getssl/">this page</a> in Chrome. The built-in browser in the
+emulator didn&rsquo;t seem to prompt me to download the Charles cert, but Chrome did. I installed Chrome
+by install OpenGApps and then installing Chrome from the Play store. I think I also needed to
+configure the Android device to use Charles as its proxy with <a href="https://stackoverflow.com/a/32865855">these steps</a> in order to get the
+certificate download prompt. Then I made the Android device trust it.</p>
+
+<h2>Patch the Android app&rsquo;s network security config</h2>
+
+<p>I used `apktool to decompile the APK.</p>
+
+<pre><code>brew install apktool
+
+apktool d /path/to/app.apk
+cd app
+find . -name network_security_config.xml
+./res/xml/network_security_config.xml
+
+cat res/xml/network_security_config.xml
+
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;network-security-config&gt;
+    &lt;domain-config cleartextTrafficPermitted="true"&gt;
+        &lt;domain includeSubdomains="true"&gt;res.cloudinary.com&lt;/domain&gt;
+        &lt;domain includeSubdomains="true"&gt;app-res.cloudinary.com&lt;/domain&gt;
+    &lt;/domain-config&gt;
+&lt;/network-security-config&gt;
+</code></pre>
+
+<p>The app only allows cleartext to the above two domains. I don&rsquo;t see any pinned certificates, but
+there must be some defaults since the app didn&rsquo;t trust the same certs trusted by the Android OS. So
+I updated <code>network_security_config.xml</code> to be the following.</p>
+
+<pre><code>&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;network-security-config&gt;
+    &lt;domain-config cleartextTrafficPermitted="true"&gt;
+        &lt;domain includeSubdomains="true"&gt;res.cloudinary.com&lt;/domain&gt;
+        &lt;domain includeSubdomains="true"&gt;app-res.cloudinary.com&lt;/domain&gt;
+    &lt;/domain-config&gt;
+    &lt;base-config&gt;
+        &lt;trust-anchors&gt;
+            &lt;certificates src="system" /&gt;
+            &lt;certificates src="user" /&gt;
+        &lt;/trust-anchors&gt;
+    &lt;/base-config&gt;
+&lt;/network-security-config&gt;
+</code></pre>
+
+<p>Then I tried recompiling the patched APK but got the following error.</p>
+
+<pre><code>cd app
+apktool b . -o ~/Downloads/app-patched.apk
+
+I: Using Apktool 2.4.1
+I: Checking whether sources has changed...
+I: Smaling smali folder into classes.dex...
+I: Checking whether sources has changed...
+I: Smaling smali_classes10 folder into classes10.dex...
+I: Checking whether sources has changed...
+I: Smaling smali_classes9 folder into classes9.dex...
+I: Checking whether sources has changed...
+I: Smaling smali_classes7 folder into classes7.dex...
+I: Checking whether sources has changed...
+I: Smaling smali_classes6 folder into classes6.dex...
+I: Checking whether sources has changed...
+I: Smaling smali_classes8 folder into classes8.dex...
+I: Checking whether sources has changed...
+I: Smaling smali_classes3 folder into classes3.dex...
+I: Checking whether sources has changed...
+I: Smaling smali_classes4 folder into classes4.dex...
+I: Checking whether sources has changed...
+I: Smaling smali_classes5 folder into classes5.dex...
+I: Checking whether sources has changed...
+I: Smaling smali_classes2 folder into classes2.dex...
+I: Checking whether resources has changed...
+I: Building resources...
+W: invalid resource directory name: /Users/dxia/Downloads/app/./res navigation
+brut.androlib.AndrolibException: brut.common.BrutException: could not exec (exit code = 1): [/var/folders/y_/sjt8100n43g69mtr9t588d6r0000gp/T/brut_util_Jar_15064276297777137207.tmp, p, --forced-package-id, 127, --min-sdk-version, 21, --target-sdk-version, 29, --version-code, 160072564, --version-name, 7.21.0, --no-version-vectors, -F, /var/folders/y_/sjt8100n43g69mtr9t588d6r0000gp/T/APKTOOL339327577576851750.tmp, -e, /var/folders/y_/sjt8100n43g69mtr9t588d6r0000gp/T/APKTOOL5191817693537904820.tmp, -0, arsc, -I, /Users/dxia/Library/apktool/framework/1.apk, -S, /Users/dxia/Downloads/app/./res, -M, /Users/dxia/Downloads/app/./AndroidManifest.xml]
+</code></pre>
+
+<p>This <a href="https://github.com/iBotPeaches/Apktool/issues/1978#issuecomment-452894225">Github issue comment</a> suggested I run that command with the <code>--use-aapt2</code> switch.
+Then I got another error.</p>
+
+<pre><code>apktool b --use-aapt2 . -o ~/Downloads/app-patched.apk
+
+I: Using Apktool 2.4.1
+I: Checking whether sources has changed...
+I: Checking whether sources has changed...
+I: Checking whether sources has changed...
+I: Checking whether sources has changed...
+I: Checking whether sources has changed...
+I: Checking whether sources has changed...
+I: Checking whether sources has changed...
+I: Checking whether sources has changed...
+I: Checking whether sources has changed...
+I: Checking whether sources has changed...
+I: Checking whether resources has changed...
+I: Building resources...
+W: /Users/dxia/Downloads/app-patched/./res/values/public.xml:2119: error: resource 'drawable/$avd_hide_password__0' has invalid entry name '$avd_hide_password__0'. Invalid character '$avd_hide_password__0'.
+W: /Users/dxia/Downloads/app-patched/./res/values/public.xml:2120: error: resource 'drawable/$avd_hide_password__1' has invalid entry name '$avd_hide_password__1'. Invalid character '$avd_hide_password__1'.
+W: /Users/dxia/Downloads/app-patched/./res/values/public.xml:2121: error: resource 'drawable/$avd_hide_password__2' has invalid entry name '$avd_hide_password__2'. Invalid character '$avd_hide_password__2'.
+W: /Users/dxia/Downloads/app-patched/./res/values/public.xml:2122: error: resource 'drawable/$avd_show_password__0' has invalid entry name '$avd_show_password__0'. Invalid character '$avd_show_password__0'.
+W: /Users/dxia/Downloads/app-patched/./res/values/public.xml:2123: error: resource 'drawable/$avd_show_password__1' has invalid entry name '$avd_show_password__1'. Invalid character '$avd_show_password__1'.
+W: /Users/dxia/Downloads/app-patched/./res/values/public.xml:2124: error: resource 'drawable/$avd_show_password__2' has invalid entry name '$avd_show_password__2'. Invalid character '$avd_show_password__2'.
+W: error: resource android:style/Animation.InputMethodFancy is private.
+W: error: resource android:style/Animation.VoiceInteractionSession is private.
+W: error: resource android:style/AlertDialog is private.
+W: /Users/dxia/Downloads/app-patched/./res/values-v24/styles.xml:10: error: style attribute 'android:attr/preferenceListStyle' is private.
+W: /Users/dxia/Downloads/app-patched/./res/values-v24/styles.xml:40: error: style attribute 'android:attr/preferenceListStyle' is private.
+W: /Users/dxia/Downloads/app-patched/./res/values-v24/styles.xml:70: error: style attribute 'android:attr/preferenceListStyle' is private.
+W: /Users/dxia/Downloads/app-patched/./res/values-v24/styles.xml:99: error: style attribute 'android:attr/preferenceListStyle' is private.
+W: /Users/dxia/Downloads/app-patched/./res/values-v28/styles.xml:8: error: style attribute 'android:attr/allowMassStorage' is private.
+W: /Users/dxia/Downloads/app-patched/./res/values-v26/styles.xml:13: error: resource android:attr/internalMaxWidth is private.
+W: /Users/dxia/Downloads/app-patched/./res/values-v26/styles.xml:16: error: resource android:attr/internalMaxWidth is private.
+W: /Users/dxia/Downloads/app-patched/./res/values-v26/styles.xml:20: error: style attribute 'android:attr/internalMinHeight' is private.
+W: /Users/dxia/Downloads/app-patched/./res/values-v28/styles.xml:17: error: resource android:attr/allowMassStorage is private.
+W: /Users/dxia/Downloads/app-patched/./res/values-v28/styles.xml:20: error: resource android:attr/allowMassStorage is private.
+W: error: resource android:style/DialogWindowTitle is private.
+W: /Users/dxia/Downloads/app-patched/./res/values-v23/styles.xml:13: error: style attribute 'android:attr/attr/private_resource_pad36' not found.
+W: /Users/dxia/Downloads/app-patched/./res/values-v23/styles.xml:14: error: style attribute 'android:attr/attr/private_resource_pad35' not found.
+W: /Users/dxia/Downloads/app-patched/./res/values-v23/styles.xml:20: error: style attribute 'android:attr/attr/private_resource_pad36' not found.
+W: /Users/dxia/Downloads/app-patched/./res/values-v23/styles.xml:21: error: style attribute 'android:attr/attr/private_resource_pad35' not found.
+W: /Users/dxia/Downloads/app-patched/./res/values-v23/styles.xml:24: error: resource android:attr/private_resource_pad31 not found.
+W: /Users/dxia/Downloads/app-patched/./res/values-v26/styles.xml:10: error: style attribute 'android:attr/internalMinHeight' is private.
+brut.androlib.AndrolibException: brut.common.BrutException: could not exec (exit code = 1): [/var/folders/y_/sjt8100n43g69mtr9t588d6r0000gp/T/brut_util_Jar_11817644492691338390.tmp, link, -o, /var/folders/y_/sjt8100n43g69mtr9t588d6r0000gp/T/APKTOOL6551307854758959712.tmp, --package-id, 127, --min-sdk-version, 21, --target-sdk-version, 29, --version-code, 160072564, --version-name, 7.21.0, --no-auto-version, --no-version-vectors, --no-version-transitions, --no-resource-deduping, -e, /var/folders/y_/sjt8100n43g69mtr9t588d6r0000gp/T/APKTOOL6723837428467013762.tmp, -0, arsc, -I, /Users/dxia/Library/apktool/framework/1.apk, --manifest, /Users/dxia/Downloads/app-patched/./AndroidManifest.xml, /Users/dxia/Downloads/app-patched/./build/resources.zip]
+</code></pre>
+
+<p><a href="https://github.com/iBotPeaches/Apktool/issues/2386#issuecomment-669505659">This PR</a> fixes the above on Linux and Windows. As of this writing, it&rsquo;s not released
+yet. So I had to <a href="https://ibotpeaches.github.io/Apktool/build/">build from source</a> on an Ubuntu VM.</p>
+
+<pre><code>java -jar ~/Apktool/brut.apktool/apktool-cli/build/libs/apktool-cli-all.jar b --use-aapt2 . -o ~/Downloads/app-patched.apk
+
+I: Using Apktool 2.4.2-3ac7e8-SNAPSHOT
+I: Checking whether sources has changed...
+I: Checking whether sources has changed...
+I: Checking whether sources has changed...
+I: Checking whether sources has changed...
+I: Checking whether sources has changed...
+I: Checking whether sources has changed...
+I: Checking whether sources has changed...
+I: Checking whether sources has changed...
+I: Checking whether sources has changed...
+I: Checking whether sources has changed...
+I: Checking whether resources has changed...
+I: Building apk file...
+I: Copying unknown files/dir...
+I: Built apk...
+</code></pre>
+
+<p>I signed the patched APK. First I generated some keys. I&rsquo;m not sure if certain signing and key
+algorithms are required, but these are the ones I used.</p>
+
+<pre><code>keytool -genkey -alias keys -keystore keys -sigalg MD5withRSA -keyalg RSA -keysize 2048 -validity 10000
+
+Enter keystore password:
+Re-enter new password:
+What is your first and last name?
+What is the name of your organizational unit?
+What is the name of your organization?
+What is the name of your City or Locality?
+What is the two-letter country code for this unit?
+Is CN=Unknown, OU=Unknown, O=Unknown, L=Unknown, ST=Unknown, C=Unknown correct?
+Warning:
+The generated certificate uses the MD5withRSA signature algorithm which is considered a security risk.
+
+jarsigner -sigalg MD5withRSA -digestalg SHA1 -verbose -keystore keys app-patched.apk keys
+</code></pre>
+
+<p>Then when dragging and dropping the patched APK into the virtual device, I got an error saying the
+app couldn&rsquo;t be installed. In these cases, generating the logs and grepping through them for errors
+like <code>INSTALL_PARSE_FAILED_NO_CERTIFICATES</code> and <code>INSTALL_FAILED_VERIFICATION_FAILURE</code> helps. I fixed
+this last error by <a href="https://stackoverflow.com/questions/15014519/apk-installation-failed-install-failed-verification-failure">disabling USB verification</a> in the virtual device
+settings. The setting for this is inside the virtual Android device itself under &ldquo;developer
+settings.&rdquo;</p>
+
+<h2>Sniff the traffic</h2>
+
+<p>I made sure the traffic was proxied through my computer, the patched app started successfully, and I
+was able to see unencrypted data in Charles!</p>
+
+<p><img class="center <a" src="href="https://i.imgur.com/e8p2Ne3h.jpg">https://i.imgur.com/e8p2Ne3h.jpg</a>&#8221;></p>
+
+<h2>References</h2>
+
+<ul>
+<li>&ldquo;<a href="https://gist.github.com/unoexperto/80694ccaed6dadc304ad5b8196cbbd2c">How to patch Android app to sniff its HTTPS traffic with self-signed certificate</a>&rdquo;</li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[How to Exploit Dlmalloc Unlink(): Protostar Level Heap3]]></title>
@@ -1869,44 +2109,6 @@ read-only. EmptyDir types are writable.</p>
 
 <p>Hopefully this helps some people out there who don&rsquo;t want to spend as much time as I did Googling
 obscure Nginx behavior.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Using Upstream Kubernetes Java Models Is Much Better Than Raw YAML]]></title>
-    <link href="https://www.davidxia.com/2018/11/using-upstream-kubernetes-java-models-is-much-better-than-raw-yaml/"/>
-    <updated>2018-11-11T17:11:38-05:00</updated>
-    <id>https://www.davidxia.com/2018/11/using-upstream-kubernetes-java-models-is-much-better-than-raw-yaml</id>
-    <content type="html"><![CDATA[<p>It&rsquo;s been a while since I blogged about something tech related, but I had some
-free time today.</p>
-
-<p>Recently, I&rsquo;ve been trying to refactor an internal Spotify deployment tool my
-team built and maintains. This deployment tool takes Kubernetes (k8s) YAML
-manifests, changes them, and essentially runs <code>kubectl apply</code>. We add metadata
-to the k8s manifests like labels.</p>
-
-<p>Right now this tool receives the input YAML as strings, converts them to
-Jackson ObjectNodes, and manipulates those ObjectNodes. The disadvantage of
-this is that there&rsquo;s no k8s type-safety. We might accidentally add a field to a
-Deployment that isn&rsquo;t valid or remove something from a Service that&rsquo;s required.</p>
-
-<p>My refactor uses upstream k8s model classes from <a href="https://github.com/kubernetes-client/java">kubernetes-client/java</a>
-which are themselves <a href="https://github.com/kubernetes-client/gen">generated</a> from the official Swagger spec. Here&rsquo;s a
-helpful Yaml utility class that deserializes YAML strings into concrete classes
-and can also serialize them back into YAML strings. So helpful.</p>
-
-<p>Unfortunately, there&rsquo;s some bugs in the YAML (de)serialization that prevent me
-from finishing this effort.</p>
-
-<ul>
-<li><a href="https://github.com/kubernetes-client/java/pull/417">kubernetes-client/java issue 417</a></li>
-<li><a href="https://github.com/kubernetes-client/java/issues/431">kubernetes-client/java issue 431</a></li>
-<li><a href="https://github.com/kubernetes-client/java/issues/340">kubernetes-client/java issue 340</a></li>
-</ul>
-
-
-<p>Nonetheless, it&rsquo;ll be much nicer to change k8s resources in a type-safe way
-instead of parsing and rewriting raw YAML strings.</p>
 ]]></content>
   </entry>
   

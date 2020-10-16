@@ -10,9 +10,8 @@
   <meta name="author" content="David Xia">
 
   
-  <meta name="description" content="Public-key cryptography
-is an encryption method that uses two keys, one public and one private, to securely communicate
-with others. Messages are encrypted &hellip;">
+  <meta name="description" content="I stumbled around for quite a while trying to create a basic Scala project in IntelliJ.
+Here are the steps so you don&rsquo;t have to waste nearly as much time &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -32,9 +31,8 @@ with others. Messages are encrypted &hellip;">
   <meta property="og:url" content="https://www.davidxia.com/posts/7/" />
   <meta property="og:image" content="https://i.imgur.com/BJPOY0D.jpg" />
   <meta property="og:locale" content="en_US" />
-  <meta property="og:description" content="Public-key cryptography
-is an encryption method that uses two keys, one public and one private, to securely communicate
-with others. Messages are encrypted &hellip;" />
+  <meta property="og:description" content="I stumbled around for quite a while trying to create a basic Scala project in IntelliJ.
+Here are the steps so you don&rsquo;t have to waste nearly as much time &hellip;" />
   <meta property="fb:admins" content="122703" />
 
   <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -105,6 +103,106 @@ with others. Messages are encrypted &hellip;" />
   
     
     <article itemscope itemtype="http://schema.org/BlogPosting" class="first">
+      
+  <header>
+    <span itemprop="name headline">
+      
+        <h2 class="entry-title"><a href="/2013/12/how-to-setup-your-first-scala-project-in-intellij/">How to Setup Your First Scala Project in IntelliJ</a></h2>
+      
+    </span>
+    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2013/12/how-to-setup-your-first-scala-project-in-intellij/">
+    
+      <p class="meta">
+        
+  
+  
+
+  
+    
+  
+
+  
+    
+  
+
+
+
+<span itemprop="datePublished" content="December 16, 2013"><time class='entry-date' datetime='2013-12-16T00:00:00-05:00'><span class='date'>December 16, 2013</span></time></span>
+<meta itemprop="dateModified" content="December 16, 2013">
+ | 
+  
+
+
+
+  <span class="byline author vcard">
+    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
+  </span>
+
+
+        
+        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
+  <meta itemprop="name" content="David Xia">
+  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
+    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
+  </div>
+</div>
+
+        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
+  
+    
+    
+    
+  
+  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
+  <meta itemprop="height" content="696">
+  <meta itemprop="width" content="696">
+</span>
+
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>I stumbled around for quite a while trying to create a basic Scala project in IntelliJ.
+Here are the steps so you don&rsquo;t have to waste nearly as much time as I did. I&rsquo;m also documenting
+this because I know I&rsquo;m going to forget it myself.</p>
+
+<p>My environment:</p>
+
+<ul>
+<li>Mac OS X Mavericks 10.9</li>
+<li>IntelliJ IDEA 13.0</li>
+</ul>
+
+
+<p>My steps:</p>
+
+<ul>
+<li>install Scala with homebrew <code>brew install scala --with-docs</code>
+
+<ul>
+<li>this installed Scala version 2.10.3 for me</li>
+</ul>
+</li>
+<li><code>brew install sbt</code> (I&rsquo;m using 0.13.0)</li>
+<li><code>mkdir ~/.sbt/0.13/plugins</code></li>
+<li><code>echo 'addSbtPlugin("com.github.mpeltonen" % "sbt-idea" % "1.5.2")' &gt; ~/.sbt/0.13/plugins/build.sbt</code></li>
+<li>install the scala plugin for IntelliJ</li>
+<li><code>git clone https://github.com/davidxia/hidemyass_api.git</code></li>
+<li>import project; choose &ldquo;import project from external model&rdquo; and select &ldquo;Use auto-import&rdquo;</li>
+<li>make sure it compiles and runs</li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+    <br class="clear">
+  
+    
+    <article itemscope itemtype="http://schema.org/BlogPosting" >
       
   <header>
     <span itemprop="name headline">
@@ -601,7 +699,7 @@ stuff. You just want your website to work. Is this that much to ask?</p>
 
 <p>This tutorial<sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup> will get your own website up and running from scratch in under 1.5 hours. At the
 end you&rsquo;ll be able to type &ldquo;myownwebsite.com&rdquo; into your browser to see a website you own and
-receive e-mail at &ldquo;<a href="&#109;&#97;&#x69;&#x6c;&#116;&#111;&#58;&#102;&#105;&#114;&#115;&#116;&#x6e;&#x61;&#109;&#101;&#x40;&#109;&#121;&#111;&#x77;&#110;&#119;&#x65;&#x62;&#x73;&#x69;&#116;&#101;&#x2e;&#99;&#x6f;&#109;">&#x66;&#105;&#114;&#x73;&#116;&#110;&#x61;&#109;&#101;&#64;&#x6d;&#x79;&#111;&#119;&#110;&#119;&#101;&#98;&#x73;&#105;&#116;&#101;&#x2e;&#99;&#x6f;&#x6d;</a>&rdquo;. You&rsquo;ll learn how the Internet works on a basic
+receive e-mail at &ldquo;<a href="&#109;&#x61;&#x69;&#108;&#x74;&#x6f;&#58;&#102;&#105;&#x72;&#x73;&#x74;&#110;&#x61;&#x6d;&#101;&#64;&#109;&#121;&#x6f;&#x77;&#x6e;&#119;&#101;&#x62;&#x73;&#x69;&#x74;&#101;&#x2e;&#99;&#111;&#109;">&#x66;&#105;&#x72;&#115;&#116;&#110;&#97;&#x6d;&#x65;&#x40;&#109;&#121;&#111;&#119;&#110;&#x77;&#101;&#x62;&#115;&#x69;&#x74;&#101;&#46;&#x63;&#111;&#109;</a>&rdquo;. You&rsquo;ll learn how the Internet works on a basic
 level, what domain name servers (DNS) are, and how to link your website to Google&rsquo;s free apps.</p>
 
 <ol>
@@ -882,106 +980,6 @@ crisis and made off like gangbusters by betting against the housing market.</p>
     </article>
     <br class="clear">
   
-    
-    <article itemscope itemtype="http://schema.org/BlogPosting" >
-      
-  <header>
-    <span itemprop="name headline">
-      
-        <h2 class="entry-title"><a href="/2013/04/good-comedy-is-serious/">Good Comedy Is Serious</a></h2>
-      
-    </span>
-    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2013/04/good-comedy-is-serious/">
-    
-      <p class="meta">
-        
-  
-  
-
-  
-    
-  
-
-  
-    
-  
-
-
-
-<span itemprop="datePublished" content="April  9, 2013"><time class='entry-date' datetime='2013-04-09T00:00:00-04:00'><span class='date'>April  9, 2013</span></time></span>
-<meta itemprop="dateModified" content="April  9, 2013">
- | 
-  
-
-
-
-  <span class="byline author vcard">
-    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
-  </span>
-
-
-        
-        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
-  <meta itemprop="name" content="David Xia">
-  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
-    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
-  </div>
-</div>
-
-        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
-  
-    
-    
-    
-  
-  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
-  <meta itemprop="height" content="696">
-  <meta itemprop="width" content="696">
-</span>
-
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>I enjoy watching good comedians perform because they often address an underlying, serious issue
-and introduce me to different perspectives.</p>
-
-<p>Dave Chappelle said he always enjoys scatological humor, but he also said, &ldquo;I pride myself on
-saying real shit that people don&rsquo;t even realize I&rsquo;m saying.&rdquo; Chappelle&rsquo;s parents were professors,
-and he <a href="http://youtu.be/84NjYRTHpfU?t=26m">joked once</a> during <em>Inside the Actor&rsquo;s Studio</em> that he was &ldquo;the first person in [his]
-family not to go to college who had not been a slave.&rdquo; He moved at the age of 10 from the
-outskirts of Washington DC to live with his father in Yellow Springs, Ohio. While he was gone the
-<a href="http://en.wikipedia.org/wiki/Crack_epidemic" title="American Crack Epidemic">American crack epidemic</a> struck the city and transformed it into &ldquo;murder capital.&rdquo; Chappelle
-said it was as if a &ldquo;crack bomb&rdquo; had exploded causing almost everyone he knew to get involved in
-the drug trade.</p>
-
-<p>For one job during his high school years, he wore a cookie costume with a big chocolate chip on
-his head and handed out flyers to earn $3.50 an hour while other black youth were making far more
-money dealing crack. Years later Chappelle filmed the HBO special &ldquo;Killin&#8217; Them Softly&rdquo; in which
-he joked about being chauffered in a limousine by a driver who wanted to make a detour in the
-ghetto.</p>
-
-<p>(starts at 1:36)</p>
-
-<iframe class="fill-width" width="540" height="405" src="https://www.youtube-nocookie.com/embed/F3c_-dde-wo?rel=0"
-  frameborder="0" allowfullscreen></iframe>
-
-
-
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="https://www.davidxia.com/2013/04/good-comedy-is-serious/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-    <br class="clear">
-  
   <div class="pagination">
     
     <div class="col-md-4">
@@ -1083,7 +1081,7 @@ ghetto.</p>
 <li class='category'><a href='/categories/electronics/'>Electronics (3)</a></li>
 <li class='category'><a href='/categories/food-and-drink/'>Food & Drink (12)</a></li>
 <li class='category'><a href='/categories/friends/'>Friends (15)</a></li>
-<li class='category'><a href='/categories/information-security/'>Information Security (8)</a></li>
+<li class='category'><a href='/categories/information-security/'>Information Security (9)</a></li>
 <li class='category'><a href='/categories/internet/'>Internet (28)</a></li>
 <li class='category'><a href='/categories/journalism/'>Journalism (13)</a></li>
 <li class='category'><a href='/categories/math/'>Math (10)</a></li>
@@ -1091,7 +1089,7 @@ ghetto.</p>
 <li class='category'><a href='/categories/new-york-city/'>New York City (17)</a></li>
 <li class='category'><a href='/categories/personal/'>Personal (55)</a></li>
 <li class='category'><a href='/categories/photography/'>Photography (3)</a></li>
-<li class='category'><a href='/categories/programming-and-software/'>Programming & Software (49)</a></li>
+<li class='category'><a href='/categories/programming-and-software/'>Programming & Software (50)</a></li>
 <li class='category'><a href='/categories/spy-shit/'>Spy Shit (5)</a></li>
 <li class='category'><a href='/categories/startups-and-entrepreneurism/'>Startups & Entrepreneurism (4)</a></li>
 <li class='category'><a href='/categories/swimming/'>Swimming (2)</a></li>

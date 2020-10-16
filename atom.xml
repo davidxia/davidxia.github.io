@@ -4,7 +4,7 @@
   <title><![CDATA[David Xia]]></title>
   <link href="https://www.davidxia.com/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2020-04-21T00:40:16-04:00</updated>
+  <updated>2020-10-16T17:19:30-04:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -12,6 +12,396 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[How to Analyze Mobile App Traffic and Reverse Engineer Its Non-Public API]]></title>
+    <link href="https://www.davidxia.com/2020/10/how-to-analyze-mobile-app-traffic-and-reverse-engineer-its-non-public-api/"/>
+    <updated>2020-10-16T17:08:35-04:00</updated>
+    <id>https://www.davidxia.com/2020/10/how-to-analyze-mobile-app-traffic-and-reverse-engineer-its-non-public-api</id>
+    <content type="html"><![CDATA[<p>Have you ever wanted to analyze the traffic between a mobile app and its servers or reverse engineer
+a mobile app&rsquo;s non-public API? Here&rsquo;s one way.</p>
+
+<p>The basic principle is to proxy the traffic from the app through a computer you control on which you
+can capture and analyze traffic. If the app you&rsquo;re interested in is using an unencrypted protocol
+like HTTP, this is pretty easy. Just run a proxy on your computer and configure your mobile device
+to proxy network traffic through your computer&rsquo;s IP.</p>
+
+<!-- more -->
+
+
+<p>Most apps these days, however, use encrypted protocols like HTTPS (or are even required to by
+default by mobile OSes). Data at the TCP layer and below like IP addresses and port numbers are
+visible in plaintext, but all application level data at the HTTPS layer is encrypted. So you run a
+proxy that supports HTTPS on your computer, but then your app doesn&rsquo;t trust the self-signed TLS
+certificate your computer presents. Mobile apps used to trust certificates that the mobile device&rsquo;s
+system trusted. So you could just download the self-signed certificate onto the mobile device and
+configure the mobile OS to trust it. But these days mobile app frameworks let developers customize
+their app&rsquo;s network security settings (<a href="https://developer.android.com/training/articles/security-config.html">like so for Android</a>).</p>
+
+<p>Let&rsquo;s say your mobile app has custom trust anchors or pins certificates. What do you do now? You can
+either</p>
+
+<ol>
+<li>disable the certificate check completely</li>
+<li>or alter the certificate check</li>
+</ol>
+
+
+<p>I&rsquo;m not familiar with how to do this on iOS (there seem to be good resources out there <a href="https://www.guardsquare.com/en/blog/iOS-SSL-certificate-pinning-bypassing">like
+this</a>) so will show how to do option two on Android.</p>
+
+<h2>Setup mobile device and app</h2>
+
+<p>I don&rsquo;t have an Android so used an emulator called <a href="https://www.genymotion.com/">Genymotion</a>. I created a Samsung Galaxy S9
+virtual device which is has a recent enough Android OS to run most mobile apps. In order to install
+the mobile app from the Google Play Store I had to install <a href="https://docs.genymotion.com/paas/7.0/07_Installing_OpenGApps.html#from-the-open-gapps-website">OpenGApps</a>. I think I&rsquo;m also able to
+download the APK from the web and drag and drop it into the emulator to install.</p>
+
+<!-- installed Hinge APK from here by drag and drop into emulator window
+https://hinge-app.en.uptodown.com/android/download -->
+
+
+<h2>Install Charles Proxy TLS certificate on device</h2>
+
+<p>To install the <a href="https://www.charlesproxy.com/documentation/using-charles/ssl-certificates/">Charles cert</a>, I had to open <a href="http://www.charlesproxy.com/getssl/">this page</a> in Chrome. The built-in browser in the
+emulator didn&rsquo;t seem to prompt me to download the Charles cert, but Chrome did. I installed Chrome
+by install OpenGApps and then installing Chrome from the Play store. I think I also needed to
+configure the Android device to use Charles as its proxy with <a href="https://stackoverflow.com/a/32865855">these steps</a> in order to get the
+certificate download prompt. Then I made the Android device trust it.</p>
+
+<h2>Patch the Android app&rsquo;s network security config</h2>
+
+<p>I used `apktool to decompile the APK.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>brew install apktool
+</span><span class='line'>
+</span><span class='line'>apktool d /path/to/app.apk
+</span><span class='line'>cd app
+</span><span class='line'>find . -name network_security_config.xml
+</span><span class='line'>./res/xml/network_security_config.xml
+</span><span class='line'>
+</span><span class='line'>cat res/xml/network_security_config.xml
+</span><span class='line'>
+</span><span class='line'>&lt;?xml version="1.0" encoding="utf-8"?&gt;
+</span><span class='line'>&lt;network-security-config&gt;
+</span><span class='line'>    &lt;domain-config cleartextTrafficPermitted="true"&gt;
+</span><span class='line'>        &lt;domain includeSubdomains="true"&gt;res.cloudinary.com&lt;/domain&gt;
+</span><span class='line'>        &lt;domain includeSubdomains="true"&gt;app-res.cloudinary.com&lt;/domain&gt;
+</span><span class='line'>    &lt;/domain-config&gt;
+</span><span class='line'>&lt;/network-security-config&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The app only allows cleartext to the above two domains. I don&rsquo;t see any pinned certificates, but
+there must be some defaults since the app didn&rsquo;t trust the same certs trusted by the Android OS. So
+I updated <code>network_security_config.xml</code> to be the following.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;?xml version="1.0" encoding="utf-8"?&gt;
+</span><span class='line'>&lt;network-security-config&gt;
+</span><span class='line'>    &lt;domain-config cleartextTrafficPermitted="true"&gt;
+</span><span class='line'>        &lt;domain includeSubdomains="true"&gt;res.cloudinary.com&lt;/domain&gt;
+</span><span class='line'>        &lt;domain includeSubdomains="true"&gt;app-res.cloudinary.com&lt;/domain&gt;
+</span><span class='line'>    &lt;/domain-config&gt;
+</span><span class='line'>    &lt;base-config&gt;
+</span><span class='line'>        &lt;trust-anchors&gt;
+</span><span class='line'>            &lt;certificates src="system" /&gt;
+</span><span class='line'>            &lt;certificates src="user" /&gt;
+</span><span class='line'>        &lt;/trust-anchors&gt;
+</span><span class='line'>    &lt;/base-config&gt;
+</span><span class='line'>&lt;/network-security-config&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then I tried recompiling the patched APK but got the following error.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>cd app
+</span><span class='line'>apktool b . -o ~/Downloads/app-patched.apk
+</span><span class='line'>
+</span><span class='line'>I: Using Apktool 2.4.1
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Smaling smali folder into classes.dex...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Smaling smali_classes10 folder into classes10.dex...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Smaling smali_classes9 folder into classes9.dex...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Smaling smali_classes7 folder into classes7.dex...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Smaling smali_classes6 folder into classes6.dex...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Smaling smali_classes8 folder into classes8.dex...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Smaling smali_classes3 folder into classes3.dex...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Smaling smali_classes4 folder into classes4.dex...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Smaling smali_classes5 folder into classes5.dex...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Smaling smali_classes2 folder into classes2.dex...
+</span><span class='line'>I: Checking whether resources has changed...
+</span><span class='line'>I: Building resources...
+</span><span class='line'>W: invalid resource directory name: /Users/dxia/Downloads/app/./res navigation
+</span><span class='line'>brut.androlib.AndrolibException: brut.common.BrutException: could not exec (exit code = 1): [/var/folders/y_/sjt8100n43g69mtr9t588d6r0000gp/T/brut_util_Jar_15064276297777137207.tmp, p, --forced-package-id, 127, --min-sdk-version, 21, --target-sdk-version, 29, --version-code, 160072564, --version-name, 7.21.0, --no-version-vectors, -F, /var/folders/y_/sjt8100n43g69mtr9t588d6r0000gp/T/APKTOOL339327577576851750.tmp, -e, /var/folders/y_/sjt8100n43g69mtr9t588d6r0000gp/T/APKTOOL5191817693537904820.tmp, -0, arsc, -I, /Users/dxia/Library/apktool/framework/1.apk, -S, /Users/dxia/Downloads/app/./res, -M, /Users/dxia/Downloads/app/./AndroidManifest.xml]</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This <a href="https://github.com/iBotPeaches/Apktool/issues/1978#issuecomment-452894225">Github issue comment</a> suggested I run that command with the <code>--use-aapt2</code> switch.
+Then I got another error.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>apktool b --use-aapt2 . -o ~/Downloads/app-patched.apk
+</span><span class='line'>
+</span><span class='line'>I: Using Apktool 2.4.1
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether resources has changed...
+</span><span class='line'>I: Building resources...
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values/public.xml:2119: error: resource 'drawable/$avd_hide_password__0' has invalid entry name '$avd_hide_password__0'. Invalid character '$avd_hide_password__0'.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values/public.xml:2120: error: resource 'drawable/$avd_hide_password__1' has invalid entry name '$avd_hide_password__1'. Invalid character '$avd_hide_password__1'.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values/public.xml:2121: error: resource 'drawable/$avd_hide_password__2' has invalid entry name '$avd_hide_password__2'. Invalid character '$avd_hide_password__2'.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values/public.xml:2122: error: resource 'drawable/$avd_show_password__0' has invalid entry name '$avd_show_password__0'. Invalid character '$avd_show_password__0'.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values/public.xml:2123: error: resource 'drawable/$avd_show_password__1' has invalid entry name '$avd_show_password__1'. Invalid character '$avd_show_password__1'.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values/public.xml:2124: error: resource 'drawable/$avd_show_password__2' has invalid entry name '$avd_show_password__2'. Invalid character '$avd_show_password__2'.
+</span><span class='line'>W: error: resource android:style/Animation.InputMethodFancy is private.
+</span><span class='line'>W: error: resource android:style/Animation.VoiceInteractionSession is private.
+</span><span class='line'>W: error: resource android:style/AlertDialog is private.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values-v24/styles.xml:10: error: style attribute 'android:attr/preferenceListStyle' is private.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values-v24/styles.xml:40: error: style attribute 'android:attr/preferenceListStyle' is private.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values-v24/styles.xml:70: error: style attribute 'android:attr/preferenceListStyle' is private.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values-v24/styles.xml:99: error: style attribute 'android:attr/preferenceListStyle' is private.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values-v28/styles.xml:8: error: style attribute 'android:attr/allowMassStorage' is private.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values-v26/styles.xml:13: error: resource android:attr/internalMaxWidth is private.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values-v26/styles.xml:16: error: resource android:attr/internalMaxWidth is private.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values-v26/styles.xml:20: error: style attribute 'android:attr/internalMinHeight' is private.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values-v28/styles.xml:17: error: resource android:attr/allowMassStorage is private.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values-v28/styles.xml:20: error: resource android:attr/allowMassStorage is private.
+</span><span class='line'>W: error: resource android:style/DialogWindowTitle is private.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values-v23/styles.xml:13: error: style attribute 'android:attr/attr/private_resource_pad36' not found.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values-v23/styles.xml:14: error: style attribute 'android:attr/attr/private_resource_pad35' not found.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values-v23/styles.xml:20: error: style attribute 'android:attr/attr/private_resource_pad36' not found.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values-v23/styles.xml:21: error: style attribute 'android:attr/attr/private_resource_pad35' not found.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values-v23/styles.xml:24: error: resource android:attr/private_resource_pad31 not found.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values-v26/styles.xml:10: error: style attribute 'android:attr/internalMinHeight' is private.
+</span><span class='line'>brut.androlib.AndrolibException: brut.common.BrutException: could not exec (exit code = 1): [/var/folders/y_/sjt8100n43g69mtr9t588d6r0000gp/T/brut_util_Jar_11817644492691338390.tmp, link, -o, /var/folders/y_/sjt8100n43g69mtr9t588d6r0000gp/T/APKTOOL6551307854758959712.tmp, --package-id, 127, --min-sdk-version, 21, --target-sdk-version, 29, --version-code, 160072564, --version-name, 7.21.0, --no-auto-version, --no-version-vectors, --no-version-transitions, --no-resource-deduping, -e, /var/folders/y_/sjt8100n43g69mtr9t588d6r0000gp/T/APKTOOL6723837428467013762.tmp, -0, arsc, -I, /Users/dxia/Library/apktool/framework/1.apk, --manifest, /Users/dxia/Downloads/app-patched/./AndroidManifest.xml, /Users/dxia/Downloads/app-patched/./build/resources.zip]</span></code></pre></td></tr></table></div></figure>
+
+
+<p><a href="https://github.com/iBotPeaches/Apktool/issues/2386#issuecomment-669505659">This PR</a> fixes the above on Linux and Windows. As of this writing, it&rsquo;s not released
+yet. So I had to <a href="https://ibotpeaches.github.io/Apktool/build/">build from source</a> on an Ubuntu VM.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>java -jar ~/Apktool/brut.apktool/apktool-cli/build/libs/apktool-cli-all.jar b --use-aapt2 . -o ~/Downloads/app-patched.apk
+</span><span class='line'>
+</span><span class='line'>I: Using Apktool 2.4.2-3ac7e8-SNAPSHOT
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether resources has changed...
+</span><span class='line'>I: Building apk file...
+</span><span class='line'>I: Copying unknown files/dir...
+</span><span class='line'>I: Built apk...</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I signed the patched APK. First I generated some keys. I&rsquo;m not sure if certain signing and key
+algorithms are required, but these are the ones I used.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>keytool -genkey -alias keys -keystore keys -sigalg MD5withRSA -keyalg RSA -keysize 2048 -validity 10000
+</span><span class='line'>
+</span><span class='line'>Enter keystore password:
+</span><span class='line'>Re-enter new password:
+</span><span class='line'>What is your first and last name?
+</span><span class='line'>  [Unknown]:
+</span><span class='line'>What is the name of your organizational unit?
+</span><span class='line'>  [Unknown]:
+</span><span class='line'>What is the name of your organization?
+</span><span class='line'>  [Unknown]:
+</span><span class='line'>
+</span><span class='line'>What is the name of your City or Locality?
+</span><span class='line'>  [Unknown]:  What is the name of your State or Province?
+</span><span class='line'>  [Unknown]:
+</span><span class='line'>What is the two-letter country code for this unit?
+</span><span class='line'>  [Unknown]:
+</span><span class='line'>Is CN=Unknown, OU=Unknown, O=Unknown, L=Unknown, ST=Unknown, C=Unknown correct?
+</span><span class='line'>  [no]:  yes
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>Warning:
+</span><span class='line'>The generated certificate uses the MD5withRSA signature algorithm which is considered a security risk.
+</span><span class='line'>
+</span><span class='line'>jarsigner -sigalg MD5withRSA -digestalg SHA1 -verbose -keystore keys app-patched.apk keys</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then when dragging and dropping the patched APK into the virtual device, I got an error saying the
+app couldn&rsquo;t be installed. In these cases, generating the logs and grepping through them for errors
+like <code>INSTALL_PARSE_FAILED_NO_CERTIFICATES</code> and <code>INSTALL_FAILED_VERIFICATION_FAILURE</code> helps. I fixed
+this last error by <a href="https://stackoverflow.com/questions/15014519/apk-installation-failed-install-failed-verification-failure">disabling USB verification</a> in the virtual device
+settings. The setting for this is inside the virtual Android device itself under &ldquo;developer
+settings.&rdquo;</p>
+
+<h2>Sniff the traffic</h2>
+
+<p>I made sure the traffic was proxied through my computer, the patched app started successfully, and I
+was able to see unencrypted data in Charles!</p>
+
+<p><img class="center" src="https://i.imgur.com/e8p2Ne3h.jpg"></p>
+
+<h2>References</h2>
+
+<ul>
+<li>&ldquo;<a href="https://gist.github.com/unoexperto/80694ccaed6dadc304ad5b8196cbbd2c">How to patch Android app to sniff its HTTPS traffic with self-signed certificate</a>&rdquo;</li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[How to Exploit Dlmalloc Unlink(): Protostar Level Heap3]]></title>
@@ -3738,73 +4128,6 @@ trip. The waves could be truly terrifying.</p>
 
 
 <div class='image center'><img  src="https://i.imgur.com/EExUThOl.jpg" width="480" height="640" title="I can't remember what we were trying to do in the pool." ><div class='caption'>I can&#8217;t remember what we were trying to do in the pool.</div></div>
-
-
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[My First Open Water Swimming Event]]></title>
-    <link href="https://www.davidxia.com/2016/07/my-first-open-water-swimming-event/"/>
-    <updated>2016-07-08T22:51:51-04:00</updated>
-    <id>https://www.davidxia.com/2016/07/my-first-open-water-swimming-event</id>
-    <content type="html"><![CDATA[<p>I visited the southern UK with my parents last March. We visited the coast where I took a photo of the
-English Channel and <a href="https://www.facebook.com/davidxia2/posts/10102320113525692">posted it on Facebook</a> with the caption,
-&ldquo;I&rsquo;m looking across the English Channel now wondering if I have what it takes to swim across to
-France. It&rsquo;s 21 miles across at its narrowest point and the fastest swimmer made it across in a
-little over seven hours and the slowest one was 27 hours. Average water temperatures in the summer
-are 14-18 degrees Celsius.&rdquo;</p>
-
-<p>My high school swim coach Jen saw it and said, &ldquo;If you are seriously considering, let me know &mdash; I
-have many friends who have done this swim (yes I hang out with weirdos)!&rdquo;. Let&rsquo;s start with
-something a bit more realistic I said. Jen encouraged me to participate in the annual Wayland Three
-Mile Swim which she organizes. The race takes place in Lake Cochituate, a small body of water in
-Wayland, Massachusetts which borders my hometown of Wellesley.</p>
-
-<p>So I <a href="https://www.davidxia.com/2016/04/when-routine-becomes-ritual/">trained religiously</a> for three months. A couple of days before June 19,
-I took a bus from New York City back to Wellesley for the open water swim that would start at
-7:30AM.</p>
-
-<!--more-->
-
-
-<p>My parents were very supportive of my endeavor and even woke up with me at 5AM to come watch.
-We drove fifteen minutes to Wayland Town Beach. I met and hugged Jen and my other high school coach
-Sandy both of whom I haven&rsquo;t seen in many years. We waited for a boat to setup the large
-neon-colored, inflatable buoys in the lake.</p>
-
-<p>There were twenty swimmers registered for the three mile race. I didn&rsquo;t have any expectations for
-myself. I never swam continuously for such a long distance before (I was a sprinter in high school),
-so my base goal was to simply finish within two hours, the maximum time allowed.</p>
-
-<p>Summary:</p>
-
-<ol>
-<li>I did better than I thought I would. <a href="http://www.coolrunning.com/results/16/ma/Jun19_Waylan_set6.shtml">1 hour and 30 minutes.</a></li>
-<li>I had my ass handed to me by 50-year-old men and teenage girls.
-(Jeff Naylor, age 57, came in second place with a time of 1:05:21. Jeff, what are you on?
-&#35;lifegoals)</li>
-<li>I&rsquo;d definitely do it again. The water and weather were perfect. The lake tasted great.
-I know because I drank half of it.</li>
-</ol>
-
-
-<p>Here are some photos.</p>
-
-<div class='image center'><img  src="https://i.imgur.com/afzPLf7l.jpg" width="640" height="480" title="I pose for a photo after finishing the swim. Everything is sore." ><div class='caption'>I pose for a photo after finishing the swim. Everything is sore.</div></div>
-
-
-<div class='image center'><img  src="https://i.imgur.com/prSXIsel.jpg" width="640" height="480" title="Moments before the race begins. Jeff Naylor is on my left and Sandy Smith on my right." ><div class='caption'>Moments before the race begins. Jeff Naylor is on my left and Sandy Smith on my right.</div></div>
-
-
-<div class='image center'><img  src="https://i.imgur.com/Ifoh58ll.jpg" width="640" height="480" title="That's me and my kayak escort Spencer, Jen's son. I'm lucky he volunteered. I don't know who I would've had escort me otherwise." ><div class='caption'>That&#8217;s me and my kayak escort Spencer, Jen&#8217;s son. I&#8217;m lucky he volunteered. I don&#8217;t know who I would&#8217;ve had escort me otherwise.</div></div>
-
-
-<div class='image center'><img  src="https://i.imgur.com/8w3OgzLl.jpg" width="640" height="480" title="Another photo of right before the start." ><div class='caption'>Another photo of right before the start.</div></div>
-
-
-<div class='image center'><img  src="https://i.imgur.com/KOXM9t4l.jpg" width="583" height="470" title="Three mile race results." ><div class='caption'>Three mile race results.</div></div>
 
 
 

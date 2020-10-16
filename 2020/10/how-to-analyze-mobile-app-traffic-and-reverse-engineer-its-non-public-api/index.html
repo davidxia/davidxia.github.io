@@ -1,0 +1,780 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <title>How to Analyze Mobile App Traffic and Reverse Engineer Its Non-Public API - David Xia</title>
+  <meta name="author" content="David Xia">
+
+  
+  <meta name="description" content="How to Analyze Mobile App Traffic and Reverse Engineer Its Non-Public API October 16, 2020 | By David Xia Have you ever wanted to analyze the traffic between &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="https://www.davidxia.com/2020/10/how-to-analyze-mobile-app-traffic-and-reverse-engineer-its-non-public-api/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="David Xia" type="application/atom+xml">
+
+  <meta property="og:site_name" content="David Xia" />
+  <meta property="og:title" content="How to Analyze Mobile App Traffic and Reverse Engineer Its Non-Public API - David Xia" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://www.davidxia.com/2020/10/how-to-analyze-mobile-app-traffic-and-reverse-engineer-its-non-public-api/" />
+  <meta property="og:image" content="https://i.imgur.com/BJPOY0D.jpg" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:description" content="How to Analyze Mobile App Traffic and Reverse Engineer Its Non-Public API October 16, 2020 | By David Xia Have you ever wanted to analyze the traffic between &hellip;" />
+  <meta property="fb:admins" content="122703" />
+
+  <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+  <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+<![endif]-->
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-25283538-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+      google_ad_client: "ca-pub-1777254647176109",
+      enable_page_level_ads: true
+    });
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <div class="navbar" role="navigation">
+    <div class="container">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <h1><a class="navbar-brand" href="/">David Xia</a></h1>
+      </div>
+      <div class="navbar-collapse collapse">
+        <ul class="nav navbar-nav">
+          <li><a href="/about">About</a></li>
+          <li><a href="/work">Work</a></li>
+          <li><a href="/contact">Contact</a></li>
+        </ul>
+      </div><!--/.navbar-collapse -->
+    </div>
+  </div>
+</hgroup>
+
+</header>
+  <div itemscope itemtype="https://schema.org/Brand">
+  <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
+</div>
+
+  <div class="container main">
+    <div class="row">
+      <div class="col-md-8">
+  <article itemscope itemtype="http://schema.org/BlogPosting" class="hentry first" role="article">
+    
+  <header>
+    <span itemprop="name headline">
+      
+        <h2 class="entry-title">How to Analyze Mobile App Traffic and Reverse Engineer Its Non-Public API</h2>
+      
+    </span>
+    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2020/10/how-to-analyze-mobile-app-traffic-and-reverse-engineer-its-non-public-api/">
+    
+      <p class="meta">
+        
+  
+  
+
+  
+    
+  
+
+  
+    
+  
+
+
+
+<span itemprop="datePublished" content="October 16, 2020"><time class='entry-date' datetime='2020-10-16T17:08:35-04:00'><span class='date'>October 16, 2020</span></time></span>
+<meta itemprop="dateModified" content="October 16, 2020">
+ | 
+  
+
+
+
+  <span class="byline author vcard">
+    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
+  </span>
+
+
+        
+        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
+  <meta itemprop="name" content="David Xia">
+  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
+    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
+  </div>
+</div>
+
+        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
+  
+    
+    
+    
+  
+  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
+  <meta itemprop="height" content="696">
+  <meta itemprop="width" content="696">
+</span>
+
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Have you ever wanted to analyze the traffic between a mobile app and its servers or reverse engineer
+a mobile app&rsquo;s non-public API? Here&rsquo;s one way.</p>
+
+<p>The basic principle is to proxy the traffic from the app through a computer you control on which you
+can capture and analyze traffic. If the app you&rsquo;re interested in is using an unencrypted protocol
+like HTTP, this is pretty easy. Just run a proxy on your computer and configure your mobile device
+to proxy network traffic through your computer&rsquo;s IP.</p>
+
+<!-- more -->
+
+
+<p>Most apps these days, however, use encrypted protocols like HTTPS (or are even required to by
+default by mobile OSes). Data at the TCP layer and below like IP addresses and port numbers are
+visible in plaintext, but all application level data at the HTTPS layer is encrypted. So you run a
+proxy that supports HTTPS on your computer, but then your app doesn&rsquo;t trust the self-signed TLS
+certificate your computer presents. Mobile apps used to trust certificates that the mobile device&rsquo;s
+system trusted. So you could just download the self-signed certificate onto the mobile device and
+configure the mobile OS to trust it. But these days mobile app frameworks let developers customize
+their app&rsquo;s network security settings (<a href="https://developer.android.com/training/articles/security-config.html">like so for Android</a>).</p>
+
+<p>Let&rsquo;s say your mobile app has custom trust anchors or pins certificates. What do you do now? You can
+either</p>
+
+<ol>
+<li>disable the certificate check completely</li>
+<li>or alter the certificate check</li>
+</ol>
+
+
+<p>I&rsquo;m not familiar with how to do this on iOS (there seem to be good resources out there <a href="https://www.guardsquare.com/en/blog/iOS-SSL-certificate-pinning-bypassing">like
+this</a>) so will show how to do option two on Android.</p>
+
+<h2>Setup mobile device and app</h2>
+
+<p>I don&rsquo;t have an Android so used an emulator called <a href="https://www.genymotion.com/">Genymotion</a>. I created a Samsung Galaxy S9
+virtual device which is has a recent enough Android OS to run most mobile apps. In order to install
+the mobile app from the Google Play Store I had to install <a href="https://docs.genymotion.com/paas/7.0/07_Installing_OpenGApps.html#from-the-open-gapps-website">OpenGApps</a>. I think I&rsquo;m also able to
+download the APK from the web and drag and drop it into the emulator to install.</p>
+
+<!-- installed Hinge APK from here by drag and drop into emulator window
+https://hinge-app.en.uptodown.com/android/download -->
+
+
+<h2>Install Charles Proxy TLS certificate on device</h2>
+
+<p>To install the <a href="https://www.charlesproxy.com/documentation/using-charles/ssl-certificates/">Charles cert</a>, I had to open <a href="http://www.charlesproxy.com/getssl/">this page</a> in Chrome. The built-in browser in the
+emulator didn&rsquo;t seem to prompt me to download the Charles cert, but Chrome did. I installed Chrome
+by install OpenGApps and then installing Chrome from the Play store. I think I also needed to
+configure the Android device to use Charles as its proxy with <a href="https://stackoverflow.com/a/32865855">these steps</a> in order to get the
+certificate download prompt. Then I made the Android device trust it.</p>
+
+<h2>Patch the Android app&rsquo;s network security config</h2>
+
+<p>I used `apktool to decompile the APK.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>brew install apktool
+</span><span class='line'>
+</span><span class='line'>apktool d /path/to/app.apk
+</span><span class='line'>cd app
+</span><span class='line'>find . -name network_security_config.xml
+</span><span class='line'>./res/xml/network_security_config.xml
+</span><span class='line'>
+</span><span class='line'>cat res/xml/network_security_config.xml
+</span><span class='line'>
+</span><span class='line'>&lt;?xml version="1.0" encoding="utf-8"?&gt;
+</span><span class='line'>&lt;network-security-config&gt;
+</span><span class='line'>    &lt;domain-config cleartextTrafficPermitted="true"&gt;
+</span><span class='line'>        &lt;domain includeSubdomains="true"&gt;res.cloudinary.com&lt;/domain&gt;
+</span><span class='line'>        &lt;domain includeSubdomains="true"&gt;app-res.cloudinary.com&lt;/domain&gt;
+</span><span class='line'>    &lt;/domain-config&gt;
+</span><span class='line'>&lt;/network-security-config&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The app only allows cleartext to the above two domains. I don&rsquo;t see any pinned certificates, but
+there must be some defaults since the app didn&rsquo;t trust the same certs trusted by the Android OS. So
+I updated <code>network_security_config.xml</code> to be the following.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;?xml version="1.0" encoding="utf-8"?&gt;
+</span><span class='line'>&lt;network-security-config&gt;
+</span><span class='line'>    &lt;domain-config cleartextTrafficPermitted="true"&gt;
+</span><span class='line'>        &lt;domain includeSubdomains="true"&gt;res.cloudinary.com&lt;/domain&gt;
+</span><span class='line'>        &lt;domain includeSubdomains="true"&gt;app-res.cloudinary.com&lt;/domain&gt;
+</span><span class='line'>    &lt;/domain-config&gt;
+</span><span class='line'>    &lt;base-config&gt;
+</span><span class='line'>        &lt;trust-anchors&gt;
+</span><span class='line'>            &lt;certificates src="system" /&gt;
+</span><span class='line'>            &lt;certificates src="user" /&gt;
+</span><span class='line'>        &lt;/trust-anchors&gt;
+</span><span class='line'>    &lt;/base-config&gt;
+</span><span class='line'>&lt;/network-security-config&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then I tried recompiling the patched APK but got the following error.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>cd app
+</span><span class='line'>apktool b . -o ~/Downloads/app-patched.apk
+</span><span class='line'>
+</span><span class='line'>I: Using Apktool 2.4.1
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Smaling smali folder into classes.dex...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Smaling smali_classes10 folder into classes10.dex...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Smaling smali_classes9 folder into classes9.dex...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Smaling smali_classes7 folder into classes7.dex...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Smaling smali_classes6 folder into classes6.dex...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Smaling smali_classes8 folder into classes8.dex...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Smaling smali_classes3 folder into classes3.dex...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Smaling smali_classes4 folder into classes4.dex...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Smaling smali_classes5 folder into classes5.dex...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Smaling smali_classes2 folder into classes2.dex...
+</span><span class='line'>I: Checking whether resources has changed...
+</span><span class='line'>I: Building resources...
+</span><span class='line'>W: invalid resource directory name: /Users/dxia/Downloads/app/./res navigation
+</span><span class='line'>brut.androlib.AndrolibException: brut.common.BrutException: could not exec (exit code = 1): [/var/folders/y_/sjt8100n43g69mtr9t588d6r0000gp/T/brut_util_Jar_15064276297777137207.tmp, p, --forced-package-id, 127, --min-sdk-version, 21, --target-sdk-version, 29, --version-code, 160072564, --version-name, 7.21.0, --no-version-vectors, -F, /var/folders/y_/sjt8100n43g69mtr9t588d6r0000gp/T/APKTOOL339327577576851750.tmp, -e, /var/folders/y_/sjt8100n43g69mtr9t588d6r0000gp/T/APKTOOL5191817693537904820.tmp, -0, arsc, -I, /Users/dxia/Library/apktool/framework/1.apk, -S, /Users/dxia/Downloads/app/./res, -M, /Users/dxia/Downloads/app/./AndroidManifest.xml]</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This <a href="https://github.com/iBotPeaches/Apktool/issues/1978#issuecomment-452894225">Github issue comment</a> suggested I run that command with the <code>--use-aapt2</code> switch.
+Then I got another error.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>apktool b --use-aapt2 . -o ~/Downloads/app-patched.apk
+</span><span class='line'>
+</span><span class='line'>I: Using Apktool 2.4.1
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether resources has changed...
+</span><span class='line'>I: Building resources...
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values/public.xml:2119: error: resource 'drawable/$avd_hide_password__0' has invalid entry name '$avd_hide_password__0'. Invalid character '$avd_hide_password__0'.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values/public.xml:2120: error: resource 'drawable/$avd_hide_password__1' has invalid entry name '$avd_hide_password__1'. Invalid character '$avd_hide_password__1'.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values/public.xml:2121: error: resource 'drawable/$avd_hide_password__2' has invalid entry name '$avd_hide_password__2'. Invalid character '$avd_hide_password__2'.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values/public.xml:2122: error: resource 'drawable/$avd_show_password__0' has invalid entry name '$avd_show_password__0'. Invalid character '$avd_show_password__0'.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values/public.xml:2123: error: resource 'drawable/$avd_show_password__1' has invalid entry name '$avd_show_password__1'. Invalid character '$avd_show_password__1'.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values/public.xml:2124: error: resource 'drawable/$avd_show_password__2' has invalid entry name '$avd_show_password__2'. Invalid character '$avd_show_password__2'.
+</span><span class='line'>W: error: resource android:style/Animation.InputMethodFancy is private.
+</span><span class='line'>W: error: resource android:style/Animation.VoiceInteractionSession is private.
+</span><span class='line'>W: error: resource android:style/AlertDialog is private.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values-v24/styles.xml:10: error: style attribute 'android:attr/preferenceListStyle' is private.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values-v24/styles.xml:40: error: style attribute 'android:attr/preferenceListStyle' is private.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values-v24/styles.xml:70: error: style attribute 'android:attr/preferenceListStyle' is private.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values-v24/styles.xml:99: error: style attribute 'android:attr/preferenceListStyle' is private.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values-v28/styles.xml:8: error: style attribute 'android:attr/allowMassStorage' is private.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values-v26/styles.xml:13: error: resource android:attr/internalMaxWidth is private.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values-v26/styles.xml:16: error: resource android:attr/internalMaxWidth is private.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values-v26/styles.xml:20: error: style attribute 'android:attr/internalMinHeight' is private.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values-v28/styles.xml:17: error: resource android:attr/allowMassStorage is private.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values-v28/styles.xml:20: error: resource android:attr/allowMassStorage is private.
+</span><span class='line'>W: error: resource android:style/DialogWindowTitle is private.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values-v23/styles.xml:13: error: style attribute 'android:attr/attr/private_resource_pad36' not found.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values-v23/styles.xml:14: error: style attribute 'android:attr/attr/private_resource_pad35' not found.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values-v23/styles.xml:20: error: style attribute 'android:attr/attr/private_resource_pad36' not found.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values-v23/styles.xml:21: error: style attribute 'android:attr/attr/private_resource_pad35' not found.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values-v23/styles.xml:24: error: resource android:attr/private_resource_pad31 not found.
+</span><span class='line'>W: /Users/dxia/Downloads/app-patched/./res/values-v26/styles.xml:10: error: style attribute 'android:attr/internalMinHeight' is private.
+</span><span class='line'>brut.androlib.AndrolibException: brut.common.BrutException: could not exec (exit code = 1): [/var/folders/y_/sjt8100n43g69mtr9t588d6r0000gp/T/brut_util_Jar_11817644492691338390.tmp, link, -o, /var/folders/y_/sjt8100n43g69mtr9t588d6r0000gp/T/APKTOOL6551307854758959712.tmp, --package-id, 127, --min-sdk-version, 21, --target-sdk-version, 29, --version-code, 160072564, --version-name, 7.21.0, --no-auto-version, --no-version-vectors, --no-version-transitions, --no-resource-deduping, -e, /var/folders/y_/sjt8100n43g69mtr9t588d6r0000gp/T/APKTOOL6723837428467013762.tmp, -0, arsc, -I, /Users/dxia/Library/apktool/framework/1.apk, --manifest, /Users/dxia/Downloads/app-patched/./AndroidManifest.xml, /Users/dxia/Downloads/app-patched/./build/resources.zip]</span></code></pre></td></tr></table></div></figure>
+
+
+<p><a href="https://github.com/iBotPeaches/Apktool/issues/2386#issuecomment-669505659">This PR</a> fixes the above on Linux and Windows. As of this writing, it&rsquo;s not released
+yet. So I had to <a href="https://ibotpeaches.github.io/Apktool/build/">build from source</a> on an Ubuntu VM.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>java -jar ~/Apktool/brut.apktool/apktool-cli/build/libs/apktool-cli-all.jar b --use-aapt2 . -o ~/Downloads/app-patched.apk
+</span><span class='line'>
+</span><span class='line'>I: Using Apktool 2.4.2-3ac7e8-SNAPSHOT
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether sources has changed...
+</span><span class='line'>I: Checking whether resources has changed...
+</span><span class='line'>I: Building apk file...
+</span><span class='line'>I: Copying unknown files/dir...
+</span><span class='line'>I: Built apk...</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I signed the patched APK. First I generated some keys. I&rsquo;m not sure if certain signing and key
+algorithms are required, but these are the ones I used.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>keytool -genkey -alias keys -keystore keys -sigalg MD5withRSA -keyalg RSA -keysize 2048 -validity 10000
+</span><span class='line'>
+</span><span class='line'>Enter keystore password:
+</span><span class='line'>Re-enter new password:
+</span><span class='line'>What is your first and last name?
+</span><span class='line'>  [Unknown]:
+</span><span class='line'>What is the name of your organizational unit?
+</span><span class='line'>  [Unknown]:
+</span><span class='line'>What is the name of your organization?
+</span><span class='line'>  [Unknown]:
+</span><span class='line'>
+</span><span class='line'>What is the name of your City or Locality?
+</span><span class='line'>  [Unknown]:  What is the name of your State or Province?
+</span><span class='line'>  [Unknown]:
+</span><span class='line'>What is the two-letter country code for this unit?
+</span><span class='line'>  [Unknown]:
+</span><span class='line'>Is CN=Unknown, OU=Unknown, O=Unknown, L=Unknown, ST=Unknown, C=Unknown correct?
+</span><span class='line'>  [no]:  yes
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>Warning:
+</span><span class='line'>The generated certificate uses the MD5withRSA signature algorithm which is considered a security risk.
+</span><span class='line'>
+</span><span class='line'>jarsigner -sigalg MD5withRSA -digestalg SHA1 -verbose -keystore keys app-patched.apk keys</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then when dragging and dropping the patched APK into the virtual device, I got an error saying the
+app couldn&rsquo;t be installed. In these cases, generating the logs and grepping through them for errors
+like <code>INSTALL_PARSE_FAILED_NO_CERTIFICATES</code> and <code>INSTALL_FAILED_VERIFICATION_FAILURE</code> helps. I fixed
+this last error by <a href="https://stackoverflow.com/questions/15014519/apk-installation-failed-install-failed-verification-failure">disabling USB verification</a> in the virtual device
+settings. The setting for this is inside the virtual Android device itself under &ldquo;developer
+settings.&rdquo;</p>
+
+<h2>Sniff the traffic</h2>
+
+<p>I made sure the traffic was proxied through my computer, the patched app started successfully, and I
+was able to see unencrypted data in Charles!</p>
+
+<p><img class="center" src="https://i.imgur.com/e8p2Ne3h.jpg"></p>
+
+<h2>References</h2>
+
+<ul>
+<li>&ldquo;<a href="https://gist.github.com/unoexperto/80694ccaed6dadc304ad5b8196cbbd2c">How to patch Android app to sniff its HTTPS traffic with self-signed certificate</a>&rdquo;</li>
+</ul>
+
+</div>
+
+
+    <ul class="post-meta">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </ul>
+    <footer>
+      <p class="meta">
+        
+
+<span class="categories">
+  
+    Categories: <a class='category' href='/categories/information-security/'>Information Security</a>, <a class='category' href='/categories/programming-and-software/'>Programming & Software</a>
+  
+</span>
+
+
+      </p>
+      
+        <div class="sharing">
+  
+    <a id="custom-tweet-button" title="tweet about How to Analyze Mobile App Traffic and Reverse Engineer Its Non-Public API" href="https://twitter.com/share?url=https%3A%2F%2Fwww.davidxia.com%2F2020%2F10%2Fhow-to-analyze-mobile-app-traffic-and-reverse-engineer-its-non-public-api%2F&text=How%20to%20Analyze%20Mobile%20App%20Traffic%20and%20Reverse%20Engineer%20Its%20Non-Public%20API&via=davidxia_" target="_blank" rel="nofollow">tweet</a>
+  
+  
+    <a id="custom-google-share-button" title="share How to Analyze Mobile App Traffic and Reverse Engineer Its Non-Public API" href="https://plus.google.com/share?url=https%3A%2F%2Fwww.davidxia.com%2F2020%2F10%2Fhow-to-analyze-mobile-app-traffic-and-reverse-engineer-its-non-public-api%2F" target="_blank" rel="nofollow">Google+</a>
+  
+  
+    <a id="custom-facebook-share-button" title="share How to Analyze Mobile App Traffic and Reverse Engineer Its Non-Public API on Facebook" href="http://www.facebook.com/sharer.php?u=https%3A%2F%2Fwww.davidxia.com%2F2020%2F10%2Fhow-to-analyze-mobile-app-traffic-and-reverse-engineer-its-non-public-api%2F&t=How%20to%20Analyze%20Mobile%20App%20Traffic%20and%20Reverse%20Engineer%20Its%20Non-Public%20API" target="_blank" rel="nofollow">facebook</a>
+  
+</div>
+
+      
+      <div class="meta np-page-links-div">
+        
+          <div class="basic-alignment left col-md-6">
+            <a class="np-page-link" href="/2020/04/how-to-exploit-dlmalloc-unlink/" title="Previous Post: How to Exploit dlmalloc unlink(): Protostar Level Heap3">&larr; How to Exploit dlmalloc unlink(): Protostar Level Heap3</a>
+          </div>
+        
+        
+        <div class="clear"></div>
+      </div>
+    </footer>
+  </article>
+  
+    <section>
+      <h1>Comments</h1>
+      <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+    </section>
+  
+</div>
+
+<div class="col-md-4">
+  <aside class="well sidebar-nav">
+    
+      
+<section>
+  <h3>About</h3>
+  <p>I&#8217;m David Xia. I write software and occasionally prose.</p>
+</section>
+
+
+<!-- side nav ad -->
+<ins class="adsbygoogle"
+     style="display:inline-block;width:300px;height:250px"
+     data-ad-client="ca-pub-1777254647176109"
+     data-ad-slot="8066618875"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+
+<section>
+  <h3>Elsewhere</h3>
+  <span itemscope itemtype="http://schema.org/Person">
+  <ul>
+    
+    <li><a itemprop="sameAs" href="https://twitter.com/davidxia_" rel="me" title="David Xia’s " target="_self">Twitter</a></li>
+    
+    <li><a itemprop="sameAs" href="https://www.facebook.com/david.xia2" rel="me" title="David Xia’s " target="_self">Facebook</a></li>
+    
+    <li><a itemprop="sameAs" href="https://www.snapchat.com/add/david.xia2" rel="me" title="David Xia’s " target="_self">Snapchat</a></li>
+    
+    <li><a itemprop="sameAs" href="https://github.com/davidxia2" rel="me" title="David Xia’s " target="_self">GitHub</a></li>
+    
+    <li><a itemprop="sameAs" href="https://keybase.io/davidxia" rel="me" title="David Xia’s " target="_self">Keybase</a></li>
+    
+    <li><a itemprop="sameAs" href="https://www.instagram.com/david.xia/" rel="me" title="David Xia’s " target="_self">Instagram</a></li>
+    
+    <li><a itemprop="sameAs" href="https://www.youtube.com/user/dx314152653" rel="me" title="David Xia’s " target="_self">Youtube</a></li>
+    
+    <li><a itemprop="sameAs" href="https://www.linkedin.com/in/davidweixia" rel="me" title="David Xia’s " target="_self">LinkedIn</a></li>
+    
+    <li><a itemprop="sameAs" href="https://plus.google.com/111695463592724886678?rel=author" rel="me" title="David Xia’s " target="_self">Google+</a></li>
+    
+    <li><a itemprop="sameAs" href="https://vimeo.com/davidxia" rel="me" title="David Xia’s " target="_self">Vimeo</a></li>
+    
+    <li><a itemprop="sameAs" href="https://stackoverflow.com/users/553994/david-xia" rel="me" title="David Xia’s " target="_self">StackOverflow</a></li>
+    
+  </ul>
+  </span>
+</section>
+
+<section>
+  <h3>Wise Words</h3>
+  <p id="rquote"></p>
+  <p id="rquote_source"></p>
+  <script text="javascript">
+    var quotesObjs = [{"quote":"job = just over broke"},{"quote":"ISAF = I suck at fighting, I saw Americans fighting","source":"American troops in Afghanistan"},{"quote":"army = ain’t ready for Marines yet","source":"US Army"},{"quote":"Here’s to the crazy ones. The rebels. The troublemakers. The ones who see things differently. While some may see them as the crazy ones, we see genius. Because the people who are crazy enough to think they can change the world, are the ones who do.","source":"Apple's Think Different ad"},{"quote":"The cure for boredom is curiosity. There is no cure for curiosity.","source":"Dorothy Parker"},{"quote":"Unfettered by that, they proceeded to indulge themselves in sensual pleasures like sheep.","source":"Al-Ghazali, The Rescuer From Error"},{"quote":"More confusion – more nonsense, – and the nonsense, as usual, dangerous nonsense.","source":"Jeremy Bentham, Anarchical Fallacies"},{"quote":"Marriage is the grave of confidence and love.","source":"Olympe de Gouges in The Rights of Woman on the contemporary sad state of marriage"},{"quote":"Christian troops, we are told, are excellent. I deny this. Is someone going to show me some?","source":"Jean-Jacques Rousseau, On the Social Contract (Book IV, Ch VIII)"},{"quote":"Being powerful is like being a lady. If you have to tell people you are, you aren’t.","source":"Margaret Thatcher"},{"quote":"Weniger, aber besser (Less, but better)","source":"Dieter Rams"},{"quote":"There are two major products that came out of Berkeley: LSD and UNIX. We don't believe this to be a coincidence.","source":"Jeremy S. Anderson"},{"quote":"[Linux] is not some crazy drug-induced microkernel...","source":"Linus Torvalds, Linux Kernel Mailing List"},{"quote":"Good design is as little design as possible.","source":"Dieter Rams"},{"quote":"I don’t care to belong to any club that will have me as a member.","source":"Groucho Marx"},{"quote":"Part of the secret of a success in life is to eat what you like and let the food fight it out inside.","source":"Mark Twain"},{"quote":"Before you speak, ask yourself: Is it necessary? Is it true? Does it improve upon the silence?","source":"Shirdi Sai Baba"},{"quote":"It is not the critic who counts; not the man who points out how the strong man stumbles, or where the doer of deeds could have done them better. The credit belongs to the man who is actually in the arena, whose face is marred by dust and sweat and blood.","source":"Theodore Roosevelt"},{"quote":"Above all else, try something.","source":"Franklin Roosevelt"},{"quote":"If you are going through hell, keep going.","source":"Winston Churchill"},{"quote":"Workers work hard enough to not be fired, and owners pay just enough so that workers don't quit."},{"quote":"Bulls make money, and bears make money; but pigs get slaughtered.","source":"the Street"},{"quote":"Profits are made when something is bought; not when it is sold."},{"quote":"In this world nothing is certain but death and taxes.","source":"Benjamin Franklin"},{"quote":"The only difference between death and taxes is that on occasion death is relatively painless."},{"quote":"The only man never to be redeemed is the man without passion.","source":"Atlas Shrugged"},{"quote":"I believe a lecture should be like a woman's skirt. Long enough to cover the subject, short enough to keep it interesting.","source":"René Morel"},{"quote":"It is easy in the world to live after the world's opinion; it is easy in solitude to live after our own; but the great man is he who in the midst of the crowd keeps with perfect sweetness the independence of solitude.","source":"Ralph Waldo Emerson"},{"quote":"The happiness of those who want to be popular depends on others; the happiness of those who seek pleasure fluctuates with moods outside their control; but the happiness of the wise grows out of their own free acts.","source":"Marcus Aurelius"},{"quote":"The difference between raising boys and girls is that with boys, you have to worry about one penis. With girls, you have to worry about all the penises.","source":"Anonymous"},{"quote":"Some pretend to be rich, yet have nothing; others pretend to be poor, yet have great wealth.","source":"Proverbs 13:7"},{"quote":"I returned, and saw under the sun, that the race is not to the swift, nor the battle to the strong, neither bread to the wise, nor yet riches to men of understanding, nor yet favor to men of skill; but time and chance happeneth to them all.","source":"Ecclesiastes 9:11"},{"quote":"A banker is a fellow who lends you his umbrella when the sun is shining, but wants it back the minute it begins to rain.","source":"Mark Twain"},{"quote":"No group of professionals meets except to conspire against the public at large.","source":"Mark Twain"},{"quote":"If you simplify your English, you are freed from the worst follies of orthodoxy. Political language...is designed to make lies sound truthful and murder respectable, and to give an appearance of solidity to pure wind.","source":"George Orwell in Politics and the English Language"},{"quote":"Neither can his mind be thought to be in tune, whose words do jarre, nor his reason in frame, whose sentence is preposterous.","source":"Ben Jonson"},{"quote":"A lack of visual clarity in arranging evidence is a sign of lack of intellectual clarity in reasoning about evidence.","source":"Tufte in Visual Explanations"},{"quote":"For the love of money is the root of all evil: which while some coveted after, they have erred from the faith, and pierced themselves through with many sorrows.","source":"St. Paul in his First Letter to Timothy"}];
+    quoteObj = quotesObjs[Math.floor(Math.random() * quotesObjs.length)];
+    document.getElementById('rquote').innerHTML = quoteObj.quote;
+    document.getElementById('rquote_source').innerHTML = quoteObj.source;
+  </script>
+</section>
+
+<section>
+  <h3>RSS Links</h3>
+  <p><a href="/atom.xml">All posts</a></p>
+</section>
+
+<section class="last">
+  <h3>Categories</h3>
+  <ul id="categories">
+    <li class='category'><a href='/categories/business/'>Business (9)</a></li>
+<li class='category'><a href='/categories/career/'>Career (16)</a></li>
+<li class='category'><a href='/categories/china/'>China (13)</a></li>
+<li class='category'><a href='/categories/chinese-culture/'>Chinese Culture (12)</a></li>
+<li class='category'><a href='/categories/columbia-university/'>Columbia University (27)</a></li>
+<li class='category'><a href='/categories/computer-science/'>Computer Science (7)</a></li>
+<li class='category'><a href='/categories/current-events/'>Current Events (43)</a></li>
+<li class='category'><a href='/categories/design/'>Design (6)</a></li>
+<li class='category'><a href='/categories/economy/'>Economy (11)</a></li>
+<li class='category'><a href='/categories/electronics/'>Electronics (3)</a></li>
+<li class='category'><a href='/categories/food-and-drink/'>Food & Drink (12)</a></li>
+<li class='category'><a href='/categories/friends/'>Friends (15)</a></li>
+<li class='category'><a href='/categories/information-security/'>Information Security (9)</a></li>
+<li class='category'><a href='/categories/internet/'>Internet (28)</a></li>
+<li class='category'><a href='/categories/journalism/'>Journalism (13)</a></li>
+<li class='category'><a href='/categories/math/'>Math (10)</a></li>
+<li class='category'><a href='/categories/nature-and-outdoors/'>Nature & Outdoors (12)</a></li>
+<li class='category'><a href='/categories/new-york-city/'>New York City (17)</a></li>
+<li class='category'><a href='/categories/personal/'>Personal (55)</a></li>
+<li class='category'><a href='/categories/photography/'>Photography (3)</a></li>
+<li class='category'><a href='/categories/programming-and-software/'>Programming & Software (50)</a></li>
+<li class='category'><a href='/categories/spy-shit/'>Spy Shit (5)</a></li>
+<li class='category'><a href='/categories/startups-and-entrepreneurism/'>Startups & Entrepreneurism (4)</a></li>
+<li class='category'><a href='/categories/swimming/'>Swimming (2)</a></li>
+<li class='category'><a href='/categories/technology/'>Technology (33)</a></li>
+<li class='category'><a href='/categories/travel/'>Travel (28)</a></li>
+<li class='category'><a href='/categories/tv-and-movies/'>Tv & Movies (20)</a></li>
+<li class='category'><a href='/categories/uncategorized/'>Uncategorized (22)</a></li>
+<li class='category'><a href='/categories/wellesley/'>Wellesley (6)</a></li>
+<li class='category'><a href='/categories/woodworking/'>Woodworking (3)</a></li>
+<li class='category'><a href='/categories/writing-and-literature/'>Writing & Literature (17)</a></li>
+
+  </ul>
+</section>
+
+    
+  </aside>
+</div>
+
+
+    </div>
+    <footer class="page-footer" role="contentinfo"><script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="/javascripts/bootstrap.min.js"></script>
+<script src="/javascripts/davidxia.min.js"></script>
+
+<p class="copyright-info">
+  https://www.davidxia.com and all contents copyright 2009-2020 by David Xia,
+  unless otherwise noted. Contents under
+  <a href="http://creativecommons.org/licenses/by-nc-sa/3.0/">Creative Commons License</a>
+</p>
+
+</footer>
+    
+
+<script type="text/javascript">
+      var disqus_shortname = 'davidxia';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'https://www.davidxia.com/2020/10/how-to-analyze-mobile-app-traffic-and-reverse-engineer-its-non-public-api/';
+        var disqus_url = 'https://www.davidxia.com/2020/10/how-to-analyze-mobile-app-traffic-and-reverse-engineer-its-non-public-api/';
+        var disqus_script = 'embed.min.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+  </div>
+</body>
+</html>
