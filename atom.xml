@@ -4,7 +4,7 @@
   <title><![CDATA[David Xia]]></title>
   <link href="https://www.davidxia.com/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2020-10-16T17:19:30-04:00</updated>
+  <updated>2020-10-20T12:13:44-04:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -3138,9 +3138,8 @@ started using Kubernetes (K8s).</p>
 
 <h3>Symptoms</h3>
 
-<p>I moved a backend service <code>foo</code> from running on a virtual
-machine to K8s. Foo&rsquo;s clients include an Nginx instance configured with this <code>upstream</code>
-block.</p>
+<p>I moved a backend service <code>foo</code> from running on a virtual machine to K8s. Foo&rsquo;s clients include an
+Nginx instance running outside K8s configured with this <code>upstream</code> block.</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
