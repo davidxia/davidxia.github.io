@@ -4,7 +4,7 @@
   <title><![CDATA[David Xia]]></title>
   <link href="https://www.davidxia.com/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2020-10-20T12:13:44-04:00</updated>
+  <updated>2020-10-20T17:35:36-04:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -3362,6 +3362,9 @@ periodically lookup the Pod IPs. I can keep the <code>upstream</code> block like
 Nginx has to be running on the same cluster as foo.</p>
 
 <h3>Solution: dynamically set the Nginx <code>resolver</code> equal to the system&rsquo;s when the Pod starts</h3>
+
+<p><strong>Disclaimer: This &ldquo;solution&rdquo; is more of an ugly, brittle hack that should only be used as a last
+resort.</strong></p>
 
 <p>What if Nginx is on another K8s cluster? Then I can set <code>resolver</code> to the IP of one of the
 nameservers in <code>/etc/resolv.conf</code>. After a bunch of tinkering I came up with this way to dynamically

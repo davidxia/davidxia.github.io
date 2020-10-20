@@ -390,6 +390,9 @@ Nginx has to be running on the same cluster as foo.</p>
 
 <h3>Solution: dynamically set the Nginx <code>resolver</code> equal to the system&rsquo;s when the Pod starts</h3>
 
+<p><strong>Disclaimer: This &ldquo;solution&rdquo; is more of an ugly, brittle hack that should only be used as a last
+resort.</strong></p>
+
 <p>What if Nginx is on another K8s cluster? Then I can set <code>resolver</code> to the IP of one of the
 nameservers in <code>/etc/resolv.conf</code>. After a bunch of tinkering I came up with this way to dynamically
 set the Nginx <code>resolver</code> when the Pod starts. A placeholder for <code>resolver</code> is set in the Nginx
