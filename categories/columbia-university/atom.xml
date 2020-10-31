@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Columbia University | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/columbia-university/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2020-10-20T17:35:36-04:00</updated>
+  <updated>2020-10-30T23:28:22-04:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -402,7 +402,7 @@ wouldn&rsquo;t have the quotations recorded here for posterity.</p>
 <p>Audio clip: Adobe Flash Player (version 9 or above) is required to play this audio clip. Download
 the latest version <a href="http://www.adobe.com/shockwave/download/download.cgi?P1_Prod_Version=ShockwaveFlash&amp;promoid=BIOW" title="Download Adobe Flash Player">here</a>. You also need to have JavaScript enabled in your browser.</p>
 
-<p><audio controls><source src='/wordpress/wp-content/uploads/2011/08/JO-rant.mp3'></audio></p>
+<p>{% audio /wordpress/wp-content/uploads/2011/08/JO-rant.mp3 %}</p>
 
 <p>&ldquo;Multivariable, that really brings me back.&rdquo;</p>
 

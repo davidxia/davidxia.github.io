@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Personal | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/personal/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2020-10-20T17:35:36-04:00</updated>
+  <updated>2020-10-30T23:28:22-04:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -164,7 +164,7 @@ community, allowing it to influence key decision-makers on a range of issues ove
     <link href="https://www.davidxia.com/2016/09/a-recent-family-photo/"/>
     <updated>2016-09-18T18:29:07-04:00</updated>
     <id>https://www.davidxia.com/2016/09/a-recent-family-photo</id>
-    <content type="html"><![CDATA[<p><div class='image center <a'><img  src="href="https://i.imgur.com/mwtquEjl.jpg">https://i.imgur.com/mwtquEjl.jpg</a>&#8221; width=&#8221;640&#8221; height=&#8221;640&#8221; title=&#8221;Post-dimsum photo with my parents and maternal grandparents on their weekend visit to NYC.&#8221; ><div class='caption'>Post-dimsum photo with my parents and maternal grandparents on their weekend visit to NYC.</div></div></p>
+    <content type="html"><![CDATA[<p>{% img_caption center <a href="https://i.imgur.com/mwtquEjl.jpg">https://i.imgur.com/mwtquEjl.jpg</a> 640 640 Post-dimsum photo with my parents and maternal grandparents on their weekend visit to NYC. %}</p>
 ]]></content>
   </entry>
   
@@ -180,7 +180,7 @@ The events below transpired in New York City. The buying process may be differen
 but the most of the process such as contract of sale and mortgage application is the same across
 the U.S.</em></p>
 
-<p><div class='image center <a'><img  src="href="https://upload.wikimedia.org/wikipedia/commons/8/8d/Cary_Grant_Myrna_Loy_Mr_Blandings_Builds_His_Dream_House_1948.JPG">https://upload.wikimedia.org/wikipedia/commons/8/8d/Cary_Grant_Myrna_Loy_Mr_Blandings_Builds_His_Dream_House_1948.JPG</a>&#8221; width=&#8221;640&#8221; height=&#8221;772&#8221; title=&#8221;By RKO radio pictures (eBay item photo front photo back) [Public domain], via Wikimedia Commons. Promotional photo of Cary Grant and Myrna Loy for the film Mr. Blandings Builds His Dream House (1948)&#8221; ><div class='caption'>By RKO radio pictures (eBay item photo front photo back) [Public domain], via Wikimedia Commons. Promotional photo of Cary Grant and Myrna Loy for the film Mr. Blandings Builds His Dream House (1948)</div></div></p>
+<p>{% img_caption center <a href="https://upload.wikimedia.org/wikipedia/commons/8/8d/Cary_Grant_Myrna_Loy_Mr_Blandings_Builds_His_Dream_House_1948.JPG">https://upload.wikimedia.org/wikipedia/commons/8/8d/Cary_Grant_Myrna_Loy_Mr_Blandings_Builds_His_Dream_House_1948.JPG</a> 640 772 By RKO radio pictures (eBay item photo front photo back) [Public domain], via Wikimedia Commons. Promotional photo of Cary Grant and Myrna Loy for the film Mr. Blandings Builds His Dream House (1948) %}</p>
 
 <ul>
 <li>My mother found an affordable co-op unit for sale while browsing StreetEasy on her iPad

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Programming & Software | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/programming-and-software/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2020-10-20T17:35:36-04:00</updated>
+  <updated>2020-10-30T23:28:22-04:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -242,7 +242,7 @@ settings.&rdquo;</p>
 <p>I made sure the traffic was proxied through my computer, the patched app started successfully, and I
 was able to see unencrypted data in Charles!</p>
 
-<p><img class="center <a" src="href="https://i.imgur.com/e8p2Ne3h.jpg">https://i.imgur.com/e8p2Ne3h.jpg</a>&#8221;></p>
+<p>{% img center <a href="https://i.imgur.com/e8p2Ne3h.jpg">https://i.imgur.com/e8p2Ne3h.jpg</a> %}</p>
 
 <h2>References</h2>
 
@@ -335,66 +335,46 @@ information in a way that will allow arbitrary memory overwrites afterwards.</p>
 4 bytes each. <code>data</code> is the user data section. <code>malloc()</code> returns a pointer to the address where
 <code>data</code> starts.</p>
 
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>.            +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-</span><span class='line'>    chunk -> | prev_size                        |
-</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-</span><span class='line'>             | size                             |
-</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-</span><span class='line'>      mem -> | data                             |
-</span><span class='line'>             : &hellip;                              :
-</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-</span><span class='line'>nextchunk -> | prev_size &hellip;                    |
-</span><span class='line'>             :                                  :</span></code></pre></td></tr></table></div></figure></p>
+<p>{% codeblock %}
+.            +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+    chunk -> | prev_size                        |
+             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+             | size                             |
+             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+      mem -> | data                             |
+             : &hellip;                              :
+             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+nextchunk -> | prev_size &hellip;                    |
+             :                                  :
+{% endcodeblock %}</p>
 
 <p>The other important things to know about the vulnerable version(s) of dlmalloc are:</p>
 
 <ul>
 <li>The lowest bit of <code>size</code> called <code>PREV_INUSE</code> indicates whether the previous chunk is used or not</li>
-<li>Once we <code>free()</code> the chunk using <code>free(mem), the memory is released, and if
-its neighboring chunks aren't free, dlmalloc will clear the next chunk's</code>PREV_INUSE<code>and add the
+<li>Once we <code>free()</code> the chunk using <code>free(mem)</code>, the memory is released, and if
+its neighboring chunks aren&rsquo;t free, dlmalloc will clear the next chunk&rsquo;s <code>PREV_INUSE</code> and add the
 chunk to a doubly-linked list of other free chunks. It does this by adding a forward and backward
-pointer at</code>mem`.</li>
+pointer at <code>mem</code>.</li>
 </ul>
 
 
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>.            +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-</span><span class='line'>    chunk -> | prev_size                        |
-</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-</span><span class='line'>             | size                             |
-</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-</span><span class='line'>      mem -> | fd                               |
-</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-</span><span class='line'>             | bk                               |
-</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-</span><span class='line'>             | (old memory, can be zero bytes)  |
-</span><span class='line'>             :                                  :&lt;/p>
-</span><span class='line'>
-</span><span class='line'>&lt;p>nextchunk -> | prev_size &hellip;                    |
-</span><span class='line'>             :                                  :</span></code></pre></td></tr></table></div></figure></p>
+<p>{% codeblock %}
+.            +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+    chunk -> | prev_size                        |
+             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+             | size                             |
+             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+      mem -> | fd                               |
+             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+             | bk                               |
+             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+             | (old memory, can be zero bytes)  |
+             :                                  :</p>
+
+<p>nextchunk -> | prev_size &hellip;                    |
+             :                                  :
+{% endcodeblock %}</p>
 
 <ul>
 <li>If neighboring chunks are free, dlmalloc will merge them. Since free chunks are in a doubly-linked

@@ -4,7 +4,7 @@
   <title><![CDATA[David Xia]]></title>
   <link href="https://www.davidxia.com/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2020-10-20T17:35:36-04:00</updated>
+  <updated>2020-10-30T23:27:42-04:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -541,10 +541,10 @@ information in a way that will allow arbitrary memory overwrites afterwards.</p>
 
 <ul>
 <li>The lowest bit of <code>size</code> called <code>PREV_INUSE</code> indicates whether the previous chunk is used or not</li>
-<li>Once we <code>free()</code> the chunk using <code>free(mem), the memory is released, and if
-its neighboring chunks aren't free, dlmalloc will clear the next chunk's</code>PREV_INUSE<code>and add the
+<li>Once we <code>free()</code> the chunk using <code>free(mem)</code>, the memory is released, and if
+its neighboring chunks aren&rsquo;t free, dlmalloc will clear the next chunk&rsquo;s <code>PREV_INUSE</code> and add the
 chunk to a doubly-linked list of other free chunks. It does this by adding a forward and backward
-pointer at</code>mem`.</li>
+pointer at <code>mem</code>.</li>
 </ul>
 
 
