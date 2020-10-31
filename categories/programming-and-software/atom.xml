@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Programming & Software | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/programming-and-software/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2020-10-30T23:28:22-04:00</updated>
+  <updated>2020-10-30T23:52:49-04:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -377,9 +377,12 @@ pointer at <code>mem</code>.</li>
 {% endcodeblock %}</p>
 
 <ul>
-<li>If neighboring chunks are free, dlmalloc will merge them. Since free chunks are in a doubly-linked
-list, dlmalloc merges by first removing the linked chunks from the list and tying the loose ends
-of the list back together. This is done via a macro called <code>unlink()</code>.</li>
+<li>If neighboring chunks are free, dlmalloc will merge the just freed chunk with its neighboring
+chunks. The two neighboring free chunks are in a doubly-linked list. dlmalloc first removes the
+neighboring chunk at the lower memory address from the list, merges it with the recently freed
+chunk, and repeats this for the neighboring chunk at the higher memory address. The unlinking is
+done with a macro called <code>unlink()</code> which removes an entry from a doubly-linked list and ties the
+loose ends of the list back together.</li>
 </ul>
 
 
