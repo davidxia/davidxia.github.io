@@ -10,8 +10,8 @@
   <meta name="author" content="David Xia">
 
   
-  <meta name="description" content="I stumbled around for quite a while trying to create a basic Scala project in IntelliJ.
-Here are the steps so you don&rsquo;t have to waste nearly as much time &hellip;">
+  <meta name="description" content="It&rsquo;s been almost a year since I setup my personal server which I named Jarvis. I haven&rsquo;t
+backed-up Jarvis at all and recently grew paranoid that &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -31,8 +31,8 @@ Here are the steps so you don&rsquo;t have to waste nearly as much time &hellip;
   <meta property="og:url" content="https://www.davidxia.com/posts/7/" />
   <meta property="og:image" content="https://i.imgur.com/BJPOY0D.jpg" />
   <meta property="og:locale" content="en_US" />
-  <meta property="og:description" content="I stumbled around for quite a while trying to create a basic Scala project in IntelliJ.
-Here are the steps so you don&rsquo;t have to waste nearly as much time &hellip;" />
+  <meta property="og:description" content="It&rsquo;s been almost a year since I setup my personal server which I named Jarvis. I haven&rsquo;t
+backed-up Jarvis at all and recently grew paranoid that &hellip;" />
   <meta property="fb:admins" content="122703" />
 
   <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -103,6 +103,94 @@ Here are the steps so you don&rsquo;t have to waste nearly as much time &hellip;
   
     
     <article itemscope itemtype="http://schema.org/BlogPosting" class="first">
+      
+  <header>
+    <span itemprop="name headline">
+      
+        <h2 class="entry-title"><a href="/2013/12/how-to-backup-and-restore-your-hard-disk-by-creating-a-disk-image/">How to Backup and Restore Your Hard Disk by Creating a Disk Image</a></h2>
+      
+    </span>
+    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2013/12/how-to-backup-and-restore-your-hard-disk-by-creating-a-disk-image/">
+    
+      <p class="meta">
+        
+  
+  
+
+  
+    
+  
+
+  
+    
+  
+
+
+
+<span itemprop="datePublished" content="December 21, 2013"><time class='entry-date' datetime='2013-12-21T00:00:00-05:00'><span class='date'>December 21, 2013</span></time></span>
+<meta itemprop="dateModified" content="December 21, 2013">
+ | 
+  
+
+
+
+  <span class="byline author vcard">
+    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
+  </span>
+
+
+        
+        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
+  <meta itemprop="name" content="David Xia">
+  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
+    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
+  </div>
+</div>
+
+        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
+  
+    
+    
+    
+  
+  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
+  <meta itemprop="height" content="696">
+  <meta itemprop="width" content="696">
+</span>
+
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>It&rsquo;s been almost a year since I <a href="/2013/01/setting-up-my-new-home-server/">setup my personal server</a> which I named Jarvis. I haven&rsquo;t
+backed-up Jarvis at all and recently grew paranoid that something might happen to him. Jarvis
+represents hundreds of hours of work, and there are documents and code that are stored only in him.</p>
+
+<p>I spent some time figuring out how to backup everything. The easiest solution is to initialize
+Git repositories for all my projects and then create bare Git repos for all of them. Then I simply
+tarballed them up and stored copies of them elsewhere.</p>
+
+<p>But I wanted to also preserve all my server configurations and packages. I wanted a hard
+drive that if Jarvis&#8217; hard disk suffered some catastrophic failure like fire, I could simply plug
+into another computer and have a perfect clone up and running in no time. Spending hours
+installing packages isn&rsquo;t fun. What I needed was to take a snapshot of the disk and create a disk
+image. It turns out <code>dd</code> is the command for the job.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="https://www.davidxia.com/2013/12/how-to-backup-and-restore-your-hard-disk-by-creating-a-disk-image/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+    <br class="clear">
+  
+    
+    <article itemscope itemtype="http://schema.org/BlogPosting" >
       
   <header>
     <span itemprop="name headline">
@@ -699,7 +787,7 @@ stuff. You just want your website to work. Is this that much to ask?</p>
 
 <p>This tutorial<sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup> will get your own website up and running from scratch in under 1.5 hours. At the
 end you&rsquo;ll be able to type &ldquo;myownwebsite.com&rdquo; into your browser to see a website you own and
-receive e-mail at &ldquo;<a href="&#x6d;&#x61;&#x69;&#108;&#x74;&#111;&#x3a;&#x66;&#x69;&#114;&#x73;&#116;&#x6e;&#x61;&#x6d;&#x65;&#64;&#x6d;&#121;&#111;&#119;&#x6e;&#x77;&#x65;&#x62;&#x73;&#105;&#116;&#x65;&#x2e;&#99;&#111;&#x6d;">&#x66;&#x69;&#114;&#x73;&#116;&#x6e;&#97;&#109;&#101;&#x40;&#x6d;&#x79;&#111;&#x77;&#x6e;&#x77;&#x65;&#98;&#x73;&#105;&#x74;&#x65;&#x2e;&#x63;&#x6f;&#x6d;</a>&rdquo;. You&rsquo;ll learn how the Internet works on a basic
+receive e-mail at &ldquo;<a href="&#109;&#x61;&#x69;&#108;&#116;&#111;&#58;&#x66;&#x69;&#114;&#115;&#116;&#110;&#97;&#x6d;&#101;&#64;&#x6d;&#121;&#x6f;&#119;&#x6e;&#x77;&#101;&#x62;&#115;&#105;&#x74;&#x65;&#x2e;&#99;&#x6f;&#109;">&#102;&#105;&#x72;&#115;&#116;&#110;&#x61;&#x6d;&#101;&#x40;&#x6d;&#x79;&#111;&#x77;&#x6e;&#x77;&#x65;&#x62;&#x73;&#x69;&#116;&#101;&#46;&#x63;&#111;&#x6d;</a>&rdquo;. You&rsquo;ll learn how the Internet works on a basic
 level, what domain name servers (DNS) are, and how to link your website to Google&rsquo;s free apps.</p>
 
 <ol>
@@ -897,89 +985,6 @@ $$p(n) = 1 - \overline{p}(n)$$.</p>
     </article>
     <br class="clear">
   
-    
-    <article itemscope itemtype="http://schema.org/BlogPosting" >
-      
-  <header>
-    <span itemprop="name headline">
-      
-        <h2 class="entry-title"><a href="/2013/04/how-the-big-short-inspired-me-to-make-a-risky-bet-in-tesla/">How the Big Short Inspired Me to Make a Risky Bet in Tesla</a></h2>
-      
-    </span>
-    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2013/04/how-the-big-short-inspired-me-to-make-a-risky-bet-in-tesla/">
-    
-      <p class="meta">
-        
-  
-  
-
-  
-    
-  
-
-  
-    
-  
-
-
-
-<span itemprop="datePublished" content="April  9, 2013"><time class='entry-date' datetime='2013-04-09T00:00:00-04:00'><span class='date'>April  9, 2013</span></time></span>
-<meta itemprop="dateModified" content="April  9, 2013">
- | 
-  
-
-
-
-  <span class="byline author vcard">
-    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
-  </span>
-
-
-        
-        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
-  <meta itemprop="name" content="David Xia">
-  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
-    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
-  </div>
-</div>
-
-        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
-  
-    
-    
-    
-  
-  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
-  <meta itemprop="height" content="696">
-  <meta itemprop="width" content="696">
-</span>
-
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><blockquote><p>The most difficult subjects can be explained to the slow-witted man if he has not formed any
-idea of them already; but the simplest thing cannot be made clear to the most intelligent man if
-he is firmly persuaded that he knows already without a shadow of a doubt, what is laid before him.</p><footer><strong>Leo Tolstoy</strong> <cite>1897</cite></footer></blockquote>
-
-
-<p>In early February of this year, my roommate Ben recommended I read <a href="http://www.amazon.com/gp/product/B00ANYJ3NI/ref=as_li_ss_tl?ie=UTF8&amp;camp=1789&amp;creative=390957&amp;creativeASIN=B00ANYJ3NI&amp;linkCode=as2&amp;tag=easiamus00-20"><em>The Big Short</em></a><img src="https://www.assoc-amazon.com/e/ir?t=easiamus00-20&amp;l=as2&amp;o=1&amp;a=B00ANYJ3NI" alt="" /> by
-Michael Lewis. This book tells the story of individuals who foresaw the impending 2008 financial
-crisis and made off like gangbusters by betting against the housing market.</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="https://www.davidxia.com/2013/04/how-the-big-short-inspired-me-to-make-a-risky-bet-in-tesla/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-    <br class="clear">
-  
   <div class="pagination">
     
     <div class="col-md-4">
@@ -1089,7 +1094,7 @@ crisis and made off like gangbusters by betting against the housing market.</p>
 <li class='category'><a href='/categories/new-york-city/'>New York City (17)</a></li>
 <li class='category'><a href='/categories/personal/'>Personal (55)</a></li>
 <li class='category'><a href='/categories/photography/'>Photography (3)</a></li>
-<li class='category'><a href='/categories/programming-and-software/'>Programming & Software (50)</a></li>
+<li class='category'><a href='/categories/programming-and-software/'>Programming & Software (51)</a></li>
 <li class='category'><a href='/categories/spy-shit/'>Spy Shit (5)</a></li>
 <li class='category'><a href='/categories/startups-and-entrepreneurism/'>Startups & Entrepreneurism (4)</a></li>
 <li class='category'><a href='/categories/swimming/'>Swimming (2)</a></li>

