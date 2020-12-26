@@ -4,7 +4,7 @@
   <title><![CDATA[David Xia]]></title>
   <link href="https://www.davidxia.com/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2020-12-25T20:36:26-05:00</updated>
+  <updated>2020-12-26T09:36:36-05:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -18,7 +18,7 @@
     <link href="https://www.davidxia.com/2020/12/my-solution-to-over-the-wire-vortex-level-1-2/"/>
     <updated>2020-12-25T20:21:28-05:00</updated>
     <id>https://www.davidxia.com/2020/12/my-solution-to-over-the-wire-vortex-level-1-2</id>
-    <content type="html"><![CDATA[<p>I recently found a whole new series of online wargames at [overthewire.org][].
+    <content type="html"><![CDATA[<p>I recently found a whole new series of online wargames at <a href="https://overthewire.org/">overthewire.org</a>.
 Here&rsquo;s my solution for the second level &ldquo;<a href="https://overthewire.org/wargames/vortex/vortex1.html">Vortex Level 1 -> Level 2</a>&rdquo;</p>
 
 <p>The levels are cumulative. We have to beat the previous level in order to access the next. This
@@ -357,7 +357,7 @@ byte was <code>0xca</code>. That way, when it&rsquo;s bit-wise ANDed with <code>
 
 
 <p>Aside: the Python command is run in a subshell with an extra <code>cat</code> to keep the <code>/bin/sh</code> listening
-to more input from the stdout of that subshell. That way we can add more commands from your
+to more input from the stdout of that subshell. That way we can add more commands from the
 terminal. The Python command triggers the <code>/bin/sh</code>. The <code>cat</code> with no args just reads from the
 current stdin and feeds data to <code>/bin/sh</code>. See this <a href="https://security.stackexchange.com/a/155845/4350">Stack Exchange answer</a>.</p>
 
@@ -384,7 +384,7 @@ past the <code>x</code> and one byte into itself.</p>
 </span><span class='line'>uid=5002(vortex2) gid=5001(vortex1) groups=5002(vortex2),5001(vortex1)</span></code></pre></td></tr></table></div></figure>
 
 
-<p>The wargame instructions don&rsquo;t tell you this, but each user&rsquo;s password is located in the directory
+<p>The wargame instructions don&rsquo;t tell us this, but each user&rsquo;s password is located in the directory
 below. Now that we have a shell as vortex2, we can read the password to advance to the next level.</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>

@@ -10,7 +10,7 @@
   <meta name="author" content="David Xia">
 
   
-  <meta name="description" content="My Solution to Over the Wire Vortex Level 1 -> 2 December 25, 2020 | By David Xia I recently found a whole new series of online wargames at [overthewire.org &hellip;&#8221;>
+  <meta name="description" content="My Solution to Over the Wire Vortex Level 1 -> 2 December 25, 2020 | By David Xia I recently found a whole new series of online wargames at overthewire.org. &hellip;&#8221;>
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -30,7 +30,7 @@
   <meta property="og:url" content="https://www.davidxia.com/2020/12/my-solution-to-over-the-wire-vortex-level-1-2/" />
   <meta property="og:image" content="https://i.imgur.com/BJPOY0D.jpg" />
   <meta property="og:locale" content="en_US" />
-  <meta property="og:description" content="My Solution to Over the Wire Vortex Level 1 -> 2 December 25, 2020 | By David Xia I recently found a whole new series of online wargames at [overthewire.org &hellip;&#8221; />
+  <meta property="og:description" content="My Solution to Over the Wire Vortex Level 1 -> 2 December 25, 2020 | By David Xia I recently found a whole new series of online wargames at overthewire.org. &hellip;&#8221; />
   <meta property="fb:admins" content="122703" />
 
   <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -158,7 +158,7 @@
   </header>
 
 
-  <div class="entry-content"><p>I recently found a whole new series of online wargames at [overthewire.org][].
+  <div class="entry-content"><p>I recently found a whole new series of online wargames at <a href="https://overthewire.org/">overthewire.org</a>.
 Here&rsquo;s my solution for the second level &ldquo;<a href="https://overthewire.org/wargames/vortex/vortex1.html">Vortex Level 1 -> Level 2</a>&rdquo;</p>
 
 <p>The levels are cumulative. We have to beat the previous level in order to access the next. This
@@ -497,7 +497,7 @@ byte was <code>0xca</code>. That way, when it&rsquo;s bit-wise ANDed with <code>
 
 
 <p>Aside: the Python command is run in a subshell with an extra <code>cat</code> to keep the <code>/bin/sh</code> listening
-to more input from the stdout of that subshell. That way we can add more commands from your
+to more input from the stdout of that subshell. That way we can add more commands from the
 terminal. The Python command triggers the <code>/bin/sh</code>. The <code>cat</code> with no args just reads from the
 current stdin and feeds data to <code>/bin/sh</code>. See this <a href="https://security.stackexchange.com/a/155845/4350">Stack Exchange answer</a>.</p>
 
@@ -524,7 +524,7 @@ past the <code>x</code> and one byte into itself.</p>
 </span><span class='line'>uid=5002(vortex2) gid=5001(vortex1) groups=5002(vortex2),5001(vortex1)</span></code></pre></td></tr></table></div></figure>
 
 
-<p>The wargame instructions don&rsquo;t tell you this, but each user&rsquo;s password is located in the directory
+<p>The wargame instructions don&rsquo;t tell us this, but each user&rsquo;s password is located in the directory
 below. Now that we have a shell as vortex2, we can read the password to advance to the next level.</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
