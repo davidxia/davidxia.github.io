@@ -105,10 +105,10 @@
   <header>
     <span itemprop="name headline">
       
-        <h2 class="entry-title"><a href="/2020/12/my-solution-to-over-the-wire-vortex-level-1-2/">My Solution to Over the Wire Vortex Level 1 -> 2</a></h2>
+        <h2 class="entry-title"><a href="/2020/12/my-hints-and-solutions-to-the-first-three-levels-of-over-the-wire-vortex/">My Hints and Solutions to the First Three Levels of Over the Wire Vortex</a></h2>
       
     </span>
-    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2020/12/my-solution-to-over-the-wire-vortex-level-1-2/">
+    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2020/12/my-hints-and-solutions-to-the-first-three-levels-of-over-the-wire-vortex/">
     
       <p class="meta">
         
@@ -161,18 +161,35 @@
   </header>
 
 
-  <div class="entry-content"><p>I recently found a whole new series of online wargames at <a href="https://overthewire.org/">overthewire.org</a>.
-Here&rsquo;s my solution for the second level &ldquo;<a href="https://overthewire.org/wargames/vortex/vortex1.html">Vortex Level 1 -> Level 2</a>&rdquo;</p>
+  <div class="entry-content"><p>I recently found more wargames at <a href="https://overthewire.org/">overthewire.org</a>. Here are my hints and
+solutions for the first three levels of Vortex. The levels are cumulative. We
+have to beat the previous level in order to access the next.</p>
 
-<p>The levels are cumulative. We have to beat the previous level in order to access the next. This
-solution assumes we have solved &ldquo;<a href="https://overthewire.org/wargames/vortex/vortex0.html">Vortex Level 0 -> Level 1</a>&rdquo; and can SSH into the
-machine as user vortex1. Caveat: the machine is extremely slow&hellip;</p>
+<h1><a href="https://overthewire.org/wargames/vortex/vortex0.html">Vortex Level 0 -> Level 1</a></h1>
+
+<p><details>
+  <summary>Hint 1: how much data</summary>
+  Connect to the host and port and read all the bytes you can. How many bytes do you get?
+</details></p>
+
+<p><details>
+  <summary>Hint 2: endianess</summary>
+  &ldquo;&hellip;read in 4 unsigned integers in host byte order&rdquo; means the bytes are
+  already in host byte order or little-endian. If your system is also
+  little-endian, you don&rsquo;t need to do anything special when interpreting the
+  bytes.
+</details></p>
+
+<p><details>
+  <summary>Hint 3: expected reply</summary>
+  How many bytes is each integer? What is the sum of all four?
+</details></p>
 
 </div>
   
   
     <footer>
-      <a rel="full-article" href="https://www.davidxia.com/2020/12/my-solution-to-over-the-wire-vortex-level-1-2/">Read on &rarr;</a>
+      <a rel="full-article" href="https://www.davidxia.com/2020/12/my-hints-and-solutions-to-the-first-three-levels-of-over-the-wire-vortex/">Read on &rarr;</a>
     </footer>
   
 
