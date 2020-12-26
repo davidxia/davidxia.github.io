@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Programming & Software | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/programming-and-software/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2020-12-26T17:18:54-05:00</updated>
+  <updated>2020-12-26T17:21:47-05:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -320,7 +320,7 @@ terminal. The Python command triggers the <code>/bin/sh</code>. The <code>cat</c
 current stdin and feeds data to <code>/bin/sh</code>. See this <a href="https://security.stackexchange.com/a/155845/4350">Stack Exchange answer</a>.</p>
 
 <p>This is definitely not the best solution because 0xffffd5dc - 0xcaffffff = 0x34ffd5dd =
-889,181,661. If written to disk, this file be almost a gigabyte.</p>
+889,181,661. If written to disk, this file would be almost a gigabyte.</p>
 
 <p>Let&rsquo;s think of a better solution. There&rsquo;s no lower bound checking on <code>ptr</code>&rsquo;s value. So we can
 decrement the value of <code>ptr</code> until it references its own memory address which starts at <code>0xffffd4d4</code>.

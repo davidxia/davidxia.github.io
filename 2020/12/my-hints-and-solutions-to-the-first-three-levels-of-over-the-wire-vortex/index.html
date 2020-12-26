@@ -657,7 +657,7 @@ terminal. The Python command triggers the <code>/bin/sh</code>. The <code>cat</c
 current stdin and feeds data to <code>/bin/sh</code>. See this <a href="https://security.stackexchange.com/a/155845/4350">Stack Exchange answer</a>.</p>
 
 <p>This is definitely not the best solution because 0xffffd5dc - 0xcaffffff = 0x34ffd5dd =
-889,181,661. If written to disk, this file be almost a gigabyte.</p>
+889,181,661. If written to disk, this file would be almost a gigabyte.</p>
 
 <p>Let&rsquo;s think of a better solution. There&rsquo;s no lower bound checking on <code>ptr</code>&rsquo;s value. So we can
 decrement the value of <code>ptr</code> until it references its own memory address which starts at <code>0xffffd4d4</code>.
