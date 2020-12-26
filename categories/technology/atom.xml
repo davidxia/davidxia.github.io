@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Technology | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/technology/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2020-11-01T18:15:41-05:00</updated>
+  <updated>2020-12-25T20:36:26-05:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -73,7 +73,7 @@ Testing.&rdquo;</a> in various formats. <span xmlns:dct="http://purl.org/dc/term
 </ul>
 
 
-<p>{% img center <a href="https://i.imgur.com/w0P47Ugl.jpg">https://i.imgur.com/w0P47Ugl.jpg</a> 640 619 %}</p>
+<p><img class="center <a" src="href="https://i.imgur.com/w0P47Ugl.jpg">https://i.imgur.com/w0P47Ugl.jpg</a>&#8221; width=&#8221;640&#8221; height=&#8221;619&#8221;></p>
 ]]></content>
   </entry>
   
@@ -172,8 +172,7 @@ what the intelligence agencies have cracked and what&rsquo;s still safe. Has the
 general or only in targeted cases? But I wonder if this discussion is useful or if it misses the
 point as Kamp inspiringly points out at the end of his talk.</p>
 
-<p>{% blockquote_nobr Poul-Henning Kamp <a href="https://youtu.be/fwcl17Q0bpk?t=30m8s">https://youtu.be/fwcl17Q0bpk?t=30m8s</a> %}
-So the standard reaction in the open source environment to Edward Snowden&rsquo;s disclosures have been,
+<p><blockquote><p>So the standard reaction in the open source environment to Edward Snowden&rsquo;s disclosures have been,
 &ldquo;We need to strengthen the protocols! We need to have SSL everywhere.&rdquo; And I think that misses the
 point by a large margin. The things that have been published by the Snowden documents by now are
 the things that the general public can understand reading their newspaper. The stuff we would be
@@ -186,8 +185,7 @@ it. If you cannot find politicians, get you some politicians who can understand 
 is a renewable resource. Use your pencil when you vote. Or run yourself.</p>
 
 <p><strong>This is your children&rsquo;s and grandchildren&rsquo;s future society you&rsquo;re looking at. And we&rsquo;re the guys
-who sort of missed the boat.</strong>
-{% endblockquote_nobr %}</p>
+who sort of missed the boat.</strong></p><footer><strong>Poul-Henning Kamp <a href="https://youtu.be/fwcl17Q0bpk?t=30m8s">https://youtu.be/fwcl17Q0bpk?t=30m8s</a></strong></footer></blockquote></p>
 
 <p>If a guy who&rsquo;s been committing to the FreeBSD kernel for over 15 years says he doesn&rsquo;t see a
 technical solution to mass digital surveillance, he&rsquo;s probably got a point. He doesn&rsquo;t see a
@@ -214,7 +212,7 @@ each of our actions or inactions affect those around us.</p>
 
 <p>I&rsquo;ve drawn a flow chart of my argument of why we should stop mass surveillance below.</p>
 
-<p><a href="https://i.imgur.com/athtKWxh.jpg">{% img center https://i.imgur.com/athtKWxh.jpg 640 480 %}</a></p>
+<p><a href="https://i.imgur.com/athtKWxh.jpg"><img class="center" src="https://i.imgur.com/athtKWxh.jpg" width="640" height="480"></a></p>
 ]]></content>
   </entry>
   

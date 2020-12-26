@@ -10,7 +10,7 @@
   <meta name="author" content="David Xia">
 
   
-  <meta name="description" content="I just setup email sending on my server by following this clear tutorial. The tutorial walked me through setting up Postfix on an Ubuntu server and sending &hellip;">
+  <meta name="description" content="I looked at my server&rsquo;s auth logs today and was unsettled to find thousands of lines like these: Feb 12 06:49:52 localhost sshd[25416]: Invalid user &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -30,7 +30,7 @@
   <meta property="og:url" content="https://www.davidxia.com/posts/12/" />
   <meta property="og:image" content="https://i.imgur.com/BJPOY0D.jpg" />
   <meta property="og:locale" content="en_US" />
-  <meta property="og:description" content="I just setup email sending on my server by following this clear tutorial. The tutorial walked me through setting up Postfix on an Ubuntu server and sending &hellip;" />
+  <meta property="og:description" content="I looked at my server&rsquo;s auth logs today and was unsettled to find thousands of lines like these: Feb 12 06:49:52 localhost sshd[25416]: Invalid user &hellip;" />
   <meta property="fb:admins" content="122703" />
 
   <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -101,6 +101,98 @@
   
     
     <article itemscope itemtype="http://schema.org/BlogPosting" class="first">
+      
+  <header>
+    <span itemprop="name headline">
+      
+        <h2 class="entry-title"><a href="/2012/02/8-ways-to-defend-against-brute-force-ssh-attacks/">8 Ways to Defend Against Brute Force SSH Attacks</a></h2>
+      
+    </span>
+    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2012/02/8-ways-to-defend-against-brute-force-ssh-attacks/">
+    
+      <p class="meta">
+        
+  
+  
+
+  
+    
+  
+
+  
+    
+  
+
+
+
+<span itemprop="datePublished" content="February 12, 2012"><time class='entry-date' datetime='2012-02-12T00:00:00-05:00'><span class='date'>February 12, 2012</span></time></span>
+<meta itemprop="dateModified" content="February 12, 2012">
+ | 
+  
+
+
+
+  <span class="byline author vcard">
+    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
+  </span>
+
+
+        
+        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
+  <meta itemprop="name" content="David Xia">
+  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
+    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
+  </div>
+</div>
+
+        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
+  
+    
+    
+    
+  
+  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
+  <meta itemprop="height" content="696">
+  <meta itemprop="width" content="696">
+</span>
+
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>I looked at my server&rsquo;s auth logs today and was unsettled to find thousands of lines like these:</p>
+
+<pre><code>Feb 12 06:49:52 localhost sshd[25416]: Invalid user photo from xxx.xxx.xxx.xxx
+Feb 12 06:49:52 localhost sshd[25416]: pam_unix(sshd:auth): check pass; user unknown
+Feb 12 06:49:52 localhost sshd[25416]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=some.random.domain
+Feb 12 06:49:54 localhost sshd[25416]: Failed password for invalid user photo from xxx.xxx.xxx.xxx port 49608 ssh2
+</code></pre>
+
+<p>I was looking at someone running a brute force attack on my server trying to gain SSH access.
+Looking further back in the logs, I found crackers (not the derogatory term for white people but
+<a href="http://catb.org/jargon/html/C/cracker.html" title="Jargon file definition of cracker">people who break security maliciously</a>) had been attacking me for at least a month. Luckily
+the unsophisticated attack simply tried various username/password combinations. After common
+usernames like root, admin, and user were tried, the attackers used names like aaron, gary,
+stephanie, etc.</p>
+
+<p>Alright, time to shut these guys down. (All setting changes were made in <code>/etc/ssh/sshd_config</code> and
+on Ubuntu unless otherwise specified.)</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="https://www.davidxia.com/2012/02/8-ways-to-defend-against-brute-force-ssh-attacks/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+    <br class="clear">
+  
+    
+    <article itemscope itemtype="http://schema.org/BlogPosting" >
       
   <header>
     <span itemprop="name headline">
@@ -823,115 +915,6 @@ way:</p>
     </article>
     <br class="clear">
   
-    
-    <article itemscope itemtype="http://schema.org/BlogPosting" >
-      
-  <header>
-    <span itemprop="name headline">
-      
-        <h2 class="entry-title"><a href="/2012/01/how-to-find-good-mentors/">How to Find Good Mentors</a></h2>
-      
-    </span>
-    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2012/01/how-to-find-good-mentors/">
-    
-      <p class="meta">
-        
-  
-  
-
-  
-    
-  
-
-  
-    
-  
-
-
-
-<span itemprop="datePublished" content="January  1, 2012"><time class='entry-date' datetime='2012-01-01T00:00:00-05:00'><span class='date'>January  1, 2012</span></time></span>
-<meta itemprop="dateModified" content="January  1, 2012">
- | 
-  
-
-
-
-  <span class="byline author vcard">
-    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
-  </span>
-
-
-        
-        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
-  <meta itemprop="name" content="David Xia">
-  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
-    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
-  </div>
-</div>
-
-        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
-  
-    
-    
-    
-  
-  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
-  <meta itemprop="height" content="696">
-  <meta itemprop="width" content="696">
-</span>
-
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>I spent time over the holidays thinking about what makes a good mentor. Here&rsquo;s my summary after
-thinking about the mentors I&rsquo;ve had so far.</p>
-
-<p>Good mentors:</p>
-
-<ol>
-<li>cultivate long-term relationships with their mentees</li>
-<li>can distill their years of experience into good advice that&rsquo;d take mentees years to figure out
-on their own</li>
-<li>want a mutually beneficial relationship where they get something out of it too</li>
-<li><p>have experience and proven track record in an industry related to the mentee</p></li>
-<li><p>Ben, whom I&rsquo;ve written about before, is a good mentor because he was good at setting aside time
-for me. He helped me learn the basics of computer science, encouraged me, gave me straight
-medicine, and called it like he saw it. He&rsquo;s not afraid to be honest and can be very encouraging.
-We&rsquo;re good friends. He was patient yet demanding out of what he expected. He knew when to push and
-when to nudge.</p></li>
-<li><p>Last fall when I was interviewing at various New York tech startups, a certain head engineer
-made a good impression on me. He was candid and told me valuable sage-pieces of advice would&rsquo;ve
-taken me years of experience to figure out. One example: designing perfect,
-IBM-smarter-planet-like systems is not always commercially viable or make as great an impact as I
-thought. He gave advice on how to evaluate the job opportunities I was considering. I know he&rsquo;d be
-a valuable mentor because in the short time we talked, his words helped me choose the right
-startup to join.</p></li>
-<li><p>A good mentor values the relationship both ways. The mentor could enjoy mentoring simply for
-the sake of helping another individual grow as a person or because he/she sees a potential
-business partner/investment opportunity in the future. Both parties should cultivate a long-term
-relationship where they come away from each meeting feeling the time spent was meaningful and
-fulfilling.</p></li>
-<li><p>Does the mentor have a record of good performance and achievements in the field you aspire to
-excel in? Has he/she achieved or built something that inspires you? Or is the mentor being
-theoretical and professorial without practicing what he/she preaches?</p></li>
-</ol>
-
-
-<p>Look for someone who understands your similarities and differences. Not an older person who&rsquo;s
-trying to live vicariously through you or trying to mold you into a younger version of himself.</p>
-
-<p>Also, Trevor Owens <a href="http://skl.sh/nkeI8H">teaches a class</a> on this. I haven&rsquo;t taken it yet but will as soon as he
-sets another date for it.</p>
-</div>
-  
-  
-
-
-    </article>
-    <br class="clear">
-  
   <div class="pagination">
     
     <div class="col-md-4">
@@ -1041,7 +1024,7 @@ sets another date for it.</p>
 <li class='category'><a href='/categories/new-york-city/'>New York City (17)</a></li>
 <li class='category'><a href='/categories/personal/'>Personal (55)</a></li>
 <li class='category'><a href='/categories/photography/'>Photography (3)</a></li>
-<li class='category'><a href='/categories/programming-and-software/'>Programming & Software (51)</a></li>
+<li class='category'><a href='/categories/programming-and-software/'>Programming & Software (52)</a></li>
 <li class='category'><a href='/categories/spy-shit/'>Spy Shit (5)</a></li>
 <li class='category'><a href='/categories/startups-and-entrepreneurism/'>Startups & Entrepreneurism (4)</a></li>
 <li class='category'><a href='/categories/swimming/'>Swimming (2)</a></li>
