@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Technology | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/technology/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2020-12-26T17:21:47-05:00</updated>
+  <updated>2021-01-27T15:09:38-05:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -12,6 +12,298 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[How Kubernetes Routes IP Packets to Services' Cluster IPs]]></title>
+    <link href="https://www.davidxia.com/2021/01/how-kubernetes-routes-ip-packets-to-services-cluster-ips/"/>
+    <updated>2021-01-27T13:22:02-05:00</updated>
+    <id>https://www.davidxia.com/2021/01/how-kubernetes-routes-ip-packets-to-services-cluster-ips</id>
+    <content type="html"><![CDATA[<p>I recently observed DNS resolution errors on a large Kubernetes (K8s) cluster. This behavior was
+only happening on 0.1% of K8s nodes. But the fact that this behavior wasn&rsquo;t self-healing and
+crippled tenant workloads in addition to my penchant to chase rabbits down holes meant I
+wasn&rsquo;t going to let it go. I emerged learning how K8s Services&#8217; Cluster IP feature actually works.
+Explaining this feature and my particular problem and speculative fix is the goal of this post.</p>
+
+<h2>The Problem</h2>
+
+<p>The large K8s cluster is actually a Google Kubernetes Engine (GKE) cluster with master version
+1.17.14-gke.400 and node version 1.17.13-gke.2600. This is a multi-tenant cluster with hundreds of
+nodes. Each node runs dozens of user workloads. Some users said DNS resolution within their Pods on
+certain nodes weren&rsquo;t working. I was able to reproduce this behavior with the following steps.</p>
+
+<p>Kubernetes schedules <code>kube-dns</code> Pods and a Service on the cluster that provide DNS and configures
+kubelets to tell individual containers to use the DNS Service&rsquo;s IP to resolve DNS names. <a href="https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/">See K8s
+docs here</a>. First I get the <code>kube-dns</code>&lsquo; Service&rsquo;s Cluster IP. This is the IP address to
+which DNS queries from Pods are sent.</p>
+
+<pre><code>kubectl --context my-gke-cluster -n kube-system get services kube-dns
+NAME       TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)         AGE
+kube-dns   ClusterIP   10.178.64.10   &lt;none&gt;        53/UDP,53/TCP   666d
+</code></pre>
+
+<p>Then I make DNS queries against the Cluster IP from a Pod running on a broken node.</p>
+
+<!-- more -->
+
+
+<pre><code># Log into the GKE node
+gcloud --project my-project compute ssh my-gke-node --zone us-central1-b --internal-ip
+
+# Need to run toolbox container which has iptables command. Google's Container-Optimized OS doesn't
+# have it.
+dxia@my-gke-node ~ $ toolbox
+20200603-00: Pulling from google-containers/toolbox
+Digest: sha256:36e2f6b8aa40328453aed7917860a8dee746c101dfde4464ce173ed402c1ec57
+Status: Image is up to date for gcr.io/google-containers/toolbox:20200603-00
+gcr.io/google-containers/toolbox:20200603-00
+e6b1ee70f91ac405623cbf1d2afa9a532a022dc644bddddd754d2cd786f58273
+
+dxia-gcr.io_google-containers_toolbox-20200603-00
+Please do not use --share-system anymore, use $SYSTEMD_NSPAWN_SHARE_* instead.
+Spawning container dxia-gcr.io_google-containers_toolbox-20200603-00 on /var/lib/toolbox/dxia-gcr.io_google-containers_toolbox-20200603-00.
+Press ^] three times within 1s to kill container.
+
+# Install dig
+root@toolbox:~# apt-get update &amp;&amp; apt-get install dnsutils
+
+# Ask the kube-dns Cluster IP to resolve www.google.com
+# dig will hang when it's waiting on a DNS reply. So ^C's show DNS resolution failures
+root@toolbox:~# for x in $(seq 1 20); do echo ${x}; dig @10.178.64.10 www.google.com &gt; /dev/null; done
+1
+^C2
+^C3
+4
+5
+6
+7
+8
+^C9
+10
+11
+12
+13
+14
+15
+^C16
+17
+18
+^C19
+20
+</code></pre>
+
+<p>I cordoned and drained the node and added the annotation
+<code>cluster-autoscaler.kubernetes.io/scale-down-disabled=true</code> to <a href="https://github.com/kubernetes/autoscaler/blob/b470c62bfa6269ed185d21d47dadc339353deb68/cluster-autoscaler/FAQ.md#how-can-i-prevent-cluster-autoscaler-from-scaling-down-a-particular-node">prevent the cluster autoscaler from
+deleting it</a>.</p>
+
+<p>Then I performed a more basic test. I tested whether I could even make a TCP connection to the
+Cluster IP on port 53 (default DNS port).</p>
+
+<pre><code># Run nc 1000 times without reverse DNS lookup, in verbose and scan mode
+# Count only failed connections
+root@toolbox:~# for x in $(seq 1 1000); do nc 10.178.64.10 53 -nvz 2&gt;&amp;1 | grep -v open; done | wc -l
+257
+</code></pre>
+
+<p>A quarter of the TCP connections fail. This means the error is below the DNS layer at TCP layer 3.</p>
+
+<h2>Finding the Root Cause: Down the Rabbit Hole</h2>
+
+<p>Some background for those unfamiliar. K8s nodes (via the <code>kube-proxy</code> DaemonSet) will route IP
+packets originating from a Pod with a destination of a K8s Service&rsquo;s Cluster IP to a backing Pod IP
+in <a href="https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies">one of three proxy modes</a>: user space, iptables, and IPVS. I&rsquo;m assuming GKE
+runs <code>kube-proxy</code> in iptables proxy mode since <a href="https://cloud.google.com/kubernetes-engine/docs/concepts/network-overview#kube-proxy">iptables instead of IPVS is mentioned in their docs
+here</a>.</p>
+
+<p><code>kube-proxy</code> should keep the node&rsquo;s iptable rules up to date with the actual <code>kube-dns</code>
+Service&rsquo;s endpoints. The following console output shows how I figured out the IP packet flow by
+tracing matching iptables rules.</p>
+
+<pre><code># List rules in FORWARD chain's filter table
+root@toolbox:~# iptables -L FORWARD -t filter
+Chain FORWARD (policy DROP)
+target     prot opt source               destination
+cali-FORWARD  all  --  anywhere             anywhere             /* cali:wUHhoiAYhphO9Mso */
+KUBE-FORWARD  all  --  anywhere             anywhere             /* kubernetes forwarding rules */
+KUBE-SERVICES  all  --  anywhere             anywhere             ctstate NEW /* kubernetes service portals */
+DOCKER-USER  all  --  anywhere             anywhere
+DOCKER-ISOLATION-STAGE-1  all  --  anywhere             anywhere
+ACCEPT     all  --  anywhere             anywhere             ctstate RELATED,ESTABLISHED
+DOCKER     all  --  anywhere             anywhere
+ACCEPT     all  --  anywhere             anywhere
+ACCEPT     all  --  anywhere             anywhere
+ACCEPT     tcp  --  anywhere             anywhere
+ACCEPT     udp  --  anywhere             anywhere
+ACCEPT     icmp --  anywhere             anywhere
+ACCEPT     sctp --  anywhere             anywhere
+
+# List rules in KUBE-SERVICES chain's nat table and look for rules that forward IP packets destined
+# for the K8s Service kube-system/kube-dns' Cluster IP
+root@toolbox:~# iptables -L KUBE-SERVICES -t nat | grep kube-system/kube-dns | grep SVC
+KUBE-SVC-ERIFXISQEP7F7OF4  tcp  --  anywhere             10.178.64.10         /* kube-system/kube-dns:dns-tcp cluster IP */ tcp dpt:domain
+KUBE-SVC-TCOU7JCQXEZGVUNU  udp  --  anywhere             10.178.64.10         /* kube-system/kube-dns:dns cluster IP */ udp dpt:domain
+
+# List rules in KUBE-SVC-ERIFXISQEP7F7OF4 chain's nat table
+Chain KUBE-SVC-ERIFXISQEP7F7OF4 (1 references)
+target     prot opt source               destination
+KUBE-SEP-BMNCBK7ROA3MA6UU  all  --  anywhere             anywhere             statistic mode random probability 0.01538461540
+KUBE-SEP-GYUBQUCI6VR6AER2  all  --  anywhere             anywhere             statistic mode random probability 0.01562500000
+KUBE-SEP-IF56RUVXN2P4ORZZ  all  --  anywhere             anywhere             statistic mode random probability 0.01587301586
+KUBE-SEP-WUD7OE7TYMWFJJYX  all  --  anywhere             anywhere             statistic mode random probability 0.01612903224
+KUBE-SEP-B7IYZJB6QVUX246S  all  --  anywhere             anywhere             statistic mode random probability 0.01639344264
+KUBE-SEP-T6B7SPNOX3DH33BE  all  --  anywhere             anywhere             statistic mode random probability 0.01666666660
+KUBE-SEP-REJSUT2VC76HMIRQ  all  --  anywhere             anywhere             statistic mode random probability 0.01694915257
+KUBE-SEP-B4N4VXNUSBNXHV73  all  --  anywhere             anywhere             statistic mode random probability 0.01724137925
+KUBE-SEP-XUJIW6IGZX4X5BBG  all  --  anywhere             anywhere             statistic mode random probability 0.01754385978
+KUBE-SEP-MMBQBWR6AYIPMUZL  all  --  anywhere             anywhere             statistic mode random probability 0.01785714272
+KUBE-SEP-6O5U6FAKQVEXGTP7  all  --  anywhere             anywhere             statistic mode random probability 0.01818181807
+KUBE-SEP-DMN3RJWMPAEHNOGE  all  --  anywhere             anywhere             statistic mode random probability 0.01851851866
+KUBE-SEP-FHJKZIH3JDZSXJUD  all  --  anywhere             anywhere             statistic mode random probability 0.01886792434
+KUBE-SEP-YRPM7BEQS2YESSJL  all  --  anywhere             anywhere             statistic mode random probability 0.01923076902
+KUBE-SEP-BSHQZGGNYIILL3V7  all  --  anywhere             anywhere             statistic mode random probability 0.01960784290
+KUBE-SEP-XTW5FCAH2423EWAV  all  --  anywhere             anywhere             statistic mode random probability 0.02000000002
+KUBE-SEP-2ETTGYCM3KLKL54Q  all  --  anywhere             anywhere             statistic mode random probability 0.02040816331
+KUBE-SEP-ZUFFQWVT2EY73YVF  all  --  anywhere             anywhere             statistic mode random probability 0.02083333349
+KUBE-SEP-VUNSBD5OILT2BGUX  all  --  anywhere             anywhere             statistic mode random probability 0.02127659554
+KUBE-SEP-3XVS5OF4SBBHATZW  all  --  anywhere             anywhere             statistic mode random probability 0.02173913037
+KUBE-SEP-IRW2YX5BEMBR3OGF  all  --  anywhere             anywhere             statistic mode random probability 0.02222222229
+KUBE-SEP-6J6T3TOCBEQ5NUQ5  all  --  anywhere             anywhere             statistic mode random probability 0.02272727247
+KUBE-SEP-E3FOMPW5DQK5FDIA  all  --  anywhere             anywhere             statistic mode random probability 0.02325581387
+KUBE-SEP-EO4O2TBNDPU377YQ  all  --  anywhere             anywhere             statistic mode random probability 0.02380952379
+KUBE-SEP-ZGRZOBXXZ2KPGNZD  all  --  anywhere             anywhere             statistic mode random probability 0.02439024393
+KUBE-SEP-XLRCUOCE6XAL3TYE  all  --  anywhere             anywhere             statistic mode random probability 0.02499999991
+KUBE-SEP-477YCBVB2RZ4WKUD  all  --  anywhere             anywhere             statistic mode random probability 0.02564102551
+KUBE-SEP-FGVS22Q3OCM6S5VS  all  --  anywhere             anywhere             statistic mode random probability 0.02631578967
+KUBE-SEP-FBHD55TKQKCEKSUO  all  --  anywhere             anywhere             statistic mode random probability 0.02702702722
+KUBE-SEP-ULRGL5A7XKWV3HB6  all  --  anywhere             anywhere             statistic mode random probability 0.02777777798
+KUBE-SEP-HO6T2NOJNNMVWDPW  all  --  anywhere             anywhere             statistic mode random probability 0.02857142873
+KUBE-SEP-PV23DIU55F5LDJIX  all  --  anywhere             anywhere             statistic mode random probability 0.02941176482
+KUBE-SEP-6PL2LOTBN64MN2IF  all  --  anywhere             anywhere             statistic mode random probability 0.03030303027
+KUBE-SEP-3G3LTNLLVZWE57GZ  all  --  anywhere             anywhere             statistic mode random probability 0.03125000000
+KUBE-SEP-SNHFF6VK2KP44I7Q  all  --  anywhere             anywhere             statistic mode random probability 0.03225806449
+KUBE-SEP-KNOCRXE7JOQ4FBTI  all  --  anywhere             anywhere             statistic mode random probability 0.03333333321
+KUBE-SEP-M5NXUS47V77SM3HZ  all  --  anywhere             anywhere             statistic mode random probability 0.03448275849
+KUBE-SEP-VEMFKB2E3QRFFRSG  all  --  anywhere             anywhere             statistic mode random probability 0.03571428591
+KUBE-SEP-RRYDQV524YXA4GDR  all  --  anywhere             anywhere             statistic mode random probability 0.03703703685
+KUBE-SEP-G65AAYF5LWFW4YBM  all  --  anywhere             anywhere             statistic mode random probability 0.03846153850
+KUBE-SEP-K4HN6ANXSPKA7JGZ  all  --  anywhere             anywhere             statistic mode random probability 0.04000000004
+KUBE-SEP-72YXYSKWHCML6KJJ  all  --  anywhere             anywhere             statistic mode random probability 0.04166666651
+KUBE-SEP-YCD5TFDQM4ELQ5WX  all  --  anywhere             anywhere             statistic mode random probability 0.04347826075
+KUBE-SEP-U7N4W7N5OKDP5PNC  all  --  anywhere             anywhere             statistic mode random probability 0.04545454541
+KUBE-SEP-ACPRKJJSJ73NAQNV  all  --  anywhere             anywhere             statistic mode random probability 0.04761904757
+KUBE-SEP-HPAV4MFMKCM43BC2  all  --  anywhere             anywhere             statistic mode random probability 0.04999999981
+KUBE-SEP-VXO5CPBPAES2GS3A  all  --  anywhere             anywhere             statistic mode random probability 0.05263157887
+KUBE-SEP-LJ3HM5QDYEB4ICUB  all  --  anywhere             anywhere             statistic mode random probability 0.05555555550
+KUBE-SEP-W6VORIPTN7FDPIMU  all  --  anywhere             anywhere             statistic mode random probability 0.05882352963
+KUBE-SEP-A5SGQE4VKXUT2NEC  all  --  anywhere             anywhere             statistic mode random probability 0.06250000000
+KUBE-SEP-4LCLRUWZUF2DDGKK  all  --  anywhere             anywhere             statistic mode random probability 0.06666666688
+KUBE-SEP-K7NZ33CKVQDPMIET  all  --  anywhere             anywhere             statistic mode random probability 0.07142857136
+KUBE-SEP-76ISGBIKEK2QPYDL  all  --  anywhere             anywhere             statistic mode random probability 0.07692307699
+KUBE-SEP-3S5ELV7JJCII2KNO  all  --  anywhere             anywhere             statistic mode random probability 0.08333333349
+KUBE-SEP-THLYLIADKU5Z5I32  all  --  anywhere             anywhere             statistic mode random probability 0.09090909082
+KUBE-SEP-T7P5MBD5MAWH2XB5  all  --  anywhere             anywhere             statistic mode random probability 0.10000000009
+KUBE-SEP-WQ6DVZHCVUTU5QJS  all  --  anywhere             anywhere             statistic mode random probability 0.11111111101
+KUBE-SEP-5RVGOA4UDKOKKI7O  all  --  anywhere             anywhere             statistic mode random probability 0.12500000000
+KUBE-SEP-VSXQV2AZ43RZQSL7  all  --  anywhere             anywhere             statistic mode random probability 0.14285714272
+KUBE-SEP-RVDWX7YLRKCSUDII  all  --  anywhere             anywhere             statistic mode random probability 0.16666666651
+KUBE-SEP-OECSAM56W6JQA562  all  --  anywhere             anywhere             statistic mode random probability 0.20000000019
+KUBE-SEP-HY76TWODHVCVLG5Y  all  --  anywhere             anywhere             statistic mode random probability 0.25000000000
+KUBE-SEP-3UNVKH34LEKZ2P5K  all  --  anywhere             anywhere             statistic mode random probability 0.33333333349
+KUBE-SEP-TDCXKWGVKJJ22VHB  all  --  anywhere             anywhere             statistic mode random probability 0.50000000000
+KUBE-SEP-Z7ZOTGJIY44EKMWW  all  --  anywhere             anywhere
+
+# List the rules of two random chains above to see the DNAT'ed Pod IP
+root@toolbox:~# iptables -L KUBE-SEP-RVDWX7YLRKCSUDII -t nat
+Chain KUBE-SEP-RVDWX7YLRKCSUDII (1 references)
+target     prot opt source               destination
+KUBE-MARK-MASQ  all  --  10.179.94.16         anywhere
+DNAT       tcp  --  anywhere             anywhere             tcp to::0 persistent:0 persistent
+
+root@toolbox:~# iptables -L KUBE-SEP-6PL2LOTBN64MN2IF -t nat
+Chain KUBE-SEP-6PL2LOTBN64MN2IF (1 references)
+target     prot opt source               destination
+KUBE-MARK-MASQ  all  --  10.179.45.66         anywhere
+DNAT       tcp  --  anywhere             anywhere             tcp to::0 persistent:0 persistent
+</code></pre>
+
+<p>These final rules are the ones that actually replace the destination Cluster IP of 10.178.64.10 with
+a randomly chosen <code>kube-dns</code> Pod IP. The random selection is implemented by the rules in the
+<code>KUBE-SVC-ERIFXISQEP7F7OF4</code> chain which have <code>statistic mode random probability p</code>. Rules are
+matched top down. So the first rule with target <code>KUBE-SEP-BMNCBK7ROA3MA6UU</code> has a probability of
+0.01538461540 of being picked. The second rule with target <code>KUBE-SEP-GYUBQUCI6VR6AER2</code> has a
+probability of 0.01562500000 of being picked. But this 0.01562500000 is applied to the probability
+that the first rule didn&rsquo;t match. So its overall probability is (1 - 0.01538461540) * 0.01562500000
+~= 0.01538461540. Applying this calculation to the other rules, you can see each rule has a
+probability of 0.01538461540 or <code>1/n</code> in being selected where <code>n</code> = 65 is the total number of kube-dns
+Pods in this case. This algorithm is actually a variation of [resevoir sampling].</p>
+
+<h3>Confirming the Root Cause</h3>
+
+<p>At this point I strongly suspected the iptables rules were stale and routing packets to kube-dns
+Pod IPs that no longer exist. In order to confirm this I wanted to find an actual DNAT&#8217;ed IP that
+didn&rsquo;t correspond to any actual kube-dns Pod. There were 65 rules in the <code>KUBE-SVC-ERIFXISQEP7F7OF4</code>
+chain, but I expected 77 because that was the number of <code>kube-dns</code> Pods.</p>
+
+<pre><code>kubectl --context my-gke-cluster -n kube-system get endpoints kube-dns -o json | jq -r .subsets[0].addresses | jq length
+77
+</code></pre>
+
+<p>On nodes without DNS issues, I saw the correct number of rules.</p>
+
+<pre><code>root@healthy-gke-node:~# iptables -L KUBE-SVC-ERIFXISQEP7F7OF4 -t nat | wc -l
+79 [two extra lines of headers]
+</code></pre>
+
+<p>I saw this Pod IP when inspecting a randomly chosen rule on <code>my-gke-node</code>.</p>
+
+<pre><code>root@toolbox:~# iptables -L KUBE-SEP-RVDWX7YLRKCSUDII -t nat
+Chain KUBE-SEP-RVDWX7YLRKCSUDII (1 references)
+target     prot opt source               destination
+KUBE-MARK-MASQ  all  --  10.179.94.16         anywhere
+DNAT       tcp  --  anywhere             anywhere             tcp to::0 persistent:0 persistent
+</code></pre>
+
+<p>No <code>kube-dns</code> Pod existed with this IP.</p>
+
+<pre><code>kubectl --context my-gke-cluster -n kube-system get pods --selector k8s-app=kube-dns -o wide | grep 10.179.94.16
+[no output]
+</code></pre>
+
+<p>This confirmed <code>kube-proxy</code> wasn&rsquo;t updating the iptables rules for <code>kube-dns</code>. Why? The <code>kube-proxy</code>
+logs on the node showed these ongoing occurring errors.</p>
+
+<pre><code>dxia@my-gke-node ~ $ tail -f /var/log/kube-proxy.log
+E0126 20:40:24.739255       1 reflector.go:153] k8s.io/client-go/informers/factory.go:135: Failed to list *v1.Service: an error on the server ("") has prevented the request from succeeding (get services)
+E0126 20:40:24.739611       1 reflector.go:153] k8s.io/client-go/informers/factory.go:135: Failed to list *v1.Endpoints: an error on the server ("") has prevented the request from succeeding (get endpoints)
+E0126 20:40:34.742869       1 reflector.go:153] k8s.io/client-go/informers/factory.go:135: Failed to list *v1.Service: an error on the server ("") has prevented the request from succeeding (get services)
+</code></pre>
+
+<h2>The Speculative Fix</h2>
+
+<p>I think these <code>kube-proxy</code> errors are caused by this underlying K8s bug, but I&rsquo;m not sure.</p>
+
+<blockquote><p>we found that after the problem occurred all subsequent requests were still send on the same
+connection. It seems that although the client will resend the request to apiserver, but the
+underlay http2 library still maintains the old connection so all subsequent requests are still
+send on this connection and received the same error use of closed connection.</p>
+
+<p>So the question is why http2 still maintains an already closed connection? Maybe the connection it
+maintained is indeed alive but some intermediate connections are closed unexpectedly?</p></blockquote>
+
+<p>&mdash; <a href="https://github.com/kubernetes/kubernetes/issues/87615#issuecomment-596312532">https://github.com/kubernetes/kubernetes/issues/87615#issuecomment-596312532</a></p>
+
+<p>The bug in that issue is <a href="https://github.com/kubernetes/kubernetes/issues/87615#issuecomment-743342319">fixed in K8s 1.19 and 1.20</a>.</p>
+
+<p>If you&rsquo;re using GKE and Google Cloud Monitoring, this log query will show which nodes&#8217; kube-proxy
+Pods can&rsquo;t get updated Service and Endpoint data from the K8s API.</p>
+
+<pre><code>resource.type="k8s_node"
+resource.labels.project_id="[YOUR-PROJECT]"
+logName="projects/gke-xpn-1/logs/kube-proxy"
+jsonPayload.message:"Failed to list "
+severity=ERROR
+</code></pre>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Becoming a Better Public Speaker]]></title>
@@ -73,7 +365,7 @@ Testing.&rdquo;</a> in various formats. <span xmlns:dct="http://purl.org/dc/term
 </ul>
 
 
-<p><img class="center <a" src="href="https://i.imgur.com/w0P47Ugl.jpg">https://i.imgur.com/w0P47Ugl.jpg</a>&#8221; width=&#8221;640&#8221; height=&#8221;619&#8221;></p>
+<p>{% img center <a href="https://i.imgur.com/w0P47Ugl.jpg">https://i.imgur.com/w0P47Ugl.jpg</a> 640 619 %}</p>
 ]]></content>
   </entry>
   
@@ -172,7 +464,8 @@ what the intelligence agencies have cracked and what&rsquo;s still safe. Has the
 general or only in targeted cases? But I wonder if this discussion is useful or if it misses the
 point as Kamp inspiringly points out at the end of his talk.</p>
 
-<p><blockquote><p>So the standard reaction in the open source environment to Edward Snowden&rsquo;s disclosures have been,
+<p>{% blockquote_nobr Poul-Henning Kamp <a href="https://youtu.be/fwcl17Q0bpk?t=30m8s">https://youtu.be/fwcl17Q0bpk?t=30m8s</a> %}
+So the standard reaction in the open source environment to Edward Snowden&rsquo;s disclosures have been,
 &ldquo;We need to strengthen the protocols! We need to have SSL everywhere.&rdquo; And I think that misses the
 point by a large margin. The things that have been published by the Snowden documents by now are
 the things that the general public can understand reading their newspaper. The stuff we would be
@@ -185,7 +478,8 @@ it. If you cannot find politicians, get you some politicians who can understand 
 is a renewable resource. Use your pencil when you vote. Or run yourself.</p>
 
 <p><strong>This is your children&rsquo;s and grandchildren&rsquo;s future society you&rsquo;re looking at. And we&rsquo;re the guys
-who sort of missed the boat.</strong></p><footer><strong>Poul-Henning Kamp <a href="https://youtu.be/fwcl17Q0bpk?t=30m8s">https://youtu.be/fwcl17Q0bpk?t=30m8s</a></strong></footer></blockquote></p>
+who sort of missed the boat.</strong>
+{% endblockquote_nobr %}</p>
 
 <p>If a guy who&rsquo;s been committing to the FreeBSD kernel for over 15 years says he doesn&rsquo;t see a
 technical solution to mass digital surveillance, he&rsquo;s probably got a point. He doesn&rsquo;t see a
@@ -212,151 +506,7 @@ each of our actions or inactions affect those around us.</p>
 
 <p>I&rsquo;ve drawn a flow chart of my argument of why we should stop mass surveillance below.</p>
 
-<p><a href="https://i.imgur.com/athtKWxh.jpg"><img class="center" src="https://i.imgur.com/athtKWxh.jpg" width="640" height="480"></a></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[How to Turn the Internet Upside Down]]></title>
-    <link href="https://www.davidxia.com/2015/03/how-to-turn-the-internet-upside-down/"/>
-    <updated>2015-03-15T00:00:00-04:00</updated>
-    <id>https://www.davidxia.com/2015/03/how-to-turn-the-internet-upside-down</id>
-    <content type="html"><![CDATA[<p>I read <a href="http://www.ex-parrot.com/pete/upside-down-ternet.html" title="upside down ternet">this web page</a> many years ago that described how someone used their unencrypted WiFi
-network to prank neighbors by turning all images upside down or making them blurry or simply
-redirecting them to cats. I always wanted to do it myself, but I didn&rsquo;t have the required knowledge
-or hardware until now.</p>
-
-<p>In <a href="/2015/03/how-to-install-dd-wrt-on-an-asus-rt-n16-router/" title="How to install DD-WRT on on Asus RT-N16 router">my previous post</a>, I wrote about how I installed DD-WRT onto my <a href="http://www.amazon.com/gp/product/B00387G6R8/ref=as_li_tl?ie=UTF8&amp;camp=1789&amp;creative=390957&amp;creativeASIN=B00387G6R8&amp;linkCode=as2&amp;tag=easiamus00-20&amp;linkId=6TECRA3HNZATDC4U" title="Asus RT-N16">Asus RT-N16 wireless
-router</a>. You might be able to do this prank with the factory default firmware for your router.
-Your firmware needs to let you do the steps in <a href="http://www.alexlaird.com/2013/03/dd-wrt-guest-wireless/" title="DD-WRT guest wireless">this awesome tutorial</a> to create a separate
-guest WiFi network and add custom iptables rules. If it doesn&rsquo;t, get a better router or flash
-better firmware.</p>
-
-<!-- more -->
-
-
-<p>Install the squid3 proxy caching server on a computer on the LAN using <a href="https://help.ubuntu.com/community/Upside-Down-TernetHowTo" title="Ubuntu Upside down ternet HowTo">this tutorial from
-Ubuntu</a>. Instead of using the Apache web server and that Perl script (which didn&rsquo;t work for me),
-I used Nginx and wrote an analogous Python script. I skipped their &ldquo;Networking Setup&rdquo; section
-because I need to setup iptables rules in my router to redirect all traffic from the guest WiFi to
-the squid proxy host. I setup a new subdomain &ldquo;newsubdomain.davidxia.com&rdquo; to point to the
-proxy host and added the Nginx configuration for it as shown below.</p>
-
-<pre><code class="python Python script for squid url_rewrite_program">#!/usr/bin/env python
-
-import os
-import subprocess
-import sys
-import urllib
-import uuid
-
-
-IMG_DIR = '/var/www/images/'
-BASE_URL = 'http://newsubdomain.davidxia.com/'
-
-
-def modify_url(line):
-    list = line.split(' ')
-    # The first element of the list is the requested URL.
-    old_url = list[0]
-
-    # The returned needs to contain a '\n' at the end.
-    # A '\n' by itself means do not rewrite the URL.
-    new_url = '\n'
-
-    # If the requested URL is a JPG, save it to a file on the proxy host, flip it upside down,
-    # and give the user the URL to the upside down image. :p
-    if old_url.lower().endswith('.jpg'):
-        img_file_name = str(uuid.uuid4()) + '.jpg'
-        img_file_path = os.path.join(IMG_DIR, img_file_name)
-        try:
-            urllib.urlretrieve(old_url, img_file_path)
-            subprocess.check_output(['/usr/bin/mogrify', '-flip', img_file_path])
-            new_url = BASE_URL + img_file_name + '\n'
-        except urllib.ContentTooShortError:
-            # TODO log this and return original URL
-            pass
-        except subprocess.CalledProcessError:
-            # TODO log and return original URL and delete the image file
-            pass
-    return new_url
-
-while True:
-    # The format of the line read from stdin is
-    # URL ip-address/fqdn ident method, e.g. http://saini.co.in 172.17.8.175/saini.co.in - GET -
-    line = sys.stdin.readline().strip()
-
-    # new_url is a simple URL only, e.g. http://fedora.co.in
-    new_url = modify_url(line)
-    sys.stdout.write(new_url)
-    sys.stdout.flush()
-</code></pre>
-
-<pre><code class="plain Nginx config">server {
-  server_name images.davidxia.com;
-  root /var/www/images;
-
-  access_log /var/log/nginx/images.davidxia.com-access.log;
-  error_log /var/log/nginx/images.davidxia.com-error.log;
-
-  index index.html;
-
-  location ~* \.(?:gif|jpe?g|png)$ {
-    expires 30d;
-    add_header Pragma public;
-    add_header Cache-Control "public";
-  }
-}
-</code></pre>
-
-<p>In the <a href="https://help.ubuntu.com/community/Upside-Down-TernetHowTo#Configuration" title="Ubuntu Upside down ternet HowTo - configuration">squid configuration section</a>, be sure to have <code>acl localnet src &lt;network range&gt;</code> where
-<code>network range</code> is 192.168.2.1/24 if you used the aforementioned tutorial. Make sure you can
-make HTTP requests to the proxy on localhost:3128 in order to debug. If you can&rsquo;t, you might need to
-add extra ACL rules to the squid conf file (something like <code>http_access allow localnet</code>).</p>
-
-<p>I found <a href="http://www.dd-wrt.com/wiki/index.php/Squid_Transparent_Proxy#Proxy_Server_on_the_LAN_Subnet" title="squid transparent proxy - proxy server on the LAN subnet">instructions</a> to configure the router&rsquo;s firewall rules but realized my setup
-was different. I don&rsquo;t want to proxy traffic from my regular WiFi subnet 192.168.1.1/24 to my proxy
-host on 192.168.1.134 but instead from 192.168.2.1/24 to 192.168.1.134. Use these rules:</p>
-
-<pre><code class="plain iptables rules for router"># Allow traffic coming into interface br0 from proxy host 192.168.1.134 to exit interface br1 to any destination IP
-iptables -I FORWARD -i br0 -o br1 -s 192.168.1.134 -j ACCEPT
-
-# Allow traffic coming into interface br1 from any IP to exit interface br1 to proxy host 192.168.1.134
-# make stricter later
-iptables -I FORWARD -i br1 -o br0 -d 192.168.1.134 -j ACCEPT
-
-PROXY_IP=192.168.1.134
-PROXY_PORT=3128
-LAN_IP=`nvram get br1_ipaddr`
-LAN_NET=$LAN_IP/`nvram get br1_netmask`
-
-# Modify the destination address of packets as soon as they come in.
-# Change their destination address to the squid proxy on 192.168.1.134:3128.
-# Only change packets matching these criteria: came into the br1 interface, are TCP packets, destined for port 80.
-# This redirects HTTP traffic from the guest WiFi to the squid proxy.
-iptables -t nat -A PREROUTING -i br1 -p tcp --dport 80 -j DNAT --to $PROXY_IP:$PROXY_PORT
-
-# Modify the destination address of packets as they are about to go out.
-# Change their destination address to the br1 interface's IP, ie the virtual Wifi's router IP of 192.168.2.1.
-# Only change packets matching these criteria: leaving the br1 interface, have a source address
-# from the 192.168.2.1/24 subnet, are TCP packets, destined for the proxy IP.
-# This makes the squid proxy return HTTP requests back to the guest Wifi, I think...
-iptables -t nat -I POSTROUTING -o br1 -s $LAN_NET -d $PROXY_IP -p tcp -j SNAT --to $LAN_IP
-
-# Allow traffic coming into the br1 interface and leaving br0 with a source IP from the guest WiFi.
-# Packets have to be TCP and destined for the squid proxy's port.
-iptables -I FORWARD -i br1 -o br0 -s $LAN_NET -d $PROXY_IP -p tcp --dport $PROXY_PORT -j ACCEPT
-</code></pre>
-
-<p>Result!</p>
-
-<blockquote class="twitter-tweet" lang="en"><p>I just turned the Internet upside down! I&#39;m so proud of myself. <a href="http://t.co/FhqI0qPP1j">pic.twitter.com/FhqI0qPP1j</a></p>&mdash; David Xia (@davidxia_) <a href="https://twitter.com/davidxia_/status/576614894767890432">March 14, 2015</a></blockquote>
-
-
-<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-
-
+<p><a href="https://i.imgur.com/athtKWxh.jpg">{% img center https://i.imgur.com/athtKWxh.jpg 640 480 %}</a></p>
 ]]></content>
   </entry>
   

@@ -10,8 +10,8 @@
   <meta name="author" content="David Xia">
 
   
-  <meta name="description" content="I first heard of Semester at Sea (SAS) from my friend Alyssa who attended the University of
-Virginia, the official sponsor of the program. SAS is a study &hellip;">
+  <meta name="description" content="I work at Spotify on backend infrastructure. In this context, infrastructure is the shared plumbing
+and platform on which various Spotify systems run. In &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -31,8 +31,8 @@ Virginia, the official sponsor of the program. SAS is a study &hellip;">
   <meta property="og:url" content="https://www.davidxia.com/posts/6/" />
   <meta property="og:image" content="https://i.imgur.com/BJPOY0D.jpg" />
   <meta property="og:locale" content="en_US" />
-  <meta property="og:description" content="I first heard of Semester at Sea (SAS) from my friend Alyssa who attended the University of
-Virginia, the official sponsor of the program. SAS is a study &hellip;" />
+  <meta property="og:description" content="I work at Spotify on backend infrastructure. In this context, infrastructure is the shared plumbing
+and platform on which various Spotify systems run. In &hellip;" />
   <meta property="fb:admins" content="122703" />
 
   <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -103,6 +103,119 @@ Virginia, the official sponsor of the program. SAS is a study &hellip;" />
   
     
     <article itemscope itemtype="http://schema.org/BlogPosting" class="first">
+      
+  <header>
+    <span itemprop="name headline">
+      
+        <h2 class="entry-title"><a href="/2015/03/spotify-helios-in-a-nutshell/">Spotify&#8217;s Helios in a Nutshell</a></h2>
+      
+    </span>
+    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2015/03/spotify-helios-in-a-nutshell/">
+    
+      <p class="meta">
+        
+  
+  
+
+  
+    
+  
+
+  
+    
+  
+
+
+
+<span itemprop="datePublished" content="March  9, 2015"><time class='entry-date' datetime='2015-03-09T00:00:00-04:00'><span class='date'>March  9, 2015</span></time></span>
+<meta itemprop="dateModified" content="March  9, 2015">
+ | 
+  
+
+
+
+  <span class="byline author vcard">
+    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
+  </span>
+
+
+        
+        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
+  <meta itemprop="name" content="David Xia">
+  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
+    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
+  </div>
+</div>
+
+        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
+  
+    
+    
+    
+  
+  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
+  <meta itemprop="height" content="696">
+  <meta itemprop="width" content="696">
+</span>
+
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>I work at Spotify on backend infrastructure. In this context, infrastructure is the shared plumbing
+and platform on which various Spotify systems run. In particular, I work on an open source tool
+called <a href="https://github.com/spotify/helios">Helios</a>. This project and, more importantly, my team
+are pretty awesome.</p>
+
+<h2>What is Helios?</h2>
+
+<p>Helios is a <a href="https://www.docker.com/">Docker</a> orchestration framework.
+This means it&rsquo;s a tool used to manage your Docker containers across a fleet of hosts.</p>
+
+<h2>Why did Spotify create Helios?</h2>
+
+<p>Let&rsquo;s say you have 20 hosts, and you want to run a Docker container named &ldquo;hello-world&rdquo; on each of
+them. You&rsquo;ve installed the Docker daemon on each. Now you SSH into each of them and run
+<code>docker run hello-world</code>. Doing this 20 times is tedious.</p>
+
+<p>So you use cluster SSH or fabric and run it once. That works.</p>
+
+<p>Your application grows and you need environmental variables, exposed ports, and mounted volumes.
+You Docker command becomes longer:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>docker run --env="FOO=BAR" --publish=80:8080 --volume="/etc/default/config:/etc/default/config"</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You need to remember this long command so you
+save it to a file in your code repository. This works OK.</p>
+
+<p>You notice your Docker containers sometimes crash when you start them. You run <code>watch 'docker ps'</code>
+to see which containers have crashed on which hosts. You have to tail the logs on those hosts to
+figure out what went wrong. Hm, this is becoming hard to manage.</p>
+
+<p>One day, one of your hosts restarts. You don&rsquo;t notice that the container is no longer running on
+that host until several days later. Maybe it&rsquo;s time to think of a better solution.</p>
+
+<p>These and many other reasons are why Spotify created Helios. Helios makes it easy to deploy to
+multiple hosts, and Helios keeps track of which containers are running where and will restart
+containers if they crash.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="https://www.davidxia.com/2015/03/spotify-helios-in-a-nutshell/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+    <br class="clear">
+  
+    
+    <article itemscope itemtype="http://schema.org/BlogPosting" >
       
   <header>
     <span itemprop="name headline">
@@ -1024,98 +1137,6 @@ temple, and hiked Mount Rinjani, an active volcano.</p>
     </article>
     <br class="clear">
   
-    
-    <article itemscope itemtype="http://schema.org/BlogPosting" >
-      
-  <header>
-    <span itemprop="name headline">
-      
-        <h2 class="entry-title"><a href="/2014/02/How-to-read-Wall-Street-Journal-online-for-free/">How to Read the Wall Street Journal Online for Free</a></h2>
-      
-    </span>
-    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2014/02/How-to-read-Wall-Street-Journal-online-for-free/">
-    
-      <p class="meta">
-        
-  
-  
-
-  
-    
-  
-
-  
-    
-  
-
-
-
-<span itemprop="datePublished" content="February 24, 2014"><time class='entry-date' datetime='2014-02-24T00:00:00-05:00'><span class='date'>February 24, 2014</span></time></span>
-<meta itemprop="dateModified" content="February 24, 2014">
- | 
-  
-
-
-
-  <span class="byline author vcard">
-    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
-  </span>
-
-
-        
-        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
-  <meta itemprop="name" content="David Xia">
-  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
-    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
-  </div>
-</div>
-
-        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
-  
-    
-    
-    
-  
-  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
-  <meta itemprop="height" content="696">
-  <meta itemprop="width" content="696">
-</span>
-
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Tired of not being able to read WSJ articles online without a subscription?</p>
-
-<p><img class="center" src="https://i.imgur.com/9SLpkDh.png" width="367" height="315"></p>
-
-<p><img class="center" src="https://i.imgur.com/JtYHcWo.png" width="575" height="342"></p>
-
-<p>You&rsquo;ll need a Chrome browser.</p>
-
-<ol>
-<li>Download the <a href="https://chrome.google.com/webstore/detail/modheader/idgpnmonknjnojddfkpgkljpfnnfcklj?hl=en">ModHeader Chrome plugin</a></li>
-<li>Click on the ModHeaders icon and add a &lsquo;Referer&rsquo; header with value &lsquo;<a href="https://www.google.com">https://www.google.com</a>&rsquo; and
-make sure it&rsquo;s checked.</li>
-</ol>
-
-
-<p><img class="center" src="https://i.imgur.com/oSZZn6L.png" width="476" height="260"></p>
-
-<p>Click on the WSJ article again. Voila!</p>
-
-<p><img class="center" src="https://i.imgur.com/cihTbP6.png" width="501" height="533"></p>
-
-<p>If this stops working, try clearing your cookies. I recommend the <a href="https://chrome.google.com/webstore/detail/edit-this-cookie/fngmhnnpilhplaeedifhccceomclgfbg">Edit This Cookie plugin</a></p>
-</div>
-  
-  
-
-
-    </article>
-    <br class="clear">
-  
   <div class="pagination">
     
     <div class="col-md-4">
@@ -1225,11 +1246,11 @@ make sure it&rsquo;s checked.</li>
 <li class='category'><a href='/categories/new-york-city/'>New York City (17)</a></li>
 <li class='category'><a href='/categories/personal/'>Personal (55)</a></li>
 <li class='category'><a href='/categories/photography/'>Photography (3)</a></li>
-<li class='category'><a href='/categories/programming-and-software/'>Programming & Software (52)</a></li>
+<li class='category'><a href='/categories/programming-and-software/'>Programming & Software (53)</a></li>
 <li class='category'><a href='/categories/spy-shit/'>Spy Shit (5)</a></li>
 <li class='category'><a href='/categories/startups-and-entrepreneurism/'>Startups & Entrepreneurism (4)</a></li>
 <li class='category'><a href='/categories/swimming/'>Swimming (2)</a></li>
-<li class='category'><a href='/categories/technology/'>Technology (33)</a></li>
+<li class='category'><a href='/categories/technology/'>Technology (34)</a></li>
 <li class='category'><a href='/categories/travel/'>Travel (28)</a></li>
 <li class='category'><a href='/categories/tv-and-movies/'>Tv & Movies (20)</a></li>
 <li class='category'><a href='/categories/uncategorized/'>Uncategorized (22)</a></li>
@@ -1250,7 +1271,7 @@ make sure it&rsquo;s checked.</li>
 <script src="/javascripts/davidxia.min.js"></script>
 
 <p class="copyright-info">
-  https://www.davidxia.com and all contents copyright 2009-2020 by David Xia,
+  https://www.davidxia.com and all contents copyright 2009-2021 by David Xia,
   unless otherwise noted. Contents under
   <a href="http://creativecommons.org/licenses/by-nc-sa/3.0/">Creative Commons License</a>
 </p>

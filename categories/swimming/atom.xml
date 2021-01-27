@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Swimming | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/swimming/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2020-12-26T17:21:47-05:00</updated>
+  <updated>2021-01-27T15:09:38-05:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -61,11 +61,11 @@ I know because I drank half of it.</li>
 
 <p>Here are some photos.</p>
 
-<p><div class='image center <a'><img  src="href="https://i.imgur.com/afzPLf7l.jpg">https://i.imgur.com/afzPLf7l.jpg</a>&#8221; width=&#8221;640&#8221; height=&#8221;480&#8221; title=&#8221;I pose for a photo after finishing the swim. Everything is sore.&#8221; ><div class='caption'>I pose for a photo after finishing the swim. Everything is sore.</div></div>
-<div class='image center <a'><img  src="href="https://i.imgur.com/prSXIsel.jpg">https://i.imgur.com/prSXIsel.jpg</a>&#8221; width=&#8221;640&#8221; height=&#8221;480&#8221; title=&#8221;Moments before the race begins. Jeff Naylor is on my left and Sandy Smith on my right.&#8221; ><div class='caption'>Moments before the race begins. Jeff Naylor is on my left and Sandy Smith on my right.</div></div>
-<div class='image center <a'><img  src="href="https://i.imgur.com/Ifoh58ll.jpg">https://i.imgur.com/Ifoh58ll.jpg</a>&#8221; width=&#8221;640&#8221; height=&#8221;480&#8221; title=&#8221;That&rsquo;s me and my kayak escort Spencer, Jen&rsquo;s son. I&rsquo;m lucky he volunteered. I don&rsquo;t know who I would&rsquo;ve had escort me otherwise.&#8221; ><div class='caption'>That&rsquo;s me and my kayak escort Spencer, Jen&rsquo;s son. I&rsquo;m lucky he volunteered. I don&rsquo;t know who I would&rsquo;ve had escort me otherwise.</div></div>
-<div class='image center <a'><img  src="href="https://i.imgur.com/8w3OgzLl.jpg">https://i.imgur.com/8w3OgzLl.jpg</a>&#8221; width=&#8221;640&#8221; height=&#8221;480&#8221; title=&#8221;Another photo of right before the start.&#8221; ><div class='caption'>Another photo of right before the start.</div></div>
-<div class='image center <a'><img  src="href="https://i.imgur.com/KOXM9t4l.jpg">https://i.imgur.com/KOXM9t4l.jpg</a>&#8221; width=&#8221;583&#8221; height=&#8221;470&#8221; title=&#8221;Three mile race results.&#8221; ><div class='caption'>Three mile race results.</div></div></p>
+<p>{% img_caption center <a href="https://i.imgur.com/afzPLf7l.jpg">https://i.imgur.com/afzPLf7l.jpg</a> 640 480 I pose for a photo after finishing the swim. Everything is sore. %}
+{% img_caption center <a href="https://i.imgur.com/prSXIsel.jpg">https://i.imgur.com/prSXIsel.jpg</a> 640 480 Moments before the race begins. Jeff Naylor is on my left and Sandy Smith on my right. %}
+{% img_caption center <a href="https://i.imgur.com/Ifoh58ll.jpg">https://i.imgur.com/Ifoh58ll.jpg</a> 640 480 That&rsquo;s me and my kayak escort Spencer, Jen&rsquo;s son. I&rsquo;m lucky he volunteered. I don&rsquo;t know who I would&rsquo;ve had escort me otherwise. %}
+{% img_caption center <a href="https://i.imgur.com/8w3OgzLl.jpg">https://i.imgur.com/8w3OgzLl.jpg</a> 640 480 Another photo of right before the start. %}
+{% img_caption center <a href="https://i.imgur.com/KOXM9t4l.jpg">https://i.imgur.com/KOXM9t4l.jpg</a> 583 470 Three mile race results. %}</p>
 ]]></content>
   </entry>
   
@@ -85,7 +85,7 @@ my snorkel mask. I carefully made my way around the sharp corals near the island
 became deep enough, I was surrounded by nothing but deep blue water.
 I couldn&rsquo;t see the bottom or any distinguishable shapes in the ocean.</p>
 
-<p><div class='image center <a'><img  src="href="https://i.imgur.com/LDg8qfd.jpg">https://i.imgur.com/LDg8qfd.jpg</a>&#8221; width=&#8221;640&#8221; height=&#8221;322&#8221; title=&#8221;Photo by Todd Quackenbush is licensed under CC BY-NC-SA 3.0&#8221; ><div class='caption'>Photo by Todd Quackenbush is licensed under CC BY-NC-SA 3.0</div></div></p>
+<p>{% img_caption center <a href="https://i.imgur.com/LDg8qfd.jpg">https://i.imgur.com/LDg8qfd.jpg</a> 640 322 Photo by Todd Quackenbush is licensed under CC BY-NC-SA 3.0 %}</p>
 
 <p>I started seeing ghostly shapes swimming around me. I was scared because I
 wasn&rsquo;t sure if I was seeing large fish or if my eyes were just playing tricks on me.

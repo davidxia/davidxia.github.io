@@ -105,6 +105,108 @@
   <header>
     <span itemprop="name headline">
       
+        <h2 class="entry-title"><a href="/2021/01/how-kubernetes-routes-ip-packets-to-services-cluster-ips/">How Kubernetes Routes IP Packets to Services&#8217; Cluster IPs</a></h2>
+      
+    </span>
+    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2021/01/how-kubernetes-routes-ip-packets-to-services-cluster-ips/">
+    
+      <p class="meta">
+        
+  
+  
+
+  
+    
+  
+
+  
+    
+  
+
+
+
+<span itemprop="datePublished" content="January 27, 2021"><time class='entry-date' datetime='2021-01-27T13:22:02-05:00'><span class='date'>January 27, 2021</span></time></span>
+<meta itemprop="dateModified" content="January 27, 2021">
+ | 
+  
+
+
+
+  <span class="byline author vcard">
+    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
+  </span>
+
+
+        
+        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
+  <meta itemprop="name" content="David Xia">
+  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
+    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
+  </div>
+</div>
+
+        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
+  
+    
+    
+    
+  
+  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
+  <meta itemprop="height" content="696">
+  <meta itemprop="width" content="696">
+</span>
+
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>I recently observed DNS resolution errors on a large Kubernetes (K8s) cluster. This behavior was
+only happening on 0.1% of K8s nodes. But the fact that this behavior wasn&rsquo;t self-healing and
+crippled tenant workloads in addition to my penchant to chase rabbits down holes meant I
+wasn&rsquo;t going to let it go. I emerged learning how K8s Services&#8217; Cluster IP feature actually works.
+Explaining this feature and my particular problem and speculative fix is the goal of this post.</p>
+
+<h2>The Problem</h2>
+
+<p>The large K8s cluster is actually a Google Kubernetes Engine (GKE) cluster with master version
+1.17.14-gke.400 and node version 1.17.13-gke.2600. This is a multi-tenant cluster with hundreds of
+nodes. Each node runs dozens of user workloads. Some users said DNS resolution within their Pods on
+certain nodes weren&rsquo;t working. I was able to reproduce this behavior with the following steps.</p>
+
+<p>Kubernetes schedules <code>kube-dns</code> Pods and a Service on the cluster that provide DNS and configures
+kubelets to tell individual containers to use the DNS Service&rsquo;s IP to resolve DNS names. <a href="https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/">See K8s
+docs here</a>. First I get the <code>kube-dns</code>&lsquo; Service&rsquo;s Cluster IP. This is the IP address to
+which DNS queries from Pods are sent.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>kubectl --context my-gke-cluster -n kube-system get services kube-dns
+</span><span class='line'>NAME       TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)         AGE
+</span><span class='line'>kube-dns   ClusterIP   10.178.64.10   &lt;none&gt;        53/UDP,53/TCP   666d</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then I make DNS queries against the Cluster IP from a Pod running on a broken node.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="https://www.davidxia.com/2021/01/how-kubernetes-routes-ip-packets-to-services-cluster-ips/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+    <br class="clear">
+  
+    
+    <article itemscope itemtype="http://schema.org/BlogPosting" >
+      
+  <header>
+    <span itemprop="name headline">
+      
         <h2 class="entry-title"><a href="/2020/12/my-hints-and-solutions-to-the-first-three-levels-of-over-the-wire-vortex/">My Hints and Solutions to the First Three Levels of Over the Wire Vortex</a></h2>
       
     </span>
@@ -963,95 +1065,6 @@ instead of parsing and rewriting raw YAML strings.</p>
     </article>
     <br class="clear">
   
-    
-    <article itemscope itemtype="http://schema.org/BlogPosting" >
-      
-  <header>
-    <span itemprop="name headline">
-      
-        <h2 class="entry-title"><a href="/2018/01/internet-meme-role-models/">Internet Meme Role Models</a></h2>
-      
-    </span>
-    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2018/01/internet-meme-role-models/">
-    
-      <p class="meta">
-        
-  
-  
-
-  
-    
-  
-
-  
-    
-  
-
-
-
-<span itemprop="datePublished" content="January  7, 2018"><time class='entry-date' datetime='2018-01-07T11:29:18-05:00'><span class='date'>January  7, 2018</span></time></span>
-<meta itemprop="dateModified" content="January  7, 2018">
- | 
-  
-
-
-
-  <span class="byline author vcard">
-    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
-  </span>
-
-
-        
-        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
-  <meta itemprop="name" content="David Xia">
-  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
-    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
-  </div>
-</div>
-
-        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
-  
-    
-    
-    
-  
-  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
-  <meta itemprop="height" content="696">
-  <meta itemprop="width" content="696">
-</span>
-
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>I&rsquo;m compiling a list of Internet meme role models. Here&rsquo;s what I have so far. These people &mdash;
-they must be real human beings &mdash; must have either gone out of their way to do the right
-thing in a smart manner, something courageous with bonus points for being funny, or just be
-ridiculous. And they must be memeified. Exceptions will be made for exceptional but not
-memeified people like Hilde Lysiak.</p>
-
-<p>Who else deserves to be on this list?</p>
-
-<ul>
-<li><a href="https://www.youtube.com/watch?v=b58mzz7mQpg">Snack Man</a> defused a violent fight on the subway between a couple before anyone got hurt. He did
-it by standing in between them and munching on Pringles and Gummy Bears.</li>
-<li><a href="https://www.youtube.com/watch?v=m9Md78SJO6s">Ben Innes</a> asked the EgyptAir Flight 181 hijacker who comandeered the airplane with a fake
-explosive belt if he could take a selfie with him. &ldquo;I thought, why not? If he blows us all up it
-won&rsquo;t matter anyway.&rdquo;</li>
-<li><a href="https://www.nytimes.com/2017/10/31/books/hilde-lysiak-child-reporter.html">Hilde Lysiak</a> is ten years old and the writer and publisher of Orange Street News.
-She <a href="https://www.youtube.com/watch?v=0ShfNQOUeAY">doesn&rsquo;t take shit from anyone</a>.</li>
-<li>Salt Bae is&hellip;well you just have to <a href="https://www.youtube.com/watch?v=xWMWJwXvzWk&amp;t=376s">see for yourself</a>.</li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-    <br class="clear">
-  
   <div class="pagination">
     
     <div class="col-md-4">
@@ -1157,11 +1170,11 @@ She <a href="https://www.youtube.com/watch?v=0ShfNQOUeAY">doesn&rsquo;t take shi
 <li class='category'><a href='/categories/new-york-city/'>New York City (17)</a></li>
 <li class='category'><a href='/categories/personal/'>Personal (55)</a></li>
 <li class='category'><a href='/categories/photography/'>Photography (3)</a></li>
-<li class='category'><a href='/categories/programming-and-software/'>Programming & Software (52)</a></li>
+<li class='category'><a href='/categories/programming-and-software/'>Programming & Software (53)</a></li>
 <li class='category'><a href='/categories/spy-shit/'>Spy Shit (5)</a></li>
 <li class='category'><a href='/categories/startups-and-entrepreneurism/'>Startups & Entrepreneurism (4)</a></li>
 <li class='category'><a href='/categories/swimming/'>Swimming (2)</a></li>
-<li class='category'><a href='/categories/technology/'>Technology (33)</a></li>
+<li class='category'><a href='/categories/technology/'>Technology (34)</a></li>
 <li class='category'><a href='/categories/travel/'>Travel (28)</a></li>
 <li class='category'><a href='/categories/tv-and-movies/'>Tv & Movies (20)</a></li>
 <li class='category'><a href='/categories/uncategorized/'>Uncategorized (22)</a></li>
@@ -1182,7 +1195,7 @@ She <a href="https://www.youtube.com/watch?v=0ShfNQOUeAY">doesn&rsquo;t take shi
 <script src="/javascripts/davidxia.min.js"></script>
 
 <p class="copyright-info">
-  https://www.davidxia.com and all contents copyright 2009-2020 by David Xia,
+  https://www.davidxia.com and all contents copyright 2009-2021 by David Xia,
   unless otherwise noted. Contents under
   <a href="http://creativecommons.org/licenses/by-nc-sa/3.0/">Creative Commons License</a>
 </p>

@@ -1,0 +1,861 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <title>How Kubernetes Routes IP Packets to Services&#8217; Cluster IPs - David Xia</title>
+  <meta name="author" content="David Xia">
+
+  
+  <meta name="description" content="How Kubernetes Routes IP Packets to Services' Cluster IPs January 27, 2021 | By David Xia I recently observed DNS resolution errors on a large Kubernetes (K8s &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="https://www.davidxia.com/2021/01/how-kubernetes-routes-ip-packets-to-services-cluster-ips/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="David Xia" type="application/atom+xml">
+
+  <meta property="og:site_name" content="David Xia" />
+  <meta property="og:title" content="How Kubernetes Routes IP Packets to Services' Cluster IPs - David Xia" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://www.davidxia.com/2021/01/how-kubernetes-routes-ip-packets-to-services-cluster-ips/" />
+  <meta property="og:image" content="https://i.imgur.com/BJPOY0D.jpg" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:description" content="How Kubernetes Routes IP Packets to Services' Cluster IPs January 27, 2021 | By David Xia I recently observed DNS resolution errors on a large Kubernetes (K8s &hellip;" />
+  <meta property="fb:admins" content="122703" />
+
+  <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+  <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+<![endif]-->
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-25283538-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+  
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+      google_ad_client: "ca-pub-1777254647176109",
+      enable_page_level_ads: true
+    });
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <div class="navbar" role="navigation">
+    <div class="container">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <h1><a class="navbar-brand" href="/">David Xia</a></h1>
+      </div>
+      <div class="navbar-collapse collapse">
+        <ul class="nav navbar-nav">
+          <li><a href="/about">About</a></li>
+          <li><a href="/work">Work</a></li>
+          <li><a href="/contact">Contact</a></li>
+        </ul>
+      </div><!--/.navbar-collapse -->
+    </div>
+  </div>
+</hgroup>
+
+</header>
+  <div itemscope itemtype="https://schema.org/Brand">
+  <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
+</div>
+
+  <div class="container main">
+    <div class="row">
+      <div class="col-md-8">
+  <article itemscope itemtype="http://schema.org/BlogPosting" class="hentry first" role="article">
+    
+  <header>
+    <span itemprop="name headline">
+      
+        <h2 class="entry-title">How Kubernetes Routes IP Packets to Services&#8217; Cluster IPs</h2>
+      
+    </span>
+    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2021/01/how-kubernetes-routes-ip-packets-to-services-cluster-ips/">
+    
+      <p class="meta">
+        
+  
+  
+
+  
+    
+  
+
+  
+    
+  
+
+
+
+<span itemprop="datePublished" content="January 27, 2021"><time class='entry-date' datetime='2021-01-27T13:22:02-05:00'><span class='date'>January 27, 2021</span></time></span>
+<meta itemprop="dateModified" content="January 27, 2021">
+ | 
+  
+
+
+
+  <span class="byline author vcard">
+    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
+  </span>
+
+
+        
+        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
+  <meta itemprop="name" content="David Xia">
+  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
+    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
+  </div>
+</div>
+
+        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
+  
+    
+    
+    
+  
+  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
+  <meta itemprop="height" content="696">
+  <meta itemprop="width" content="696">
+</span>
+
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>I recently observed DNS resolution errors on a large Kubernetes (K8s) cluster. This behavior was
+only happening on 0.1% of K8s nodes. But the fact that this behavior wasn&rsquo;t self-healing and
+crippled tenant workloads in addition to my penchant to chase rabbits down holes meant I
+wasn&rsquo;t going to let it go. I emerged learning how K8s Services&#8217; Cluster IP feature actually works.
+Explaining this feature and my particular problem and speculative fix is the goal of this post.</p>
+
+<h2>The Problem</h2>
+
+<p>The large K8s cluster is actually a Google Kubernetes Engine (GKE) cluster with master version
+1.17.14-gke.400 and node version 1.17.13-gke.2600. This is a multi-tenant cluster with hundreds of
+nodes. Each node runs dozens of user workloads. Some users said DNS resolution within their Pods on
+certain nodes weren&rsquo;t working. I was able to reproduce this behavior with the following steps.</p>
+
+<p>Kubernetes schedules <code>kube-dns</code> Pods and a Service on the cluster that provide DNS and configures
+kubelets to tell individual containers to use the DNS Service&rsquo;s IP to resolve DNS names. <a href="https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/">See K8s
+docs here</a>. First I get the <code>kube-dns</code>&lsquo; Service&rsquo;s Cluster IP. This is the IP address to
+which DNS queries from Pods are sent.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>kubectl --context my-gke-cluster -n kube-system get services kube-dns
+</span><span class='line'>NAME       TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)         AGE
+</span><span class='line'>kube-dns   ClusterIP   10.178.64.10   &lt;none&gt;        53/UDP,53/TCP   666d</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then I make DNS queries against the Cluster IP from a Pod running on a broken node.</p>
+
+<!-- more -->
+
+
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># Log into the GKE node
+</span><span class='line'>gcloud --project my-project compute ssh my-gke-node --zone us-central1-b --internal-ip
+</span><span class='line'>
+</span><span class='line'># Need to run toolbox container which has iptables command. Google's Container-Optimized OS doesn't
+</span><span class='line'># have it.
+</span><span class='line'>dxia@my-gke-node ~ $ toolbox
+</span><span class='line'>20200603-00: Pulling from google-containers/toolbox
+</span><span class='line'>Digest: sha256:36e2f6b8aa40328453aed7917860a8dee746c101dfde4464ce173ed402c1ec57
+</span><span class='line'>Status: Image is up to date for gcr.io/google-containers/toolbox:20200603-00
+</span><span class='line'>gcr.io/google-containers/toolbox:20200603-00
+</span><span class='line'>e6b1ee70f91ac405623cbf1d2afa9a532a022dc644bddddd754d2cd786f58273
+</span><span class='line'>
+</span><span class='line'>dxia-gcr.io_google-containers_toolbox-20200603-00
+</span><span class='line'>Please do not use --share-system anymore, use $SYSTEMD_NSPAWN_SHARE_* instead.
+</span><span class='line'>Spawning container dxia-gcr.io_google-containers_toolbox-20200603-00 on /var/lib/toolbox/dxia-gcr.io_google-containers_toolbox-20200603-00.
+</span><span class='line'>Press ^] three times within 1s to kill container.
+</span><span class='line'>
+</span><span class='line'># Install dig
+</span><span class='line'>root@toolbox:~# apt-get update && apt-get install dnsutils
+</span><span class='line'>
+</span><span class='line'># Ask the kube-dns Cluster IP to resolve www.google.com
+</span><span class='line'># dig will hang when it's waiting on a DNS reply. So ^C's show DNS resolution failures
+</span><span class='line'>root@toolbox:~# for x in $(seq 1 20); do echo ${x}; dig @10.178.64.10 www.google.com &gt; /dev/null; done
+</span><span class='line'>1
+</span><span class='line'>^C2
+</span><span class='line'>^C3
+</span><span class='line'>4
+</span><span class='line'>5
+</span><span class='line'>6
+</span><span class='line'>7
+</span><span class='line'>8
+</span><span class='line'>^C9
+</span><span class='line'>10
+</span><span class='line'>11
+</span><span class='line'>12
+</span><span class='line'>13
+</span><span class='line'>14
+</span><span class='line'>15
+</span><span class='line'>^C16
+</span><span class='line'>17
+</span><span class='line'>18
+</span><span class='line'>^C19
+</span><span class='line'>20</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I cordoned and drained the node and added the annotation
+<code>cluster-autoscaler.kubernetes.io/scale-down-disabled=true</code> to <a href="https://github.com/kubernetes/autoscaler/blob/b470c62bfa6269ed185d21d47dadc339353deb68/cluster-autoscaler/FAQ.md#how-can-i-prevent-cluster-autoscaler-from-scaling-down-a-particular-node">prevent the cluster autoscaler from
+deleting it</a>.</p>
+
+<p>Then I performed a more basic test. I tested whether I could even make a TCP connection to the
+Cluster IP on port 53 (default DNS port).</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># Run nc 1000 times without reverse DNS lookup, in verbose and scan mode
+</span><span class='line'># Count only failed connections
+</span><span class='line'>root@toolbox:~# for x in $(seq 1 1000); do nc 10.178.64.10 53 -nvz 2&gt;&1 | grep -v open; done | wc -l
+</span><span class='line'>257</span></code></pre></td></tr></table></div></figure>
+
+
+<p>A quarter of the TCP connections fail. This means the error is below the DNS layer at TCP layer 3.</p>
+
+<h2>Finding the Root Cause: Down the Rabbit Hole</h2>
+
+<p>Some background for those unfamiliar. K8s nodes (via the <code>kube-proxy</code> DaemonSet) will route IP
+packets originating from a Pod with a destination of a K8s Service&rsquo;s Cluster IP to a backing Pod IP
+in <a href="https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies">one of three proxy modes</a>: user space, iptables, and IPVS. I&rsquo;m assuming GKE
+runs <code>kube-proxy</code> in iptables proxy mode since <a href="https://cloud.google.com/kubernetes-engine/docs/concepts/network-overview#kube-proxy">iptables instead of IPVS is mentioned in their docs
+here</a>.</p>
+
+<p><code>kube-proxy</code> should keep the node&rsquo;s iptable rules up to date with the actual <code>kube-dns</code>
+Service&rsquo;s endpoints. The following console output shows how I figured out the IP packet flow by
+tracing matching iptables rules.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+<span class='line-number'>80</span>
+<span class='line-number'>81</span>
+<span class='line-number'>82</span>
+<span class='line-number'>83</span>
+<span class='line-number'>84</span>
+<span class='line-number'>85</span>
+<span class='line-number'>86</span>
+<span class='line-number'>87</span>
+<span class='line-number'>88</span>
+<span class='line-number'>89</span>
+<span class='line-number'>90</span>
+<span class='line-number'>91</span>
+<span class='line-number'>92</span>
+<span class='line-number'>93</span>
+<span class='line-number'>94</span>
+<span class='line-number'>95</span>
+<span class='line-number'>96</span>
+<span class='line-number'>97</span>
+<span class='line-number'>98</span>
+<span class='line-number'>99</span>
+<span class='line-number'>100</span>
+<span class='line-number'>101</span>
+<span class='line-number'>102</span>
+<span class='line-number'>103</span>
+<span class='line-number'>104</span>
+<span class='line-number'>105</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># List rules in FORWARD chain's filter table
+</span><span class='line'>root@toolbox:~# iptables -L FORWARD -t filter
+</span><span class='line'>Chain FORWARD (policy DROP)
+</span><span class='line'>target     prot opt source               destination
+</span><span class='line'>cali-FORWARD  all  --  anywhere             anywhere             /* cali:wUHhoiAYhphO9Mso */
+</span><span class='line'>KUBE-FORWARD  all  --  anywhere             anywhere             /* kubernetes forwarding rules */
+</span><span class='line'>KUBE-SERVICES  all  --  anywhere             anywhere             ctstate NEW /* kubernetes service portals */
+</span><span class='line'>DOCKER-USER  all  --  anywhere             anywhere
+</span><span class='line'>DOCKER-ISOLATION-STAGE-1  all  --  anywhere             anywhere
+</span><span class='line'>ACCEPT     all  --  anywhere             anywhere             ctstate RELATED,ESTABLISHED
+</span><span class='line'>DOCKER     all  --  anywhere             anywhere
+</span><span class='line'>ACCEPT     all  --  anywhere             anywhere
+</span><span class='line'>ACCEPT     all  --  anywhere             anywhere
+</span><span class='line'>ACCEPT     tcp  --  anywhere             anywhere
+</span><span class='line'>ACCEPT     udp  --  anywhere             anywhere
+</span><span class='line'>ACCEPT     icmp --  anywhere             anywhere
+</span><span class='line'>ACCEPT     sctp --  anywhere             anywhere
+</span><span class='line'>
+</span><span class='line'># List rules in KUBE-SERVICES chain's nat table and look for rules that forward IP packets destined
+</span><span class='line'># for the K8s Service kube-system/kube-dns' Cluster IP
+</span><span class='line'>root@toolbox:~# iptables -L KUBE-SERVICES -t nat | grep kube-system/kube-dns | grep SVC
+</span><span class='line'>KUBE-SVC-ERIFXISQEP7F7OF4  tcp  --  anywhere             10.178.64.10         /* kube-system/kube-dns:dns-tcp cluster IP */ tcp dpt:domain
+</span><span class='line'>KUBE-SVC-TCOU7JCQXEZGVUNU  udp  --  anywhere             10.178.64.10         /* kube-system/kube-dns:dns cluster IP */ udp dpt:domain
+</span><span class='line'>
+</span><span class='line'># List rules in KUBE-SVC-ERIFXISQEP7F7OF4 chain's nat table
+</span><span class='line'>Chain KUBE-SVC-ERIFXISQEP7F7OF4 (1 references)
+</span><span class='line'>target     prot opt source               destination
+</span><span class='line'>KUBE-SEP-BMNCBK7ROA3MA6UU  all  --  anywhere             anywhere             statistic mode random probability 0.01538461540
+</span><span class='line'>KUBE-SEP-GYUBQUCI6VR6AER2  all  --  anywhere             anywhere             statistic mode random probability 0.01562500000
+</span><span class='line'>KUBE-SEP-IF56RUVXN2P4ORZZ  all  --  anywhere             anywhere             statistic mode random probability 0.01587301586
+</span><span class='line'>KUBE-SEP-WUD7OE7TYMWFJJYX  all  --  anywhere             anywhere             statistic mode random probability 0.01612903224
+</span><span class='line'>KUBE-SEP-B7IYZJB6QVUX246S  all  --  anywhere             anywhere             statistic mode random probability 0.01639344264
+</span><span class='line'>KUBE-SEP-T6B7SPNOX3DH33BE  all  --  anywhere             anywhere             statistic mode random probability 0.01666666660
+</span><span class='line'>KUBE-SEP-REJSUT2VC76HMIRQ  all  --  anywhere             anywhere             statistic mode random probability 0.01694915257
+</span><span class='line'>KUBE-SEP-B4N4VXNUSBNXHV73  all  --  anywhere             anywhere             statistic mode random probability 0.01724137925
+</span><span class='line'>KUBE-SEP-XUJIW6IGZX4X5BBG  all  --  anywhere             anywhere             statistic mode random probability 0.01754385978
+</span><span class='line'>KUBE-SEP-MMBQBWR6AYIPMUZL  all  --  anywhere             anywhere             statistic mode random probability 0.01785714272
+</span><span class='line'>KUBE-SEP-6O5U6FAKQVEXGTP7  all  --  anywhere             anywhere             statistic mode random probability 0.01818181807
+</span><span class='line'>KUBE-SEP-DMN3RJWMPAEHNOGE  all  --  anywhere             anywhere             statistic mode random probability 0.01851851866
+</span><span class='line'>KUBE-SEP-FHJKZIH3JDZSXJUD  all  --  anywhere             anywhere             statistic mode random probability 0.01886792434
+</span><span class='line'>KUBE-SEP-YRPM7BEQS2YESSJL  all  --  anywhere             anywhere             statistic mode random probability 0.01923076902
+</span><span class='line'>KUBE-SEP-BSHQZGGNYIILL3V7  all  --  anywhere             anywhere             statistic mode random probability 0.01960784290
+</span><span class='line'>KUBE-SEP-XTW5FCAH2423EWAV  all  --  anywhere             anywhere             statistic mode random probability 0.02000000002
+</span><span class='line'>KUBE-SEP-2ETTGYCM3KLKL54Q  all  --  anywhere             anywhere             statistic mode random probability 0.02040816331
+</span><span class='line'>KUBE-SEP-ZUFFQWVT2EY73YVF  all  --  anywhere             anywhere             statistic mode random probability 0.02083333349
+</span><span class='line'>KUBE-SEP-VUNSBD5OILT2BGUX  all  --  anywhere             anywhere             statistic mode random probability 0.02127659554
+</span><span class='line'>KUBE-SEP-3XVS5OF4SBBHATZW  all  --  anywhere             anywhere             statistic mode random probability 0.02173913037
+</span><span class='line'>KUBE-SEP-IRW2YX5BEMBR3OGF  all  --  anywhere             anywhere             statistic mode random probability 0.02222222229
+</span><span class='line'>KUBE-SEP-6J6T3TOCBEQ5NUQ5  all  --  anywhere             anywhere             statistic mode random probability 0.02272727247
+</span><span class='line'>KUBE-SEP-E3FOMPW5DQK5FDIA  all  --  anywhere             anywhere             statistic mode random probability 0.02325581387
+</span><span class='line'>KUBE-SEP-EO4O2TBNDPU377YQ  all  --  anywhere             anywhere             statistic mode random probability 0.02380952379
+</span><span class='line'>KUBE-SEP-ZGRZOBXXZ2KPGNZD  all  --  anywhere             anywhere             statistic mode random probability 0.02439024393
+</span><span class='line'>KUBE-SEP-XLRCUOCE6XAL3TYE  all  --  anywhere             anywhere             statistic mode random probability 0.02499999991
+</span><span class='line'>KUBE-SEP-477YCBVB2RZ4WKUD  all  --  anywhere             anywhere             statistic mode random probability 0.02564102551
+</span><span class='line'>KUBE-SEP-FGVS22Q3OCM6S5VS  all  --  anywhere             anywhere             statistic mode random probability 0.02631578967
+</span><span class='line'>KUBE-SEP-FBHD55TKQKCEKSUO  all  --  anywhere             anywhere             statistic mode random probability 0.02702702722
+</span><span class='line'>KUBE-SEP-ULRGL5A7XKWV3HB6  all  --  anywhere             anywhere             statistic mode random probability 0.02777777798
+</span><span class='line'>KUBE-SEP-HO6T2NOJNNMVWDPW  all  --  anywhere             anywhere             statistic mode random probability 0.02857142873
+</span><span class='line'>KUBE-SEP-PV23DIU55F5LDJIX  all  --  anywhere             anywhere             statistic mode random probability 0.02941176482
+</span><span class='line'>KUBE-SEP-6PL2LOTBN64MN2IF  all  --  anywhere             anywhere             statistic mode random probability 0.03030303027
+</span><span class='line'>KUBE-SEP-3G3LTNLLVZWE57GZ  all  --  anywhere             anywhere             statistic mode random probability 0.03125000000
+</span><span class='line'>KUBE-SEP-SNHFF6VK2KP44I7Q  all  --  anywhere             anywhere             statistic mode random probability 0.03225806449
+</span><span class='line'>KUBE-SEP-KNOCRXE7JOQ4FBTI  all  --  anywhere             anywhere             statistic mode random probability 0.03333333321
+</span><span class='line'>KUBE-SEP-M5NXUS47V77SM3HZ  all  --  anywhere             anywhere             statistic mode random probability 0.03448275849
+</span><span class='line'>KUBE-SEP-VEMFKB2E3QRFFRSG  all  --  anywhere             anywhere             statistic mode random probability 0.03571428591
+</span><span class='line'>KUBE-SEP-RRYDQV524YXA4GDR  all  --  anywhere             anywhere             statistic mode random probability 0.03703703685
+</span><span class='line'>KUBE-SEP-G65AAYF5LWFW4YBM  all  --  anywhere             anywhere             statistic mode random probability 0.03846153850
+</span><span class='line'>KUBE-SEP-K4HN6ANXSPKA7JGZ  all  --  anywhere             anywhere             statistic mode random probability 0.04000000004
+</span><span class='line'>KUBE-SEP-72YXYSKWHCML6KJJ  all  --  anywhere             anywhere             statistic mode random probability 0.04166666651
+</span><span class='line'>KUBE-SEP-YCD5TFDQM4ELQ5WX  all  --  anywhere             anywhere             statistic mode random probability 0.04347826075
+</span><span class='line'>KUBE-SEP-U7N4W7N5OKDP5PNC  all  --  anywhere             anywhere             statistic mode random probability 0.04545454541
+</span><span class='line'>KUBE-SEP-ACPRKJJSJ73NAQNV  all  --  anywhere             anywhere             statistic mode random probability 0.04761904757
+</span><span class='line'>KUBE-SEP-HPAV4MFMKCM43BC2  all  --  anywhere             anywhere             statistic mode random probability 0.04999999981
+</span><span class='line'>KUBE-SEP-VXO5CPBPAES2GS3A  all  --  anywhere             anywhere             statistic mode random probability 0.05263157887
+</span><span class='line'>KUBE-SEP-LJ3HM5QDYEB4ICUB  all  --  anywhere             anywhere             statistic mode random probability 0.05555555550
+</span><span class='line'>KUBE-SEP-W6VORIPTN7FDPIMU  all  --  anywhere             anywhere             statistic mode random probability 0.05882352963
+</span><span class='line'>KUBE-SEP-A5SGQE4VKXUT2NEC  all  --  anywhere             anywhere             statistic mode random probability 0.06250000000
+</span><span class='line'>KUBE-SEP-4LCLRUWZUF2DDGKK  all  --  anywhere             anywhere             statistic mode random probability 0.06666666688
+</span><span class='line'>KUBE-SEP-K7NZ33CKVQDPMIET  all  --  anywhere             anywhere             statistic mode random probability 0.07142857136
+</span><span class='line'>KUBE-SEP-76ISGBIKEK2QPYDL  all  --  anywhere             anywhere             statistic mode random probability 0.07692307699
+</span><span class='line'>KUBE-SEP-3S5ELV7JJCII2KNO  all  --  anywhere             anywhere             statistic mode random probability 0.08333333349
+</span><span class='line'>KUBE-SEP-THLYLIADKU5Z5I32  all  --  anywhere             anywhere             statistic mode random probability 0.09090909082
+</span><span class='line'>KUBE-SEP-T7P5MBD5MAWH2XB5  all  --  anywhere             anywhere             statistic mode random probability 0.10000000009
+</span><span class='line'>KUBE-SEP-WQ6DVZHCVUTU5QJS  all  --  anywhere             anywhere             statistic mode random probability 0.11111111101
+</span><span class='line'>KUBE-SEP-5RVGOA4UDKOKKI7O  all  --  anywhere             anywhere             statistic mode random probability 0.12500000000
+</span><span class='line'>KUBE-SEP-VSXQV2AZ43RZQSL7  all  --  anywhere             anywhere             statistic mode random probability 0.14285714272
+</span><span class='line'>KUBE-SEP-RVDWX7YLRKCSUDII  all  --  anywhere             anywhere             statistic mode random probability 0.16666666651
+</span><span class='line'>KUBE-SEP-OECSAM56W6JQA562  all  --  anywhere             anywhere             statistic mode random probability 0.20000000019
+</span><span class='line'>KUBE-SEP-HY76TWODHVCVLG5Y  all  --  anywhere             anywhere             statistic mode random probability 0.25000000000
+</span><span class='line'>KUBE-SEP-3UNVKH34LEKZ2P5K  all  --  anywhere             anywhere             statistic mode random probability 0.33333333349
+</span><span class='line'>KUBE-SEP-TDCXKWGVKJJ22VHB  all  --  anywhere             anywhere             statistic mode random probability 0.50000000000
+</span><span class='line'>KUBE-SEP-Z7ZOTGJIY44EKMWW  all  --  anywhere             anywhere
+</span><span class='line'>
+</span><span class='line'># List the rules of two random chains above to see the DNAT'ed Pod IP
+</span><span class='line'>root@toolbox:~# iptables -L KUBE-SEP-RVDWX7YLRKCSUDII -t nat
+</span><span class='line'>Chain KUBE-SEP-RVDWX7YLRKCSUDII (1 references)
+</span><span class='line'>target     prot opt source               destination
+</span><span class='line'>KUBE-MARK-MASQ  all  --  10.179.94.16         anywhere
+</span><span class='line'>DNAT       tcp  --  anywhere             anywhere             tcp to::0 persistent:0 persistent
+</span><span class='line'>
+</span><span class='line'>root@toolbox:~# iptables -L KUBE-SEP-6PL2LOTBN64MN2IF -t nat
+</span><span class='line'>Chain KUBE-SEP-6PL2LOTBN64MN2IF (1 references)
+</span><span class='line'>target     prot opt source               destination
+</span><span class='line'>KUBE-MARK-MASQ  all  --  10.179.45.66         anywhere
+</span><span class='line'>DNAT       tcp  --  anywhere             anywhere             tcp to::0 persistent:0 persistent</span></code></pre></td></tr></table></div></figure>
+
+
+<p>These final rules are the ones that actually replace the destination Cluster IP of 10.178.64.10 with
+a randomly chosen <code>kube-dns</code> Pod IP. The random selection is implemented by the rules in the
+<code>KUBE-SVC-ERIFXISQEP7F7OF4</code> chain which have <code>statistic mode random probability p</code>. Rules are
+matched top down. So the first rule with target <code>KUBE-SEP-BMNCBK7ROA3MA6UU</code> has a probability of
+0.01538461540 of being picked. The second rule with target <code>KUBE-SEP-GYUBQUCI6VR6AER2</code> has a
+probability of 0.01562500000 of being picked. But this 0.01562500000 is applied to the probability
+that the first rule didn&rsquo;t match. So its overall probability is (1 - 0.01538461540) * 0.01562500000
+~= 0.01538461540. Applying this calculation to the other rules, you can see each rule has a
+probability of 0.01538461540 or <code>1/n</code> in being selected where <code>n</code> = 65 is the total number of kube-dns
+Pods in this case. This algorithm is actually a variation of [resevoir sampling].</p>
+
+<h3>Confirming the Root Cause</h3>
+
+<p>At this point I strongly suspected the iptables rules were stale and routing packets to kube-dns
+Pod IPs that no longer exist. In order to confirm this I wanted to find an actual DNAT&#8217;ed IP that
+didn&rsquo;t correspond to any actual kube-dns Pod. There were 65 rules in the <code>KUBE-SVC-ERIFXISQEP7F7OF4</code>
+chain, but I expected 77 because that was the number of <code>kube-dns</code> Pods.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>kubectl --context my-gke-cluster -n kube-system get endpoints kube-dns -o json | jq -r .subsets[0].addresses | jq length
+</span><span class='line'>77</span></code></pre></td></tr></table></div></figure>
+
+
+<p>On nodes without DNS issues, I saw the correct number of rules.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>root@healthy-gke-node:~# iptables -L KUBE-SVC-ERIFXISQEP7F7OF4 -t nat | wc -l
+</span><span class='line'>79 [two extra lines of headers]</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I saw this Pod IP when inspecting a randomly chosen rule on <code>my-gke-node</code>.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>root@toolbox:~# iptables -L KUBE-SEP-RVDWX7YLRKCSUDII -t nat
+</span><span class='line'>Chain KUBE-SEP-RVDWX7YLRKCSUDII (1 references)
+</span><span class='line'>target     prot opt source               destination
+</span><span class='line'>KUBE-MARK-MASQ  all  --  10.179.94.16         anywhere
+</span><span class='line'>DNAT       tcp  --  anywhere             anywhere             tcp to::0 persistent:0 persistent</span></code></pre></td></tr></table></div></figure>
+
+
+<p>No <code>kube-dns</code> Pod existed with this IP.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>kubectl --context my-gke-cluster -n kube-system get pods --selector k8s-app=kube-dns -o wide | grep 10.179.94.16
+</span><span class='line'>[no output]</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This confirmed <code>kube-proxy</code> wasn&rsquo;t updating the iptables rules for <code>kube-dns</code>. Why? The <code>kube-proxy</code>
+logs on the node showed these ongoing occurring errors.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>dxia@my-gke-node ~ $ tail -f /var/log/kube-proxy.log
+</span><span class='line'>E0126 20:40:24.739255       1 reflector.go:153] k8s.io/client-go/informers/factory.go:135: Failed to list *v1.Service: an error on the server ("") has prevented the request from succeeding (get services)
+</span><span class='line'>E0126 20:40:24.739611       1 reflector.go:153] k8s.io/client-go/informers/factory.go:135: Failed to list *v1.Endpoints: an error on the server ("") has prevented the request from succeeding (get endpoints)
+</span><span class='line'>E0126 20:40:34.742869       1 reflector.go:153] k8s.io/client-go/informers/factory.go:135: Failed to list *v1.Service: an error on the server ("") has prevented the request from succeeding (get services)</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>The Speculative Fix</h2>
+
+<p>I think these <code>kube-proxy</code> errors are caused by this underlying K8s bug, but I&rsquo;m not sure.</p>
+
+<blockquote><p>we found that after the problem occurred all subsequent requests were still send on the same
+connection. It seems that although the client will resend the request to apiserver, but the
+underlay http2 library still maintains the old connection so all subsequent requests are still
+send on this connection and received the same error use of closed connection.</p>
+
+<p>So the question is why http2 still maintains an already closed connection? Maybe the connection it
+maintained is indeed alive but some intermediate connections are closed unexpectedly?</p></blockquote>
+
+<p>&mdash; <a href="https://github.com/kubernetes/kubernetes/issues/87615#issuecomment-596312532">https://github.com/kubernetes/kubernetes/issues/87615#issuecomment-596312532</a></p>
+
+<p>The bug in that issue is <a href="https://github.com/kubernetes/kubernetes/issues/87615#issuecomment-743342319">fixed in K8s 1.19 and 1.20</a>.</p>
+
+<p>If you&rsquo;re using GKE and Google Cloud Monitoring, this log query will show which nodes&#8217; kube-proxy
+Pods can&rsquo;t get updated Service and Endpoint data from the K8s API.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>resource.type="k8s_node"
+</span><span class='line'>resource.labels.project_id="[YOUR-PROJECT]"
+</span><span class='line'>logName="projects/gke-xpn-1/logs/kube-proxy"
+</span><span class='line'>jsonPayload.message:"Failed to list "
+</span><span class='line'>severity=ERROR</span></code></pre></td></tr></table></div></figure>
+
+
+
+</div>
+
+
+    <ul class="post-meta">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </ul>
+    <footer>
+      <p class="meta">
+        
+
+<span class="categories">
+  
+    Categories: <a class='category' href='/categories/programming-and-software/'>Programming & Software</a>, <a class='category' href='/categories/technology/'>Technology</a>
+  
+</span>
+
+
+      </p>
+      
+        <div class="sharing">
+  
+    <a id="custom-tweet-button" title="tweet about How Kubernetes Routes IP Packets to Services' Cluster IPs" href="https://twitter.com/share?url=https%3A%2F%2Fwww.davidxia.com%2F2021%2F01%2Fhow-kubernetes-routes-ip-packets-to-services-cluster-ips%2F&text=How%20Kubernetes%20Routes%20IP%20Packets%20to%20Services'%20Cluster%20IPs&via=davidxia_" target="_blank" rel="nofollow">tweet</a>
+  
+  
+    <a id="custom-google-share-button" title="share How Kubernetes Routes IP Packets to Services' Cluster IPs" href="https://plus.google.com/share?url=https%3A%2F%2Fwww.davidxia.com%2F2021%2F01%2Fhow-kubernetes-routes-ip-packets-to-services-cluster-ips%2F" target="_blank" rel="nofollow">Google+</a>
+  
+  
+    <a id="custom-facebook-share-button" title="share How Kubernetes Routes IP Packets to Services' Cluster IPs on Facebook" href="http://www.facebook.com/sharer.php?u=https%3A%2F%2Fwww.davidxia.com%2F2021%2F01%2Fhow-kubernetes-routes-ip-packets-to-services-cluster-ips%2F&t=How%20Kubernetes%20Routes%20IP%20Packets%20to%20Services'%20Cluster%20IPs" target="_blank" rel="nofollow">facebook</a>
+  
+</div>
+
+      
+      <div class="meta np-page-links-div">
+        
+          <div class="basic-alignment left col-md-6">
+            <a class="np-page-link" href="/2020/12/my-hints-and-solutions-to-the-first-three-levels-of-over-the-wire-vortex/" title="Previous Post: My Hints and Solutions to the First Three Levels of Over The Wire Vortex">&larr; My Hints and Solutions to the First Three Levels of Over The Wire Vortex</a>
+          </div>
+        
+        
+        <div class="clear"></div>
+      </div>
+    </footer>
+  </article>
+  
+    <section>
+      <h1>Comments</h1>
+      <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+    </section>
+  
+</div>
+
+<div class="col-md-4">
+  <aside class="well sidebar-nav">
+    
+      
+<section>
+  <h3>About</h3>
+  <p>I&#8217;m David Xia. I write software and occasionally prose.</p>
+</section>
+
+
+<!-- side nav ad -->
+<ins class="adsbygoogle"
+     style="display:inline-block;width:300px;height:250px"
+     data-ad-client="ca-pub-1777254647176109"
+     data-ad-slot="8066618875"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+
+<section>
+  <h3>Elsewhere</h3>
+  <span itemscope itemtype="http://schema.org/Person">
+  <ul>
+    
+    <li><a itemprop="sameAs" href="https://twitter.com/davidxia_" rel="me" title="David Xia’s " target="_self">Twitter</a></li>
+    
+    <li><a itemprop="sameAs" href="https://www.facebook.com/david.xia2" rel="me" title="David Xia’s " target="_self">Facebook</a></li>
+    
+    <li><a itemprop="sameAs" href="https://www.snapchat.com/add/david.xia2" rel="me" title="David Xia’s " target="_self">Snapchat</a></li>
+    
+    <li><a itemprop="sameAs" href="https://github.com/davidxia2" rel="me" title="David Xia’s " target="_self">GitHub</a></li>
+    
+    <li><a itemprop="sameAs" href="https://keybase.io/davidxia" rel="me" title="David Xia’s " target="_self">Keybase</a></li>
+    
+    <li><a itemprop="sameAs" href="https://www.instagram.com/david.xia/" rel="me" title="David Xia’s " target="_self">Instagram</a></li>
+    
+    <li><a itemprop="sameAs" href="https://www.youtube.com/user/dx314152653" rel="me" title="David Xia’s " target="_self">Youtube</a></li>
+    
+    <li><a itemprop="sameAs" href="https://www.linkedin.com/in/davidweixia" rel="me" title="David Xia’s " target="_self">LinkedIn</a></li>
+    
+    <li><a itemprop="sameAs" href="https://plus.google.com/111695463592724886678?rel=author" rel="me" title="David Xia’s " target="_self">Google+</a></li>
+    
+    <li><a itemprop="sameAs" href="https://vimeo.com/davidxia" rel="me" title="David Xia’s " target="_self">Vimeo</a></li>
+    
+    <li><a itemprop="sameAs" href="https://stackoverflow.com/users/553994/david-xia" rel="me" title="David Xia’s " target="_self">StackOverflow</a></li>
+    
+  </ul>
+  </span>
+</section>
+
+<section>
+  <h3>Wise Words</h3>
+  <p id="rquote"></p>
+  <p id="rquote_source"></p>
+  <script text="javascript">
+    var quotesObjs = [{"quote":"job = just over broke"},{"quote":"ISAF = I suck at fighting, I saw Americans fighting","source":"American troops in Afghanistan"},{"quote":"army = ain’t ready for Marines yet","source":"US Army"},{"quote":"Here’s to the crazy ones. The rebels. The troublemakers. The ones who see things differently. While some may see them as the crazy ones, we see genius. Because the people who are crazy enough to think they can change the world, are the ones who do.","source":"Apple's Think Different ad"},{"quote":"The cure for boredom is curiosity. There is no cure for curiosity.","source":"Dorothy Parker"},{"quote":"Unfettered by that, they proceeded to indulge themselves in sensual pleasures like sheep.","source":"Al-Ghazali, The Rescuer From Error"},{"quote":"More confusion – more nonsense, – and the nonsense, as usual, dangerous nonsense.","source":"Jeremy Bentham, Anarchical Fallacies"},{"quote":"Marriage is the grave of confidence and love.","source":"Olympe de Gouges in The Rights of Woman on the contemporary sad state of marriage"},{"quote":"Christian troops, we are told, are excellent. I deny this. Is someone going to show me some?","source":"Jean-Jacques Rousseau, On the Social Contract (Book IV, Ch VIII)"},{"quote":"Being powerful is like being a lady. If you have to tell people you are, you aren’t.","source":"Margaret Thatcher"},{"quote":"Weniger, aber besser (Less, but better)","source":"Dieter Rams"},{"quote":"There are two major products that came out of Berkeley: LSD and UNIX. We don't believe this to be a coincidence.","source":"Jeremy S. Anderson"},{"quote":"[Linux] is not some crazy drug-induced microkernel...","source":"Linus Torvalds, Linux Kernel Mailing List"},{"quote":"Good design is as little design as possible.","source":"Dieter Rams"},{"quote":"I don’t care to belong to any club that will have me as a member.","source":"Groucho Marx"},{"quote":"Part of the secret of a success in life is to eat what you like and let the food fight it out inside.","source":"Mark Twain"},{"quote":"Before you speak, ask yourself: Is it necessary? Is it true? Does it improve upon the silence?","source":"Shirdi Sai Baba"},{"quote":"It is not the critic who counts; not the man who points out how the strong man stumbles, or where the doer of deeds could have done them better. The credit belongs to the man who is actually in the arena, whose face is marred by dust and sweat and blood.","source":"Theodore Roosevelt"},{"quote":"Above all else, try something.","source":"Franklin Roosevelt"},{"quote":"If you are going through hell, keep going.","source":"Winston Churchill"},{"quote":"Workers work hard enough to not be fired, and owners pay just enough so that workers don't quit."},{"quote":"Bulls make money, and bears make money; but pigs get slaughtered.","source":"the Street"},{"quote":"Profits are made when something is bought; not when it is sold."},{"quote":"In this world nothing is certain but death and taxes.","source":"Benjamin Franklin"},{"quote":"The only difference between death and taxes is that on occasion death is relatively painless."},{"quote":"The only man never to be redeemed is the man without passion.","source":"Atlas Shrugged"},{"quote":"I believe a lecture should be like a woman's skirt. Long enough to cover the subject, short enough to keep it interesting.","source":"René Morel"},{"quote":"It is easy in the world to live after the world's opinion; it is easy in solitude to live after our own; but the great man is he who in the midst of the crowd keeps with perfect sweetness the independence of solitude.","source":"Ralph Waldo Emerson"},{"quote":"The happiness of those who want to be popular depends on others; the happiness of those who seek pleasure fluctuates with moods outside their control; but the happiness of the wise grows out of their own free acts.","source":"Marcus Aurelius"},{"quote":"The difference between raising boys and girls is that with boys, you have to worry about one penis. With girls, you have to worry about all the penises.","source":"Anonymous"},{"quote":"Some pretend to be rich, yet have nothing; others pretend to be poor, yet have great wealth.","source":"Proverbs 13:7"},{"quote":"I returned, and saw under the sun, that the race is not to the swift, nor the battle to the strong, neither bread to the wise, nor yet riches to men of understanding, nor yet favor to men of skill; but time and chance happeneth to them all.","source":"Ecclesiastes 9:11"},{"quote":"A banker is a fellow who lends you his umbrella when the sun is shining, but wants it back the minute it begins to rain.","source":"Mark Twain"},{"quote":"No group of professionals meets except to conspire against the public at large.","source":"Mark Twain"},{"quote":"If you simplify your English, you are freed from the worst follies of orthodoxy. Political language...is designed to make lies sound truthful and murder respectable, and to give an appearance of solidity to pure wind.","source":"George Orwell in Politics and the English Language"},{"quote":"Neither can his mind be thought to be in tune, whose words do jarre, nor his reason in frame, whose sentence is preposterous.","source":"Ben Jonson"},{"quote":"A lack of visual clarity in arranging evidence is a sign of lack of intellectual clarity in reasoning about evidence.","source":"Tufte in Visual Explanations"},{"quote":"For the love of money is the root of all evil: which while some coveted after, they have erred from the faith, and pierced themselves through with many sorrows.","source":"St. Paul in his First Letter to Timothy"}];
+    quoteObj = quotesObjs[Math.floor(Math.random() * quotesObjs.length)];
+    document.getElementById('rquote').innerHTML = quoteObj.quote;
+    document.getElementById('rquote_source').innerHTML = quoteObj.source;
+  </script>
+</section>
+
+<section>
+  <h3>RSS Links</h3>
+  <p><a href="/atom.xml">All posts</a></p>
+</section>
+
+<section class="last">
+  <h3>Categories</h3>
+  <ul id="categories">
+    <li class='category'><a href='/categories/business/'>Business (9)</a></li>
+<li class='category'><a href='/categories/career/'>Career (16)</a></li>
+<li class='category'><a href='/categories/china/'>China (13)</a></li>
+<li class='category'><a href='/categories/chinese-culture/'>Chinese Culture (12)</a></li>
+<li class='category'><a href='/categories/columbia-university/'>Columbia University (27)</a></li>
+<li class='category'><a href='/categories/computer-science/'>Computer Science (7)</a></li>
+<li class='category'><a href='/categories/current-events/'>Current Events (43)</a></li>
+<li class='category'><a href='/categories/design/'>Design (6)</a></li>
+<li class='category'><a href='/categories/economy/'>Economy (11)</a></li>
+<li class='category'><a href='/categories/electronics/'>Electronics (3)</a></li>
+<li class='category'><a href='/categories/food-and-drink/'>Food & Drink (12)</a></li>
+<li class='category'><a href='/categories/friends/'>Friends (15)</a></li>
+<li class='category'><a href='/categories/information-security/'>Information Security (9)</a></li>
+<li class='category'><a href='/categories/internet/'>Internet (28)</a></li>
+<li class='category'><a href='/categories/journalism/'>Journalism (13)</a></li>
+<li class='category'><a href='/categories/math/'>Math (10)</a></li>
+<li class='category'><a href='/categories/nature-and-outdoors/'>Nature & Outdoors (12)</a></li>
+<li class='category'><a href='/categories/new-york-city/'>New York City (17)</a></li>
+<li class='category'><a href='/categories/personal/'>Personal (55)</a></li>
+<li class='category'><a href='/categories/photography/'>Photography (3)</a></li>
+<li class='category'><a href='/categories/programming-and-software/'>Programming & Software (53)</a></li>
+<li class='category'><a href='/categories/spy-shit/'>Spy Shit (5)</a></li>
+<li class='category'><a href='/categories/startups-and-entrepreneurism/'>Startups & Entrepreneurism (4)</a></li>
+<li class='category'><a href='/categories/swimming/'>Swimming (2)</a></li>
+<li class='category'><a href='/categories/technology/'>Technology (34)</a></li>
+<li class='category'><a href='/categories/travel/'>Travel (28)</a></li>
+<li class='category'><a href='/categories/tv-and-movies/'>Tv & Movies (20)</a></li>
+<li class='category'><a href='/categories/uncategorized/'>Uncategorized (22)</a></li>
+<li class='category'><a href='/categories/wellesley/'>Wellesley (6)</a></li>
+<li class='category'><a href='/categories/woodworking/'>Woodworking (3)</a></li>
+<li class='category'><a href='/categories/writing-and-literature/'>Writing & Literature (17)</a></li>
+
+  </ul>
+</section>
+
+    
+  </aside>
+</div>
+
+
+    </div>
+    <footer class="page-footer" role="contentinfo"><script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="/javascripts/bootstrap.min.js"></script>
+<script src="/javascripts/davidxia.min.js"></script>
+
+<p class="copyright-info">
+  https://www.davidxia.com and all contents copyright 2009-2021 by David Xia,
+  unless otherwise noted. Contents under
+  <a href="http://creativecommons.org/licenses/by-nc-sa/3.0/">Creative Commons License</a>
+</p>
+
+</footer>
+    
+
+<script type="text/javascript">
+      var disqus_shortname = 'davidxia';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'https://www.davidxia.com/2021/01/how-kubernetes-routes-ip-packets-to-services-cluster-ips/';
+        var disqus_url = 'https://www.davidxia.com/2021/01/how-kubernetes-routes-ip-packets-to-services-cluster-ips/';
+        var disqus_script = 'embed.min.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+  </div>
+</body>
+</html>

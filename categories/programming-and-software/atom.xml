@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Programming & Software | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/programming-and-software/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2020-12-26T17:21:47-05:00</updated>
+  <updated>2021-01-27T15:09:38-05:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -12,6 +12,298 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[How Kubernetes Routes IP Packets to Services' Cluster IPs]]></title>
+    <link href="https://www.davidxia.com/2021/01/how-kubernetes-routes-ip-packets-to-services-cluster-ips/"/>
+    <updated>2021-01-27T13:22:02-05:00</updated>
+    <id>https://www.davidxia.com/2021/01/how-kubernetes-routes-ip-packets-to-services-cluster-ips</id>
+    <content type="html"><![CDATA[<p>I recently observed DNS resolution errors on a large Kubernetes (K8s) cluster. This behavior was
+only happening on 0.1% of K8s nodes. But the fact that this behavior wasn&rsquo;t self-healing and
+crippled tenant workloads in addition to my penchant to chase rabbits down holes meant I
+wasn&rsquo;t going to let it go. I emerged learning how K8s Services&#8217; Cluster IP feature actually works.
+Explaining this feature and my particular problem and speculative fix is the goal of this post.</p>
+
+<h2>The Problem</h2>
+
+<p>The large K8s cluster is actually a Google Kubernetes Engine (GKE) cluster with master version
+1.17.14-gke.400 and node version 1.17.13-gke.2600. This is a multi-tenant cluster with hundreds of
+nodes. Each node runs dozens of user workloads. Some users said DNS resolution within their Pods on
+certain nodes weren&rsquo;t working. I was able to reproduce this behavior with the following steps.</p>
+
+<p>Kubernetes schedules <code>kube-dns</code> Pods and a Service on the cluster that provide DNS and configures
+kubelets to tell individual containers to use the DNS Service&rsquo;s IP to resolve DNS names. <a href="https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/">See K8s
+docs here</a>. First I get the <code>kube-dns</code>&lsquo; Service&rsquo;s Cluster IP. This is the IP address to
+which DNS queries from Pods are sent.</p>
+
+<pre><code>kubectl --context my-gke-cluster -n kube-system get services kube-dns
+NAME       TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)         AGE
+kube-dns   ClusterIP   10.178.64.10   &lt;none&gt;        53/UDP,53/TCP   666d
+</code></pre>
+
+<p>Then I make DNS queries against the Cluster IP from a Pod running on a broken node.</p>
+
+<!-- more -->
+
+
+<pre><code># Log into the GKE node
+gcloud --project my-project compute ssh my-gke-node --zone us-central1-b --internal-ip
+
+# Need to run toolbox container which has iptables command. Google's Container-Optimized OS doesn't
+# have it.
+dxia@my-gke-node ~ $ toolbox
+20200603-00: Pulling from google-containers/toolbox
+Digest: sha256:36e2f6b8aa40328453aed7917860a8dee746c101dfde4464ce173ed402c1ec57
+Status: Image is up to date for gcr.io/google-containers/toolbox:20200603-00
+gcr.io/google-containers/toolbox:20200603-00
+e6b1ee70f91ac405623cbf1d2afa9a532a022dc644bddddd754d2cd786f58273
+
+dxia-gcr.io_google-containers_toolbox-20200603-00
+Please do not use --share-system anymore, use $SYSTEMD_NSPAWN_SHARE_* instead.
+Spawning container dxia-gcr.io_google-containers_toolbox-20200603-00 on /var/lib/toolbox/dxia-gcr.io_google-containers_toolbox-20200603-00.
+Press ^] three times within 1s to kill container.
+
+# Install dig
+root@toolbox:~# apt-get update &amp;&amp; apt-get install dnsutils
+
+# Ask the kube-dns Cluster IP to resolve www.google.com
+# dig will hang when it's waiting on a DNS reply. So ^C's show DNS resolution failures
+root@toolbox:~# for x in $(seq 1 20); do echo ${x}; dig @10.178.64.10 www.google.com &gt; /dev/null; done
+1
+^C2
+^C3
+4
+5
+6
+7
+8
+^C9
+10
+11
+12
+13
+14
+15
+^C16
+17
+18
+^C19
+20
+</code></pre>
+
+<p>I cordoned and drained the node and added the annotation
+<code>cluster-autoscaler.kubernetes.io/scale-down-disabled=true</code> to <a href="https://github.com/kubernetes/autoscaler/blob/b470c62bfa6269ed185d21d47dadc339353deb68/cluster-autoscaler/FAQ.md#how-can-i-prevent-cluster-autoscaler-from-scaling-down-a-particular-node">prevent the cluster autoscaler from
+deleting it</a>.</p>
+
+<p>Then I performed a more basic test. I tested whether I could even make a TCP connection to the
+Cluster IP on port 53 (default DNS port).</p>
+
+<pre><code># Run nc 1000 times without reverse DNS lookup, in verbose and scan mode
+# Count only failed connections
+root@toolbox:~# for x in $(seq 1 1000); do nc 10.178.64.10 53 -nvz 2&gt;&amp;1 | grep -v open; done | wc -l
+257
+</code></pre>
+
+<p>A quarter of the TCP connections fail. This means the error is below the DNS layer at TCP layer 3.</p>
+
+<h2>Finding the Root Cause: Down the Rabbit Hole</h2>
+
+<p>Some background for those unfamiliar. K8s nodes (via the <code>kube-proxy</code> DaemonSet) will route IP
+packets originating from a Pod with a destination of a K8s Service&rsquo;s Cluster IP to a backing Pod IP
+in <a href="https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies">one of three proxy modes</a>: user space, iptables, and IPVS. I&rsquo;m assuming GKE
+runs <code>kube-proxy</code> in iptables proxy mode since <a href="https://cloud.google.com/kubernetes-engine/docs/concepts/network-overview#kube-proxy">iptables instead of IPVS is mentioned in their docs
+here</a>.</p>
+
+<p><code>kube-proxy</code> should keep the node&rsquo;s iptable rules up to date with the actual <code>kube-dns</code>
+Service&rsquo;s endpoints. The following console output shows how I figured out the IP packet flow by
+tracing matching iptables rules.</p>
+
+<pre><code># List rules in FORWARD chain's filter table
+root@toolbox:~# iptables -L FORWARD -t filter
+Chain FORWARD (policy DROP)
+target     prot opt source               destination
+cali-FORWARD  all  --  anywhere             anywhere             /* cali:wUHhoiAYhphO9Mso */
+KUBE-FORWARD  all  --  anywhere             anywhere             /* kubernetes forwarding rules */
+KUBE-SERVICES  all  --  anywhere             anywhere             ctstate NEW /* kubernetes service portals */
+DOCKER-USER  all  --  anywhere             anywhere
+DOCKER-ISOLATION-STAGE-1  all  --  anywhere             anywhere
+ACCEPT     all  --  anywhere             anywhere             ctstate RELATED,ESTABLISHED
+DOCKER     all  --  anywhere             anywhere
+ACCEPT     all  --  anywhere             anywhere
+ACCEPT     all  --  anywhere             anywhere
+ACCEPT     tcp  --  anywhere             anywhere
+ACCEPT     udp  --  anywhere             anywhere
+ACCEPT     icmp --  anywhere             anywhere
+ACCEPT     sctp --  anywhere             anywhere
+
+# List rules in KUBE-SERVICES chain's nat table and look for rules that forward IP packets destined
+# for the K8s Service kube-system/kube-dns' Cluster IP
+root@toolbox:~# iptables -L KUBE-SERVICES -t nat | grep kube-system/kube-dns | grep SVC
+KUBE-SVC-ERIFXISQEP7F7OF4  tcp  --  anywhere             10.178.64.10         /* kube-system/kube-dns:dns-tcp cluster IP */ tcp dpt:domain
+KUBE-SVC-TCOU7JCQXEZGVUNU  udp  --  anywhere             10.178.64.10         /* kube-system/kube-dns:dns cluster IP */ udp dpt:domain
+
+# List rules in KUBE-SVC-ERIFXISQEP7F7OF4 chain's nat table
+Chain KUBE-SVC-ERIFXISQEP7F7OF4 (1 references)
+target     prot opt source               destination
+KUBE-SEP-BMNCBK7ROA3MA6UU  all  --  anywhere             anywhere             statistic mode random probability 0.01538461540
+KUBE-SEP-GYUBQUCI6VR6AER2  all  --  anywhere             anywhere             statistic mode random probability 0.01562500000
+KUBE-SEP-IF56RUVXN2P4ORZZ  all  --  anywhere             anywhere             statistic mode random probability 0.01587301586
+KUBE-SEP-WUD7OE7TYMWFJJYX  all  --  anywhere             anywhere             statistic mode random probability 0.01612903224
+KUBE-SEP-B7IYZJB6QVUX246S  all  --  anywhere             anywhere             statistic mode random probability 0.01639344264
+KUBE-SEP-T6B7SPNOX3DH33BE  all  --  anywhere             anywhere             statistic mode random probability 0.01666666660
+KUBE-SEP-REJSUT2VC76HMIRQ  all  --  anywhere             anywhere             statistic mode random probability 0.01694915257
+KUBE-SEP-B4N4VXNUSBNXHV73  all  --  anywhere             anywhere             statistic mode random probability 0.01724137925
+KUBE-SEP-XUJIW6IGZX4X5BBG  all  --  anywhere             anywhere             statistic mode random probability 0.01754385978
+KUBE-SEP-MMBQBWR6AYIPMUZL  all  --  anywhere             anywhere             statistic mode random probability 0.01785714272
+KUBE-SEP-6O5U6FAKQVEXGTP7  all  --  anywhere             anywhere             statistic mode random probability 0.01818181807
+KUBE-SEP-DMN3RJWMPAEHNOGE  all  --  anywhere             anywhere             statistic mode random probability 0.01851851866
+KUBE-SEP-FHJKZIH3JDZSXJUD  all  --  anywhere             anywhere             statistic mode random probability 0.01886792434
+KUBE-SEP-YRPM7BEQS2YESSJL  all  --  anywhere             anywhere             statistic mode random probability 0.01923076902
+KUBE-SEP-BSHQZGGNYIILL3V7  all  --  anywhere             anywhere             statistic mode random probability 0.01960784290
+KUBE-SEP-XTW5FCAH2423EWAV  all  --  anywhere             anywhere             statistic mode random probability 0.02000000002
+KUBE-SEP-2ETTGYCM3KLKL54Q  all  --  anywhere             anywhere             statistic mode random probability 0.02040816331
+KUBE-SEP-ZUFFQWVT2EY73YVF  all  --  anywhere             anywhere             statistic mode random probability 0.02083333349
+KUBE-SEP-VUNSBD5OILT2BGUX  all  --  anywhere             anywhere             statistic mode random probability 0.02127659554
+KUBE-SEP-3XVS5OF4SBBHATZW  all  --  anywhere             anywhere             statistic mode random probability 0.02173913037
+KUBE-SEP-IRW2YX5BEMBR3OGF  all  --  anywhere             anywhere             statistic mode random probability 0.02222222229
+KUBE-SEP-6J6T3TOCBEQ5NUQ5  all  --  anywhere             anywhere             statistic mode random probability 0.02272727247
+KUBE-SEP-E3FOMPW5DQK5FDIA  all  --  anywhere             anywhere             statistic mode random probability 0.02325581387
+KUBE-SEP-EO4O2TBNDPU377YQ  all  --  anywhere             anywhere             statistic mode random probability 0.02380952379
+KUBE-SEP-ZGRZOBXXZ2KPGNZD  all  --  anywhere             anywhere             statistic mode random probability 0.02439024393
+KUBE-SEP-XLRCUOCE6XAL3TYE  all  --  anywhere             anywhere             statistic mode random probability 0.02499999991
+KUBE-SEP-477YCBVB2RZ4WKUD  all  --  anywhere             anywhere             statistic mode random probability 0.02564102551
+KUBE-SEP-FGVS22Q3OCM6S5VS  all  --  anywhere             anywhere             statistic mode random probability 0.02631578967
+KUBE-SEP-FBHD55TKQKCEKSUO  all  --  anywhere             anywhere             statistic mode random probability 0.02702702722
+KUBE-SEP-ULRGL5A7XKWV3HB6  all  --  anywhere             anywhere             statistic mode random probability 0.02777777798
+KUBE-SEP-HO6T2NOJNNMVWDPW  all  --  anywhere             anywhere             statistic mode random probability 0.02857142873
+KUBE-SEP-PV23DIU55F5LDJIX  all  --  anywhere             anywhere             statistic mode random probability 0.02941176482
+KUBE-SEP-6PL2LOTBN64MN2IF  all  --  anywhere             anywhere             statistic mode random probability 0.03030303027
+KUBE-SEP-3G3LTNLLVZWE57GZ  all  --  anywhere             anywhere             statistic mode random probability 0.03125000000
+KUBE-SEP-SNHFF6VK2KP44I7Q  all  --  anywhere             anywhere             statistic mode random probability 0.03225806449
+KUBE-SEP-KNOCRXE7JOQ4FBTI  all  --  anywhere             anywhere             statistic mode random probability 0.03333333321
+KUBE-SEP-M5NXUS47V77SM3HZ  all  --  anywhere             anywhere             statistic mode random probability 0.03448275849
+KUBE-SEP-VEMFKB2E3QRFFRSG  all  --  anywhere             anywhere             statistic mode random probability 0.03571428591
+KUBE-SEP-RRYDQV524YXA4GDR  all  --  anywhere             anywhere             statistic mode random probability 0.03703703685
+KUBE-SEP-G65AAYF5LWFW4YBM  all  --  anywhere             anywhere             statistic mode random probability 0.03846153850
+KUBE-SEP-K4HN6ANXSPKA7JGZ  all  --  anywhere             anywhere             statistic mode random probability 0.04000000004
+KUBE-SEP-72YXYSKWHCML6KJJ  all  --  anywhere             anywhere             statistic mode random probability 0.04166666651
+KUBE-SEP-YCD5TFDQM4ELQ5WX  all  --  anywhere             anywhere             statistic mode random probability 0.04347826075
+KUBE-SEP-U7N4W7N5OKDP5PNC  all  --  anywhere             anywhere             statistic mode random probability 0.04545454541
+KUBE-SEP-ACPRKJJSJ73NAQNV  all  --  anywhere             anywhere             statistic mode random probability 0.04761904757
+KUBE-SEP-HPAV4MFMKCM43BC2  all  --  anywhere             anywhere             statistic mode random probability 0.04999999981
+KUBE-SEP-VXO5CPBPAES2GS3A  all  --  anywhere             anywhere             statistic mode random probability 0.05263157887
+KUBE-SEP-LJ3HM5QDYEB4ICUB  all  --  anywhere             anywhere             statistic mode random probability 0.05555555550
+KUBE-SEP-W6VORIPTN7FDPIMU  all  --  anywhere             anywhere             statistic mode random probability 0.05882352963
+KUBE-SEP-A5SGQE4VKXUT2NEC  all  --  anywhere             anywhere             statistic mode random probability 0.06250000000
+KUBE-SEP-4LCLRUWZUF2DDGKK  all  --  anywhere             anywhere             statistic mode random probability 0.06666666688
+KUBE-SEP-K7NZ33CKVQDPMIET  all  --  anywhere             anywhere             statistic mode random probability 0.07142857136
+KUBE-SEP-76ISGBIKEK2QPYDL  all  --  anywhere             anywhere             statistic mode random probability 0.07692307699
+KUBE-SEP-3S5ELV7JJCII2KNO  all  --  anywhere             anywhere             statistic mode random probability 0.08333333349
+KUBE-SEP-THLYLIADKU5Z5I32  all  --  anywhere             anywhere             statistic mode random probability 0.09090909082
+KUBE-SEP-T7P5MBD5MAWH2XB5  all  --  anywhere             anywhere             statistic mode random probability 0.10000000009
+KUBE-SEP-WQ6DVZHCVUTU5QJS  all  --  anywhere             anywhere             statistic mode random probability 0.11111111101
+KUBE-SEP-5RVGOA4UDKOKKI7O  all  --  anywhere             anywhere             statistic mode random probability 0.12500000000
+KUBE-SEP-VSXQV2AZ43RZQSL7  all  --  anywhere             anywhere             statistic mode random probability 0.14285714272
+KUBE-SEP-RVDWX7YLRKCSUDII  all  --  anywhere             anywhere             statistic mode random probability 0.16666666651
+KUBE-SEP-OECSAM56W6JQA562  all  --  anywhere             anywhere             statistic mode random probability 0.20000000019
+KUBE-SEP-HY76TWODHVCVLG5Y  all  --  anywhere             anywhere             statistic mode random probability 0.25000000000
+KUBE-SEP-3UNVKH34LEKZ2P5K  all  --  anywhere             anywhere             statistic mode random probability 0.33333333349
+KUBE-SEP-TDCXKWGVKJJ22VHB  all  --  anywhere             anywhere             statistic mode random probability 0.50000000000
+KUBE-SEP-Z7ZOTGJIY44EKMWW  all  --  anywhere             anywhere
+
+# List the rules of two random chains above to see the DNAT'ed Pod IP
+root@toolbox:~# iptables -L KUBE-SEP-RVDWX7YLRKCSUDII -t nat
+Chain KUBE-SEP-RVDWX7YLRKCSUDII (1 references)
+target     prot opt source               destination
+KUBE-MARK-MASQ  all  --  10.179.94.16         anywhere
+DNAT       tcp  --  anywhere             anywhere             tcp to::0 persistent:0 persistent
+
+root@toolbox:~# iptables -L KUBE-SEP-6PL2LOTBN64MN2IF -t nat
+Chain KUBE-SEP-6PL2LOTBN64MN2IF (1 references)
+target     prot opt source               destination
+KUBE-MARK-MASQ  all  --  10.179.45.66         anywhere
+DNAT       tcp  --  anywhere             anywhere             tcp to::0 persistent:0 persistent
+</code></pre>
+
+<p>These final rules are the ones that actually replace the destination Cluster IP of 10.178.64.10 with
+a randomly chosen <code>kube-dns</code> Pod IP. The random selection is implemented by the rules in the
+<code>KUBE-SVC-ERIFXISQEP7F7OF4</code> chain which have <code>statistic mode random probability p</code>. Rules are
+matched top down. So the first rule with target <code>KUBE-SEP-BMNCBK7ROA3MA6UU</code> has a probability of
+0.01538461540 of being picked. The second rule with target <code>KUBE-SEP-GYUBQUCI6VR6AER2</code> has a
+probability of 0.01562500000 of being picked. But this 0.01562500000 is applied to the probability
+that the first rule didn&rsquo;t match. So its overall probability is (1 - 0.01538461540) * 0.01562500000
+~= 0.01538461540. Applying this calculation to the other rules, you can see each rule has a
+probability of 0.01538461540 or <code>1/n</code> in being selected where <code>n</code> = 65 is the total number of kube-dns
+Pods in this case. This algorithm is actually a variation of [resevoir sampling].</p>
+
+<h3>Confirming the Root Cause</h3>
+
+<p>At this point I strongly suspected the iptables rules were stale and routing packets to kube-dns
+Pod IPs that no longer exist. In order to confirm this I wanted to find an actual DNAT&#8217;ed IP that
+didn&rsquo;t correspond to any actual kube-dns Pod. There were 65 rules in the <code>KUBE-SVC-ERIFXISQEP7F7OF4</code>
+chain, but I expected 77 because that was the number of <code>kube-dns</code> Pods.</p>
+
+<pre><code>kubectl --context my-gke-cluster -n kube-system get endpoints kube-dns -o json | jq -r .subsets[0].addresses | jq length
+77
+</code></pre>
+
+<p>On nodes without DNS issues, I saw the correct number of rules.</p>
+
+<pre><code>root@healthy-gke-node:~# iptables -L KUBE-SVC-ERIFXISQEP7F7OF4 -t nat | wc -l
+79 [two extra lines of headers]
+</code></pre>
+
+<p>I saw this Pod IP when inspecting a randomly chosen rule on <code>my-gke-node</code>.</p>
+
+<pre><code>root@toolbox:~# iptables -L KUBE-SEP-RVDWX7YLRKCSUDII -t nat
+Chain KUBE-SEP-RVDWX7YLRKCSUDII (1 references)
+target     prot opt source               destination
+KUBE-MARK-MASQ  all  --  10.179.94.16         anywhere
+DNAT       tcp  --  anywhere             anywhere             tcp to::0 persistent:0 persistent
+</code></pre>
+
+<p>No <code>kube-dns</code> Pod existed with this IP.</p>
+
+<pre><code>kubectl --context my-gke-cluster -n kube-system get pods --selector k8s-app=kube-dns -o wide | grep 10.179.94.16
+[no output]
+</code></pre>
+
+<p>This confirmed <code>kube-proxy</code> wasn&rsquo;t updating the iptables rules for <code>kube-dns</code>. Why? The <code>kube-proxy</code>
+logs on the node showed these ongoing occurring errors.</p>
+
+<pre><code>dxia@my-gke-node ~ $ tail -f /var/log/kube-proxy.log
+E0126 20:40:24.739255       1 reflector.go:153] k8s.io/client-go/informers/factory.go:135: Failed to list *v1.Service: an error on the server ("") has prevented the request from succeeding (get services)
+E0126 20:40:24.739611       1 reflector.go:153] k8s.io/client-go/informers/factory.go:135: Failed to list *v1.Endpoints: an error on the server ("") has prevented the request from succeeding (get endpoints)
+E0126 20:40:34.742869       1 reflector.go:153] k8s.io/client-go/informers/factory.go:135: Failed to list *v1.Service: an error on the server ("") has prevented the request from succeeding (get services)
+</code></pre>
+
+<h2>The Speculative Fix</h2>
+
+<p>I think these <code>kube-proxy</code> errors are caused by this underlying K8s bug, but I&rsquo;m not sure.</p>
+
+<blockquote><p>we found that after the problem occurred all subsequent requests were still send on the same
+connection. It seems that although the client will resend the request to apiserver, but the
+underlay http2 library still maintains the old connection so all subsequent requests are still
+send on this connection and received the same error use of closed connection.</p>
+
+<p>So the question is why http2 still maintains an already closed connection? Maybe the connection it
+maintained is indeed alive but some intermediate connections are closed unexpectedly?</p></blockquote>
+
+<p>&mdash; <a href="https://github.com/kubernetes/kubernetes/issues/87615#issuecomment-596312532">https://github.com/kubernetes/kubernetes/issues/87615#issuecomment-596312532</a></p>
+
+<p>The bug in that issue is <a href="https://github.com/kubernetes/kubernetes/issues/87615#issuecomment-743342319">fixed in K8s 1.19 and 1.20</a>.</p>
+
+<p>If you&rsquo;re using GKE and Google Cloud Monitoring, this log query will show which nodes&#8217; kube-proxy
+Pods can&rsquo;t get updated Service and Endpoint data from the K8s API.</p>
+
+<pre><code>resource.type="k8s_node"
+resource.labels.project_id="[YOUR-PROJECT]"
+logName="projects/gke-xpn-1/logs/kube-proxy"
+jsonPayload.message:"Failed to list "
+severity=ERROR
+</code></pre>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[My Hints and Solutions to the First Three Levels of Over the Wire Vortex]]></title>
@@ -402,7 +694,11 @@ I&rsquo;ll write the explanation while it&rsquo;s still fresh in my head.</p>
 
 <p>The level&rsquo;s description is</p>
 
-<p><blockquote><p>Remote heap level :)<br/>Core files will be in /tmp.<br/>This level is at /opt/protostar/bin/final2</p></blockquote></p>
+<p>{% blockquote %}
+Remote heap level :)
+Core files will be in /tmp.
+This level is at /opt/protostar/bin/final2
+{% endblockquote %}</p>
 
 <!-- more -->
 
@@ -1229,7 +1525,7 @@ settings.&rdquo;</p>
 <p>I made sure the traffic was proxied through my computer, the patched app started successfully, and I
 was able to see unencrypted data in Charles!</p>
 
-<p><img class="center <a" src="href="https://i.imgur.com/e8p2Ne3h.jpg">https://i.imgur.com/e8p2Ne3h.jpg</a>&#8221;></p>
+<p>{% img center <a href="https://i.imgur.com/e8p2Ne3h.jpg">https://i.imgur.com/e8p2Ne3h.jpg</a> %}</p>
 
 <h2>References</h2>
 
@@ -1322,26 +1618,18 @@ information in a way that will allow arbitrary memory overwrites afterwards.</p>
 4 bytes each. <code>data</code> is the user data section. <code>malloc()</code> returns a pointer to the address where
 <code>data</code> starts.</p>
 
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>.            +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-</span><span class='line'>    chunk -> | prev_size                        |
-</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-</span><span class='line'>             | size                             |
-</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-</span><span class='line'>      mem -> | data                             |
-</span><span class='line'>             : &hellip;                              :
-</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-</span><span class='line'>nextchunk -> | prev_size &hellip;                    |
-</span><span class='line'>             :                                  :</span></code></pre></td></tr></table></div></figure></p>
+<p>{% codeblock %}
+.            +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+    chunk -> | prev_size                        |
+             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+             | size                             |
+             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+      mem -> | data                             |
+             : &hellip;                              :
+             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+nextchunk -> | prev_size &hellip;                    |
+             :                                  :
+{% endcodeblock %}</p>
 
 <p>The other important things to know about the vulnerable version(s) of dlmalloc are:</p>
 
@@ -1354,34 +1642,22 @@ pointer at <code>mem</code>.</li>
 </ul>
 
 
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>.            +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-</span><span class='line'>    chunk -> | prev_size                        |
-</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-</span><span class='line'>             | size                             |
-</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-</span><span class='line'>      mem -> | fd                               |
-</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-</span><span class='line'>             | bk                               |
-</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-</span><span class='line'>             | (old memory, can be zero bytes)  |
-</span><span class='line'>             :                                  :&lt;/p>
-</span><span class='line'>
-</span><span class='line'>&lt;p>nextchunk -> | prev_size &hellip;                    |
-</span><span class='line'>             :                                  :</span></code></pre></td></tr></table></div></figure></p>
+<p>{% codeblock %}
+.            +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+    chunk -> | prev_size                        |
+             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+             | size                             |
+             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+      mem -> | fd                               |
+             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+             | bk                               |
+             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+             | (old memory, can be zero bytes)  |
+             :                                  :</p>
+
+<p>nextchunk -> | prev_size &hellip;                    |
+             :                                  :
+{% endcodeblock %}</p>
 
 <ul>
 <li>If neighboring chunks are free, dlmalloc will merge the just freed chunk with its neighboring
@@ -2041,343 +2317,6 @@ Segmentation fault
 <li><a href="https://medium.com/@c0ngwang/the-art-of-exploiting-heap-overflow-part-6-14410c9ba6a6">https://medium.com/@c0ngwang/the-art-of-exploiting-heap-overflow-part-6-14410c9ba6a6</a></li>
 </ul>
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[How to Expose a Localhost-only Endpoint on GKE]]></title>
-    <link href="https://www.davidxia.com/2020/04/how-to-expose-a-localhost-only-endpoint-on-gke/"/>
-    <updated>2020-04-13T12:24:46-04:00</updated>
-    <id>https://www.davidxia.com/2020/04/how-to-expose-a-localhost-only-endpoint-on-gke</id>
-    <content type="html"><![CDATA[<p>In my <a href="/2020/04/3-levels-of-load-testing-gke-workload-identity/">previous post</a> I wrote about how to load test GKE Workload Identity. In this post I&rsquo;ll
-describe how to get metrics from gke-metadata-server, the part of Workload Identity that runs on
-your GKE clusters&#8217; nodes. This solution is a temporary workaround until GKE provides a better way to
-get metrics on gke-metadata-server.</p>
-
-<p>Gke-metadata-server runs as a K8s DaemonSet. It exposes metrics about itself in <a href="https://github.com/prometheus/docs/blob/master/content/docs/instrumenting/exposition_formats.md#text-based-format">Prometheus
-text-based format</a>. I want to have an external scraper make HTTP requests to periodically collect
-these metrics. Unfortunately, the Prometheus HTTP server only listens on the Container&rsquo;s <code>localhost</code>
-interface. <strong>So how can we expose these metrics, i.e. make the HTTP endpoint available externally?</strong></p>
-
-<h3>tl;dr lessons learned</h3>
-
-<ul>
-<li><code>socat</code> is awesome.</li>
-<li>If something you need is running on a computer you control, you can always find a way extract info
-from it if you&rsquo;re resourceful enough.</li>
-</ul>
-
-
-<!-- more -->
-
-
-<h2>My specific GKE cluster configuration</h2>
-
-<ul>
-<li>GKE masters and nodes running version 1.15.9-gke.22</li>
-<li>regional cluster in Google Cloud Platform (GCP) (not on-premise)</li>
-<li>6 GKE nodes that are n1-standard-32 GCE instances in one node pool</li>
-<li>each node is configured to have a maximum of 32 Pods</li>
-<li>cluster and node pool have WI enabled</li>
-</ul>
-
-
-<p>Notice the DaemonSet is configured with <code>.spec.template.spec.hostNetwork: true</code> below. This means
-the HTTP server is also listening on the GKE node&rsquo;s <code>localhost</code> interface.</p>
-
-<pre><code class="yaml">apiVersion: extensions/v1beta1
-kind: DaemonSet
-metadata:
-  labels:
-    addonmanager.kubernetes.io/mode: Reconcile
-    k8s-app: gke-metadata-server
-  name: gke-metadata-server
-  namespace: kube-system
-spec:
-  revisionHistoryLimit: 10
-  selector:
-    matchLabels:
-      k8s-app: gke-metadata-server
-  template:
-    metadata:
-      annotations:
-        components.gke.io/component-name: gke-metadata-server
-        components.gke.io/component-version: 0.2.21
-        scheduler.alpha.kubernetes.io/critical-pod: '"''"'
-      creationTimestamp: null
-      labels:
-        addonmanager.kubernetes.io/mode: Reconcile
-        k8s-app: gke-metadata-server
-    spec:
-      containers:
-      - command:
-        - /gke-metadata-server
-        - --logtostderr
-        - --token-exchange-endpoint=https://securetoken.googleapis.com/v1/identitybindingtoken
-        - --identity-namespace=[REDACTED]
-        - --identity-provider-id=https://container.googleapis.com/v1/projects/[REDACTED]/locations/europe-west1/clusters/[REDACTED]
-        - --passthrough-ksa-list=kube-system:container-watcher-pod-reader,kube-system:event-exporter-sa,kube-system:fluentd-gcp-scaler,kube-system:heapster,kube-system:kube-dns,kube-system:metadata-agent,kube-system:network-metering-agent,kube-system:securityprofile-controller,istio-system:istio-ingressgateway-service-account,istio-system:cluster-local-gateway-service-account,csm:csm-sync-agent,knative-serving:controller
-        - --attributes=cluster-name=[REDACTED],cluster-uid=[REDACTED],cluster-location=europe-west1
-        - --enable-identity-endpoint=true
-        - --cluster-uid=[REDACTED]
-        image: gke.gcr.io/gke-metadata-server:20200218_1145_RC0
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            host: 127.0.0.1
-            path: /healthz
-            port: 54898
-            scheme: HTTP
-          initialDelaySeconds: 10
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 1
-        name: gke-metadata-server
-        resources:
-          limits:
-            cpu: 100m
-            memory: 100Mi
-          requests:
-            cpu: 100m
-            memory: 100Mi
-        securityContext:
-          privileged: true
-        terminationMessagePath: /dev/termination-log
-        terminationMessagePolicy: File
-        volumeMounts:
-        - mountPath: /var/lib/kubelet/kubeconfig
-          name: kubelet-credentials
-          readOnly: true
-        - mountPath: /var/lib/kubelet/pki/
-          name: kubelet-certs
-          readOnly: true
-        - mountPath: /var/run/
-          name: container-runtime-interface
-        - mountPath: /etc/srv/kubernetes/pki
-          name: kubelet-pki
-          readOnly: true
-        - mountPath: /etc/ssl/certs/
-          name: ca-certificates
-          readOnly: true
-      dnsPolicy: Default
-      hostNetwork: true
-      nodeSelector:
-        beta.kubernetes.io/os: linux
-        iam.gke.io/gke-metadata-server-enabled: "true"
-      priorityClassName: system-node-critical
-      restartPolicy: Always
-      schedulerName: default-scheduler
-      securityContext: {}
-      serviceAccount: gke-metadata-server
-      serviceAccountName: gke-metadata-server
-      terminationGracePeriodSeconds: 30
-      tolerations:
-      - effect: NoExecute
-        operator: Exists
-      - effect: NoSchedule
-        operator: Exists
-      volumes:
-      - hostPath:
-          path: /var/lib/kubelet/pki/
-          type: Directory
-        name: kubelet-certs
-      - hostPath:
-          path: /var/lib/kubelet/kubeconfig
-          type: File
-        name: kubelet-credentials
-      - hostPath:
-          path: /var/run/
-          type: Directory
-        name: container-runtime-interface
-      - hostPath:
-          path: /etc/srv/kubernetes/pki/
-          type: Directory
-        name: kubelet-pki
-      - hostPath:
-          path: /etc/ssl/certs/
-          type: Directory
-        name: ca-certificates
-  templateGeneration: 7
-  updateStrategy:
-    rollingUpdate:
-      maxUnavailable: 1
-    type: RollingUpdate
-</code></pre>
-
-<p>We can run a separate workload on this cluster that uses <a href="https://linux.die.net/man/1/socat"><code>socat</code></a> to proxy HTTP requests to
-gke-metadata-server. <code>socat</code> stands for socket cat and is a multipurpose relay. It&rsquo;s <code>netcat</code> on
-steroids and can relay any kind of packets not just TCP and UDP.</p>
-
-<p>This proxy is deployed as a DaemonSet to make it easy to have a one-to-one
-correspondence with each node-local gke-metadata-server Pod. The DaemonSet will also need to have
-<code>.spec.template.spec.hostNetwork: true</code> so that it can share the same network namespace.</p>
-
-<p>Here&rsquo;s the proxy DaemonSet YAML. I use the Docker image <a href="https://hub.docker.com/r/alpine/socat/tags"><code>alpine/socat:1.7.3.4-r0</code></a> which is a
-tiny 3.61MB. The arguments <code>["TCP-LISTEN:54899,reuseaddr,fork", "TCP:127.0.0.1:54898"]</code> tell socat
-to forward traffic from <code>0.0.0.0:54899</code> to <code>127.0.0.1:54898</code> which is where the Prometheus metrics
-are. <code>fork</code> tells socat to</p>
-
-<blockquote><p>After establishing a connection, handles its channel in a child process and keeps the parent
-process attempting to produce more connections, either by listening or by connecting in a loop</p></blockquote>
-
-<p>&mdash; <a href="http://www.dest-unreach.org/socat/doc/socat.html#OPTION_FORK">http://www.dest-unreach.org/socat/doc/socat.html#OPTION_FORK</a></p>
-
-<pre><code>cat proxy-daemonset.yaml
-
-apiVersion: apps/v1
-kind: DaemonSet
-metadata:
-  name: gke-metadata-server-metrics-proxy
-  namespace: monitoring
-spec:
-  selector:
-    matchLabels:
-      app: gke-metadata-server-metrics-proxy
-  template:
-    metadata:
-      labels:
-        app: gke-metadata-server-metrics-proxy
-    spec:
-      hostNetwork: true
-      containers:
-      - name: gke-metadata-server-metrics-proxy
-        image: alpine/socat:1.7.3.4-r0@sha256:6786951b55e321e3968ba1c3786cb79b768f85d83d438f085336442b3bcef67a
-        args: ["TCP-LISTEN:54899,reuseaddr,fork", "TCP:127.0.0.1:54898"]
-        ports:
-        - name: prom-metrics
-          containerPort: 54899
-          protocol: TCP
-        livenessProbe:
-          httpGet:
-            host: 127.0.0.1
-            path: /metricz
-            port: 54899
-            scheme: HTTP
-        resources:
-          limits:
-            cpu: 100m
-            memory: 100Mi
-          requests:
-            cpu: 100m
-            memory: 100Mi
-</code></pre>
-
-<p>Apply the DaemonSet.</p>
-
-<pre><code>kubectl --context [CONTEXT] apply -f proxy-daemonset.yaml
-</code></pre>
-
-<p>Now make an HTTP request to any GKE node IP at port 54899.</p>
-
-<pre><code>kubectl --context [CONTEXT] -n monitoring get pods --selector app=gke-metadata-server-metrics-proxy -o wide
-
-NAME                                      READY   STATUS    RESTARTS   AGE     IP              NODE                             NOMINATED NODE   READINESS GATES
-gke-metadata-server-metrics-proxy-dvlpg   1/1     Running   0          4d19h   10.200.208.6    my-cluster-n1-s-32-dfabe6b6-38px   &lt;none&gt;           &lt;none&gt;
-gke-metadata-server-metrics-proxy-dx4lq   1/1     Running   0          4d19h   10.200.208.8    my-cluster-n1-s-32-dfabe6b6-mnlg   &lt;none&gt;           &lt;none&gt;
-gke-metadata-server-metrics-proxy-j9p49   1/1     Running   0          4d19h   10.200.208.7    my-cluster-n1-s-32-dfabe6b6-vv9s   &lt;none&gt;           &lt;none&gt;
-gke-metadata-server-metrics-proxy-jvvjw   1/1     Running   0          4d19h   10.200.208.12   my-cluster-n1-s-32-192fa3d9-wb2c   &lt;none&gt;           &lt;none&gt;
-gke-metadata-server-metrics-proxy-k5sqd   1/1     Running   0          4d19h   10.200.208.10   my-cluster-n1-s-32-55dd75ff-6l40   &lt;none&gt;           &lt;none&gt;
-gke-metadata-server-metrics-proxy-tdhkn   1/1     Running   0          4d19h   10.200.208.9    my-cluster-n1-s-32-55dd75ff-jqgk   &lt;none&gt;           &lt;none&gt;
-
-http GET '10.200.208.6:54899/metricz' | head -n 20
-
-# HELP go_gc_duration_seconds A summary of the GC invocation durations.
-# TYPE go_gc_duration_seconds summary
-go_gc_duration_seconds{quantile="0"} 2.8295e-05
-go_gc_duration_seconds{quantile="0.25"} 3.6269e-05
-go_gc_duration_seconds{quantile="0.5"} 5.2122e-05
-go_gc_duration_seconds{quantile="0.75"} 7.585e-05
-go_gc_duration_seconds{quantile="1"} 0.099987877
-go_gc_duration_seconds_sum 7.738486774
-go_gc_duration_seconds_count 6809
-# HELP go_goroutines Number of goroutines that currently exist.
-# TYPE go_goroutines gauge
-go_goroutines 47
-# HELP go_info Information about the Go environment.
-# TYPE go_info gauge
-go_info{version="go1.14rc1"} 1
-# HELP go_memstats_alloc_bytes Number of bytes allocated and still in use.
-# TYPE go_memstats_alloc_bytes gauge
-go_memstats_alloc_bytes 2.4743056e+07
-# HELP go_memstats_alloc_bytes_total Total number of bytes allocated, even if freed.
-# TYPE go_memstats_alloc_bytes_total counter
-</code></pre>
-
-<p>Voila. The important metrics are:</p>
-
-<ul>
-<li><code>metadata_server_request_count</code></li>
-<li><code>metadata_server_request_durations_bucket</code></li>
-</ul>
-
-
-<p>I have these <a href="https://prometheus.io/docs/prometheus/latest/configuration/recording_rules/#recording-rules">Prometheus recording rules</a> to calculate RPS and request
-duration percentiles.</p>
-
-<pre><code>groups:
-- name: gke-metadata-server
-  rules:
-  # Compute a 5-minute rate for the counter `metadata_server_request_count`.
-  - record: metadata_server_request_count:rate5m
-    expr: rate(metadata_server_request_count[5m])
-  # Compute latency percentiles for the histogram metric
-  # `metadata_server_request_durations_bucket` over 5-minute increments for each label
-  # combination.
-  - record: metadata_server_request_duration:p99
-    expr: histogram_quantile(0.99, rate(metadata_server_request_durations_bucket[5m]))
-  - record: metadata_server_request_duration:p95
-    expr: histogram_quantile(0.95, rate(metadata_server_request_durations_bucket[5m]))
-  - record: metadata_server_request_duration:p90
-    expr: histogram_quantile(0.90, rate(metadata_server_request_durations_bucket[5m]))
-  - record: metadata_server_request_duration:p50
-    expr: histogram_quantile(0.50, rate(metadata_server_request_durations_bucket[5m]))
-  - record: metadata_server_request_duration:mean
-    expr: rate(metadata_server_request_durations_sum[5m]) / rate(metadata_server_request_durations_count[5m])
-  # Compute latency percentiles for the histogram metric
-  # `metadata_server_request_durations_bucket` over 5-minute increments and aggregate all
-  # labels. We must aggregate here instead of in Grafana because averaging percentiles doesn’t
-  # work. To compute a percentile, you need the original population of events. The math is just
-  # broken. An average of a percentile is meaningless.
-  - record: metadata_server_all_request_duration:p99
-    expr: histogram_quantile(0.99, sum(rate(metadata_server_request_durations_bucket[5m])) by (le))
-  - record: metadata_server_all_request_duration:p95
-    expr: histogram_quantile(0.95, sum(rate(metadata_server_request_durations_bucket[5m])) by (le))
-  - record: metadata_server_all_request_duration:p90
-    expr: histogram_quantile(0.90, sum(rate(metadata_server_request_durations_bucket[5m])) by (le))
-  - record: metadata_server_all_request_duration:p50
-    expr: histogram_quantile(0.50, sum(rate(metadata_server_request_durations_bucket[5m])) by (le))
-  - record: metadata_server_all_request_duration:mean
-    expr: rate(metadata_server_request_durations_sum[5m]) / rate(metadata_server_request_durations_count[5m])
-  # Compute latency percentiles for the histogram metric `outgoing_request_latency_bucket` over
-  # 5-minute increments for each label combination.
-  - record: outgoing_request_latency:p99
-    expr: histogram_quantile(0.99, rate(outgoing_request_latency_bucket[5m]))
-  - record: outgoing_request_latency:p95
-    expr: histogram_quantile(0.95, rate(outgoing_request_latency_bucket[5m]))
-  - record: outgoing_request_latency:p90
-    expr: histogram_quantile(0.90, rate(outgoing_request_latency_bucket[5m]))
-  - record: outgoing_request_latency:p50
-    expr: histogram_quantile(0.50, rate(outgoing_request_latency_bucket[5m]))
-  - record: outgoing_request_latency:mean
-    expr: rate(outgoing_request_latency_sum[5m]) / rate(outgoing_request_latency_count[5m])
-  # Compute latency percentiles for the histogram metric `outgoing_request_latency_bucket` over
-  # 5-minute increments and aggregate all labels. We must aggregate here instead of in Grafana
-  # because averaging percentiles doesn’t work. To compute a percentile, you need the original
-  # population of events. The math is just broken. An average of a percentile is meaningless.
-  - record: outgoing_all_request_latency:p99
-    expr: histogram_quantile(0.99, sum(rate(outgoing_request_latency_bucket[5m])) by (le))
-  - record: outgoing_all_request_latency:p95
-    expr: histogram_quantile(0.95, sum(rate(outgoing_request_latency_bucket[5m])) by (le))
-  - record: outgoing_all_request_latency:p90
-    expr: histogram_quantile(0.90, sum(rate(outgoing_request_latency_bucket[5m])) by (le))
-  - record: outgoing_all_request_latency:p50
-    expr: histogram_quantile(0.50, sum(rate(outgoing_request_latency_bucket[5m])) by (le))
-  - record: outgoing_all_request_latency:mean
-    expr: rate(outgoing_request_latency_sum[5m]) / rate(outgoing_request_latency_count[5m])
-</code></pre>
-
-<p>Thanks to <a href="https://twitter.com/mikedanese">@mikedanese</a> for the intial idea of using <code>socat</code>.</p>
 ]]></content>
   </entry>
   
