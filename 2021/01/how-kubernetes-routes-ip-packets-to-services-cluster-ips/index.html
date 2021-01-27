@@ -531,7 +531,7 @@ probability of 0.01562500000 of being picked. But this 0.01562500000 is applied 
 that the first rule didn&rsquo;t match. So its overall probability is (1 - 0.01538461540) * 0.01562500000
 ~= 0.01538461540. Applying this calculation to the other rules, you can see each rule has a
 probability of 0.01538461540 or <code>1/n</code> in being selected where <code>n</code> = 65 is the total number of kube-dns
-Pods in this case. This algorithm is actually a variation of [resevoir sampling].</p>
+Pods in this case. This algorithm is actually a variation of <a href="https://en.wikipedia.org/wiki/Reservoir_sampling">reservoir sampling</a>.</p>
 
 <h3>Confirming the Root Cause</h3>
 
@@ -615,7 +615,7 @@ Pods can&rsquo;t get updated Service and Endpoint data from the K8s API.</p>
 <span class='line-number'>5</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>resource.type="k8s_node"
 </span><span class='line'>resource.labels.project_id="[YOUR-PROJECT]"
-</span><span class='line'>logName="projects/gke-xpn-1/logs/kube-proxy"
+</span><span class='line'>logName="projects/[YOUR-PROJECT]/logs/kube-proxy"
 </span><span class='line'>jsonPayload.message:"Failed to list "
 </span><span class='line'>severity=ERROR</span></code></pre></td></tr></table></div></figure>
 

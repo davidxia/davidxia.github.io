@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Programming & Software | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/programming-and-software/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2021-01-27T15:09:38-05:00</updated>
+  <updated>2021-01-27T16:16:34-05:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -234,7 +234,7 @@ probability of 0.01562500000 of being picked. But this 0.01562500000 is applied 
 that the first rule didn&rsquo;t match. So its overall probability is (1 - 0.01538461540) * 0.01562500000
 ~= 0.01538461540. Applying this calculation to the other rules, you can see each rule has a
 probability of 0.01538461540 or <code>1/n</code> in being selected where <code>n</code> = 65 is the total number of kube-dns
-Pods in this case. This algorithm is actually a variation of [resevoir sampling].</p>
+Pods in this case. This algorithm is actually a variation of <a href="https://en.wikipedia.org/wiki/Reservoir_sampling">reservoir sampling</a>.</p>
 
 <h3>Confirming the Root Cause</h3>
 
@@ -298,7 +298,7 @@ Pods can&rsquo;t get updated Service and Endpoint data from the K8s API.</p>
 
 <pre><code>resource.type="k8s_node"
 resource.labels.project_id="[YOUR-PROJECT]"
-logName="projects/gke-xpn-1/logs/kube-proxy"
+logName="projects/[YOUR-PROJECT]/logs/kube-proxy"
 jsonPayload.message:"Failed to list "
 severity=ERROR
 </code></pre>
@@ -694,11 +694,7 @@ I&rsquo;ll write the explanation while it&rsquo;s still fresh in my head.</p>
 
 <p>The level&rsquo;s description is</p>
 
-<p>{% blockquote %}
-Remote heap level :)
-Core files will be in /tmp.
-This level is at /opt/protostar/bin/final2
-{% endblockquote %}</p>
+<p><blockquote><p>Remote heap level :)<br/>Core files will be in /tmp.<br/>This level is at /opt/protostar/bin/final2</p></blockquote></p>
 
 <!-- more -->
 
@@ -1525,7 +1521,7 @@ settings.&rdquo;</p>
 <p>I made sure the traffic was proxied through my computer, the patched app started successfully, and I
 was able to see unencrypted data in Charles!</p>
 
-<p>{% img center <a href="https://i.imgur.com/e8p2Ne3h.jpg">https://i.imgur.com/e8p2Ne3h.jpg</a> %}</p>
+<p><img class="center <a" src="href="https://i.imgur.com/e8p2Ne3h.jpg">https://i.imgur.com/e8p2Ne3h.jpg</a>&#8221;></p>
 
 <h2>References</h2>
 
@@ -1618,18 +1614,26 @@ information in a way that will allow arbitrary memory overwrites afterwards.</p>
 4 bytes each. <code>data</code> is the user data section. <code>malloc()</code> returns a pointer to the address where
 <code>data</code> starts.</p>
 
-<p>{% codeblock %}
-.            +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-    chunk -> | prev_size                        |
-             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-             | size                             |
-             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-      mem -> | data                             |
-             : &hellip;                              :
-             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-nextchunk -> | prev_size &hellip;                    |
-             :                                  :
-{% endcodeblock %}</p>
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>.            +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+</span><span class='line'>    chunk -> | prev_size                        |
+</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+</span><span class='line'>             | size                             |
+</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+</span><span class='line'>      mem -> | data                             |
+</span><span class='line'>             : &hellip;                              :
+</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+</span><span class='line'>nextchunk -> | prev_size &hellip;                    |
+</span><span class='line'>             :                                  :</span></code></pre></td></tr></table></div></figure></p>
 
 <p>The other important things to know about the vulnerable version(s) of dlmalloc are:</p>
 
@@ -1642,22 +1646,34 @@ pointer at <code>mem</code>.</li>
 </ul>
 
 
-<p>{% codeblock %}
-.            +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-    chunk -> | prev_size                        |
-             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-             | size                             |
-             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-      mem -> | fd                               |
-             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-             | bk                               |
-             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-             | (old memory, can be zero bytes)  |
-             :                                  :</p>
-
-<p>nextchunk -> | prev_size &hellip;                    |
-             :                                  :
-{% endcodeblock %}</p>
+<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>.            +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+</span><span class='line'>    chunk -> | prev_size                        |
+</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+</span><span class='line'>             | size                             |
+</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+</span><span class='line'>      mem -> | fd                               |
+</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+</span><span class='line'>             | bk                               |
+</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
+</span><span class='line'>             | (old memory, can be zero bytes)  |
+</span><span class='line'>             :                                  :&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;p>nextchunk -> | prev_size &hellip;                    |
+</span><span class='line'>             :                                  :</span></code></pre></td></tr></table></div></figure></p>
 
 <ul>
 <li>If neighboring chunks are free, dlmalloc will merge the just freed chunk with its neighboring
