@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Writing & Literature | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/writing-and-literature/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2021-05-02T23:41:44+00:00</updated>
+  <updated>2021-05-02T23:46:21+00:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -36,13 +36,15 @@ genre in which Faulkner&rsquo;s book belongs.</p>
 <!-- more -->
 
 
-<p><blockquote><p>Southern Gothic is a subgenre of Gothic fiction unique to American literature that takes place
+<p>{% blockquote_nobr Southern Gothic <a href="https://en.wikipedia.org/wiki/Southern_Gothic">https://en.wikipedia.org/wiki/Southern_Gothic</a> %}
+Southern Gothic is a subgenre of Gothic fiction unique to American literature that takes place
 exclusively in the American South.</p>
 
 <p>Common themes in Southern Gothic literature include deeply flawed, disturbing or eccentric
 characters who may or may not dabble in hoodoo, ambivalent gender roles and decayed or derelict
 settings, grotesque situations, and other sinister events relating to or coming from poverty,
-alienation, crime, and violence.</p><footer><strong>Southern Gothic <a href="https://en.wikipedia.org/wiki/Southern_Gothic">https://en.wikipedia.org/wiki/Southern_Gothic</a></strong></footer></blockquote></p>
+alienation, crime, and violence.
+{% endblockquote_nobr %}</p>
 
 <p>Previously for me, Southern Gothic conjured images of giant, slightly derelict plantations
 shrouded by fog and Spanish moss, symbols of a bygone era. In this way, the South seemed forlorn and
@@ -62,19 +64,19 @@ Louisiana) for nearly 40 years.</p></blockquote>
 
 <p>So I search for &ldquo;Clarence John Laughlin&rdquo; expecting to find images like this:</p>
 
-<p><img class="center <a" src="href="https://i.imgur.com/NGbniaB.png">https://i.imgur.com/NGbniaB.png</a>&#8221; title=&#8221;This is actually a scene from the movie The Lucky One&#8221; ></p>
+<p>{% img center <a href="https://i.imgur.com/NGbniaB.png">https://i.imgur.com/NGbniaB.png</a> This is actually a scene from the movie The Lucky One %}</p>
 
-<p><img class="center <a" src="href="https://i.imgur.com/wAaoERJl.png">https://i.imgur.com/wAaoERJl.png</a>&#8221; title=&#8221;Gone with the Wind movie poster&#8221; ></p>
+<p>{% img center <a href="https://i.imgur.com/wAaoERJl.png">https://i.imgur.com/wAaoERJl.png</a> Gone with the Wind movie poster %}</p>
 
-<p><img class="center <a" src="href="https://i.imgur.com/C3qT0mYl.png">https://i.imgur.com/C3qT0mYl.png</a>&#8221; title=&#8221;Gone with the Wind ending scene&#8221; ></p>
+<p>{% img center <a href="https://i.imgur.com/C3qT0mYl.png">https://i.imgur.com/C3qT0mYl.png</a> Gone with the Wind ending scene %}</p>
 
 <p>Instead, I find images like <a href="http://www.amazon.com/gp/product/0679732241/ref=as_li_tl?ie=UTF8&amp;camp=1789&amp;creative=390957&amp;creativeASIN=0679732241&amp;linkCode=as2&amp;tag=easiamus00-20&amp;linkId=2NRE7R3CYLVS5HSV" title="The Sound and the Fury on Amazon">these</a>:</p>
 
-<p><img class="center <a" src="href="https://i.imgur.com/nE0WSuZ.jpg">https://i.imgur.com/nE0WSuZ.jpg</a>&#8221; title=&#8221;Clarence John Laughlin photo 1&#8221; ></p>
+<p>{% img center <a href="https://i.imgur.com/nE0WSuZ.jpg">https://i.imgur.com/nE0WSuZ.jpg</a> Clarence John Laughlin photo 1 %}</p>
 
-<p><img class="center <a" src="href="https://i.imgur.com/zhNOMgl.png">https://i.imgur.com/zhNOMgl.png</a>&#8221; title=&#8221;Clarence John Laughlin photo 2&#8221; ></p>
+<p>{% img center <a href="https://i.imgur.com/zhNOMgl.png">https://i.imgur.com/zhNOMgl.png</a> Clarence John Laughlin photo 2 %}</p>
 
-<p><img class="center <a" src="href="https://i.imgur.com/YdW0ary.png">https://i.imgur.com/YdW0ary.png</a>&#8221; title=&#8221;Clarence John Laughlin photo 3&#8221; ></p>
+<p>{% img center <a href="https://i.imgur.com/YdW0ary.png">https://i.imgur.com/YdW0ary.png</a> Clarence John Laughlin photo 3 %}</p>
 
 <p>Creepy.</p>
 ]]></content>
@@ -126,18 +128,21 @@ fanboys, should crack open this book.</p>
 
 <h3>Product design simplicity</h3>
 
-<p><blockquote><p>Why do we assume that simple is good? Because with physical products, we have to feel we can
+<p>{% blockquote_nobr Jonathan Ive page 343, Steve Jobs %}
+Why do we assume that simple is good? Because with physical products, we have to feel we can
 dominate them. As you bring order to complexity, you find a way to make the product defer to you.
 Simplicity isn&rsquo;t just a visual style. It&rsquo;s not just minimalism or the absence of clutter. It
 involves digging through the depth of the complexity. To be truly simple, you have to go really
 deep. For example, to have no screws on something, you can end up having a product that is so
 convoluted and so complex. The better way is to go deeper with the simplicity, to understand
 everything about it and how it&rsquo;s manufactured. You have to deeply understand the essence of a
-product in order to be able to get rid of the parts that are not essential.</p><footer><strong>Jonathan Ive page 343</strong> <cite>Steve Jobs</cite></footer></blockquote></p>
+product in order to be able to get rid of the parts that are not essential.
+{% endblockquote_nobr %}</p>
 
 <h3>Jobs obsessing over the color of the iMac in a print ad</h3>
 
-<p><blockquote><p><a href="http://en.wikipedia.org/wiki/Lee_Clow">Lee Clow</a> was preparing a series of colorful magazine ads, and when he sent Jobs the page
+<p>{% blockquote_nobr Walter Isaacson, Steve Jobs %}
+<a href="http://en.wikipedia.org/wiki/Lee_Clow">Lee Clow</a> was preparing a series of colorful magazine ads, and when he sent Jobs the page
 proofs he got an outraged phone call in response. The blue in the ad, Jobs insisted, was different
 from that of the iMac. &ldquo;You guys don&rsquo;t know what you&rsquo;re doing!&rdquo; Jobs shouted. &ldquo;I&rsquo;m going to get
 someone else to do the ads, because this is fucked up.&rdquo; Clow argued back. Compare them, he said.
@@ -147,17 +152,20 @@ was the blue.&rdquo; Years later, on a Steve Jobs discussion board on the websit
 tale appeared from someone who had worked at the Whole Foods store in Palo Alto a few blocks from
 Jobs&rsquo;s home: &ldquo;I was shagging carts one afternoon when I saw this silver Mercedes parked in a
 handicapped spot. Steve Jobs was inside screaming at his car phone. This was right before the
-first iMac was unveiled and I&rsquo;m pretty sure I could make out, &lsquo;Not. Fucking. Blue. Enough!!!&rsquo;&rdquo;</p><footer><strong>Walter Isaacson</strong> <cite>Steve Jobs</cite></footer></blockquote></p>
+first iMac was unveiled and I&rsquo;m pretty sure I could make out, &lsquo;Not. Fucking. Blue. Enough!!!&rsquo;&rdquo;
+{% endblockquote_nobr %}</p>
 
 <h3>Apple stores</h3>
 
-<p><blockquote><p><a href="http://en.wikipedia.org/wiki/Ron_Johnson_(businessman)">[Ron] Johnson</a> said that the size of a store signaled the importance of the brand. &ldquo;Is Apple
+<p>{% blockquote_nobr Walter Isaacson, Steve Jobs %}
+<a href="http://en.wikipedia.org/wiki/Ron_Johnson_(businessman)">[Ron] Johnson</a> said that the size of a store signaled the importance of the brand. &ldquo;Is Apple
 as big of a brand as the Gap? he asked. Jobs said it was much bigger. Johnson replied that its
 stores should therefore be bigger. &#8220;Otherwise you won&rsquo;t be relevant.&rdquo; Jobs described Mike
 Markkula&rsquo;s maxim that a good company must &ldquo;impute&rdquo; – it must convey its values and importance in
 everything it does, from packaging to marketing. Johnson loved it. It definitely applied to a
 company&rsquo;s stores. &ldquo;The store will become the most powerful physical expression of the band,&rdquo; he
-predicted.</p><footer><strong>Walter Isaacson</strong> <cite>Steve Jobs</cite></footer></blockquote></p>
+predicted.
+{% endblockquote_nobr %}</p>
 
 <p>I think I&rsquo;ll read more biographies. Who needs fictional characters when you&rsquo;ve got real ones like
 Jobs?</p>

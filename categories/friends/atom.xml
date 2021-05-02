@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Friends | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/friends/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2021-05-02T23:41:44+00:00</updated>
+  <updated>2021-05-02T23:46:21+00:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -118,7 +118,7 @@ handled with wobbly camera work, and edited with no prior film-editing experienc
   frameborder="0" allowfullscreen></iframe>
 
 
-<p><img class="center <a" src="href="https://lh4.googleusercontent.com/_lgMz7QRk66k/TYrwnPFloNI/AAAAAAAAAyc/rmeBcw8YdiM/s800/zhou-bday.gif">https://lh4.googleusercontent.com/_lgMz7QRk66k/TYrwnPFloNI/AAAAAAAAAyc/rmeBcw8YdiM/s800/zhou-bday.gif</a>&#8221;></p>
+<p>{% img center <a href="https://lh4.googleusercontent.com/_lgMz7QRk66k/TYrwnPFloNI/AAAAAAAAAyc/rmeBcw8YdiM/s800/zhou-bday.gif">https://lh4.googleusercontent.com/_lgMz7QRk66k/TYrwnPFloNI/AAAAAAAAAyc/rmeBcw8YdiM/s800/zhou-bday.gif</a> %}</p>
 ]]></content>
   </entry>
   

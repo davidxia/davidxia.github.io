@@ -4,7 +4,7 @@
   <title><![CDATA[David Xia]]></title>
   <link href="https://www.davidxia.com/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2021-05-02T23:41:44+00:00</updated>
+  <updated>2021-05-02T23:45:34+00:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -40,6 +40,9 @@ Scala, and Docker gunk.</p>
 
 <p>So I tried running <code>foo</code> on a GCE VM configured by our <a href="https://puppet.com/">Puppet</a> configuration files. I ran <code>foo</code>,
 I got this error.</p>
+
+<!-- more -->
+
 
 <h2>Error #1: inter-container networking failed between containers attached to user-defined Docker networks</h2>
 
