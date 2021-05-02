@@ -4,7 +4,7 @@
   <title><![CDATA[David Xia]]></title>
   <link href="https://www.davidxia.com/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2021-01-27T16:16:34-05:00</updated>
+  <updated>2021-05-02T23:41:44+00:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -12,6 +12,877 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[What I Recently Learned About Docker Networking and Debugging Networking Issues in General]]></title>
+    <link href="https://www.davidxia.com/2021/05/what-i-recently-learned-about-docker-networking-and-debugging-network-issues-in-general/"/>
+    <updated>2021-05-02T16:39:02-07:00</updated>
+    <id>https://www.davidxia.com/2021/05/what-i-recently-learned-about-docker-networking-and-debugging-network-issues-in-general</id>
+    <content type="html"><![CDATA[<p>This is a story about how debugged a confounding local development environment issue, what I
+learned about Docker in the process, and the generally applicable debugging strategies and
+techniques that helped me ultimately solve it. Skip to the end if you only want to read the
+debugging strategies and techniques. The overall story, however, will illustrate how they applied
+in this specific case.</p>
+
+<h2>Problem Statement and Use Case</h2>
+
+<p>A data infrastructure team at work provides a tool for starting a data pipeline job from a local
+development environment. Let&rsquo;s call this tool <code>foo</code>. This tool depends on <code>gcloud</code> and <code>docker</code>.
+It creates a user-defined Docker network, runs a utility container called <code>bar</code> connected to that
+network, and then runs another container called qux that talks to bar to retrieve Oauth tokens
+from Google Cloud Platform (GCP).</p>
+
+<p>Most developers run <code>foo</code> on their local workstations, e.g. Macbooks. But I have the newer
+Macbook with the Apple M1 ARM-based chip. <a href="https://docs.docker.com/docker-for-mac/install/">Docker Desktop on Mac</a> support for M1s was
+relatively recent. I didn&rsquo;t want deal with Docker weirdness. I also didn&rsquo;t have a lot of free
+disk space on my 256GB Macbook and thus didn&rsquo;t feel like clogging up my drive with lots of Java,
+Scala, and Docker gunk.</p>
+
+<p>So I tried running <code>foo</code> on a GCE VM configured by our <a href="https://puppet.com/">Puppet</a> configuration files. I ran <code>foo</code>,
+I got this error.</p>
+
+<h2>Error #1: inter-container networking failed between containers attached to user-defined Docker networks</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>dxia@my-host$ foo --verbose run -f data-info.yaml -w DumpKubernetesContainerImagesJob -p 2021-04-26 -r my-project/target/image-name
+</span><span class='line'>DEBUG:verify: Docker network `foo-network` already exists
+</span><span class='line'>DEBUG:verify: bar container found.
+</span><span class='line'>INFO:run: starting workflow DumpKubernetesContainerImagesJob ...
+</span><span class='line'>ERROR: (gcloud.auth.activate-service-account) [Errno 110] Connection timed out
+</span><span class='line'>This may be due to network connectivity issues. Please check your network settings, and the status of the service you are trying to reach.
+</span><span class='line'>Traceback (most recent call last):
+</span><span class='line'>  File "/usr/local/bin/activate-google-application-credentials", line 19, in &lt;module&gt;
+</span><span class='line'>    'auth', 'activate-service-account', '--key-file', json_path])
+</span><span class='line'>  File "/usr/lib/python3.6/subprocess.py", line 311, in check_call
+</span><span class='line'>    raise CalledProcessError(retcode, cmd)
+</span><span class='line'>subprocess.CalledProcessError: Command '['gcloud', 'auth', 'activate-service-account', '--key-file', '/etc/_foo/gcp-sa-key.json']' returned non-zero exit status 1.
+</span><span class='line'>ERROR:foo:
+</span><span class='line'>
+</span><span class='line'>  RAN: /usr/bin/docker run -it -v /home/dxia/my-project/_foo:/etc/_foo:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python2.7/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.6/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.7/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.8/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.9/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python2.7/site-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.6/site-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.7/site-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.8/site-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.9/site-packages/oauth2client/__init__.py:ro --net foo-network -e FOO_COMPONENT_ID=my-project -e FOO_WORKFLOW_ID=DumpKubernetesContainerImagesJob -e FOO_PARAMETER=2021-04-26 -e FOO_DOCKER_IMAGE=my-project:20210426T211411-2b5452d -e 'FOO_DOCKER_ARGS=wrap-luigi --module luigi_tasks DumpKubernetesContainerImagesJob --when 2021-04-26' -e FOO_EXECUTION_ID=foorun-2e30c385-2f89-494c-bc0e-97b3eff316d5 -e FOO_TRIGGER_ID=foo-942f155b-49eb-4af8-a6e4-3adf6f72577b -e FOO_TRIGGER_TYPE=foo -e FOO_ENVIRONMENT=foo -e FOO_LOGGING=text -e GOOGLE_APPLICATION_CREDENTIALS=/etc/_foo/gcp-sa-key.json -e FOO_SERVICE_ACCOUNT=dump-k8-deployment-info-pipeli@my-project.iam.gserviceaccount.com gcr.io/xpn-1/my-project:20210426T211411-2b5452d wrap-luigi --module luigi_tasks DumpKubernetesContainerImagesJob --when 2021-04-26
+</span><span class='line'>
+</span><span class='line'>  STDOUT:
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>  STDERR:
+</span><span class='line'>Traceback (most recent call last):
+</span><span class='line'>  File "/home/dxia/my-project//lib/python3.6/site-packages/foo/foo.py", line 304, in main
+</span><span class='line'>    args.func(args)
+</span><span class='line'>  File "/home/dxia/my-project//lib/python3.6/site-packages/foo/foo.py", line 269, in _run
+</span><span class='line'>    args.declarative_infra,
+</span><span class='line'>  File "/home/dxia/my-project//lib/python3.6/site-packages/foo/run.py", line 641, in run_workflow
+</span><span class='line'>    declarative_infra,
+</span><span class='line'>  File "/home/dxia/my-project//lib/python3.6/site-packages/foo/run.py", line 161, in _run_workflow
+</span><span class='line'>    p.wait()
+</span><span class='line'>  File "/home/dxia/my-project//lib/python3.6/site-packages/sh.py", line 841, in wait
+</span><span class='line'>    self.handle_command_exit_code(exit_code)
+</span><span class='line'>  File "/home/dxia/my-project//lib/python3.6/site-packages/sh.py", line 865, in handle_command_exit_code
+</span><span class='line'>    raise exc
+</span><span class='line'>sh.ErrorReturnCode_1:
+</span><span class='line'>
+</span><span class='line'>  RAN: /usr/bin/docker run -it -v /home/dxia/my-project/_foo:/etc/_foo:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python2.7/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.6/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.7/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.8/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.9/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python2.7/site-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.6/site-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.7/site-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.8/site-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.9/site-packages/oauth2client/__init__.py:ro --net foo-network -e FOO_COMPONENT_ID=my-project -e FOO_WORKFLOW_ID=DumpKubernetesContainerImagesJob -e FOO_PARAMETER=2021-04-26 -e FOO_DOCKER_IMAGE=my-project:20210426T211411-2b5452d -e 'FOO_DOCKER_ARGS=wrap-luigi --module luigi_tasks DumpKubernetesContainerImagesJob --when 2021-04-26' -e FOO_EXECUTION_ID=foorun-2e30c385-2f89-494c-bc0e-97b3eff316d5 -e FOO_TRIGGER_ID=foo-942f155b-49eb-4af8-a6e4-3adf6f72577b -e FOO_TRIGGER_TYPE=foo -e FOO_ENVIRONMENT=foo -e FOO_LOGGING=text -e GOOGLE_APPLICATION_CREDENTIALS=/etc/_foo/gcp-sa-key.json -e FOO_SERVICE_ACCOUNT=dump-k8-deployment-info-pipeli@my-project.iam.gserviceaccount.com gcr.io/xpn-1/my-project:20210426T211411-2b5452d wrap-luigi --module luigi_tasks DumpKubernetesContainerImagesJob --when 2021-04-26
+</span><span class='line'>
+</span><span class='line'>  STDOUT:
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>  STDERR:</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The HTTP connection timed out. First I checked whether the container started by <code>foo</code> can make a TCP
+connection to the bar container. I ran <code>foo --verbose run -f data-info.yaml -w
+DumpKubernetesContainerImagesJob -p 2021-04-26 -r my-project/target/image-name</code>
+again and did the following in another terminal window.</p>
+
+<p><a href="https://man7.org/linux/man-pages/man1/nsenter.1.html"><code>nsenter</code></a> is a cool tool that allows you to run programs in different Linux namespaces.
+It&rsquo;s very useful when you can&rsquo;t get an executable shell into a container with commands like
+<code>docker exec -it ... bash</code>. This can happen when the container doesn&rsquo;t even include any shells
+and just has the binary executable for instance.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>dxia@my-host:~$ docker ps
+</span><span class='line'>CONTAINER ID        IMAGE                                                                    COMMAND                  CREATED             STATUS              PORTS                     NAMES
+</span><span class='line'>a0e872188831        my-project:20210426T211411-2b5452d         "/usr/local/bin/edge…"   2 seconds ago       Up 1 second                                   relaxed_pike
+</span><span class='line'>4dda670a2ee1        foo/bar:latest                                   "./bar"               2 hours ago         Up 2 hours          0.0.0.0:80-&gt;80/tcp        bar
+</span><span class='line'>
+</span><span class='line'>dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format  a0e872188831)  nc 172.20.0.127 80 -nvz -w 5
+</span><span class='line'>(UNKNOWN) [172.20.0.127] 80 (http) : Connection timed out</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So the HTTP connection timeout was caused by an error lower down on the networking stack: an
+inability to establish a TCP connection. A TCP connection from the host to bar worked though.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>dxia@my-host:~$ nc 172.20.0.127 80 -nvz -w 5
+</span><span class='line'>(UNKNOWN) [172.20.0.127] 80 (http) open</span></code></pre></td></tr></table></div></figure>
+
+
+<p>When I see a networking issue like this, I know there might be some misconfigured firewall rule
+blocking IP packets. I listed all the firewall rules. The ones in the filter table&rsquo;s <code>FORWARD</code>
+chain caught my attention.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>dxia@my-host:~$ sudo iptables --list FORWARD --verbose --numeric --line-numbers --table filter
+</span><span class='line'>Chain FORWARD (policy DROP 38 packets, 2280 bytes)
+</span><span class='line'>num   pkts bytes target     prot opt in     out     source               destination
+</span><span class='line'>1     6204  492K DOCKER-USER  all  --  *      *       0.0.0.0/0            0.0.0.0/0
+</span><span class='line'>2     6204  492K DOCKER-ISOLATION-STAGE-1  all  --  *      *       0.0.0.0/0            0.0.0.0/0
+</span><span class='line'>3     3080  323K ACCEPT     all  --  *      corp0  0.0.0.0/0            0.0.0.0/0            ctstate RELATED,ESTABLISHED
+</span><span class='line'>4        1    60 DOCKER     all  --  *      corp0  0.0.0.0/0            0.0.0.0/0
+</span><span class='line'>5     3085  167K ACCEPT     all  --  corp0 !corp0  0.0.0.0/0            0.0.0.0/0
+</span><span class='line'>6        0     0 ACCEPT     all  --  corp0 corp0  0.0.0.0/0            0.0.0.0/0
+</span><span class='line'>7      264 17722 DOCKER     all  --  *      br-8ce7e363e4f9  0.0.0.0/0            0.0.0.0/0
+</span><span class='line'>8     7382   17M ACCEPT     all  --  br-8ce7e363e4f9 !br-8ce7e363e4f9  0.0.0.0/0            0.0.0.0/0</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I disabled the GCE VM&rsquo;s cronned Puppet run and then ran <code>sudo systemctl restart docker</code>. I ran
+bar and a test nginx1 container connected to <code>foo-network</code>.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>dxia@my-host:~$ docker run --rm -d -v ~/.config/gcloud/:/.config/gcloud --name bar --net foo-network --ip 172.20.0.127 -p 80:80 foo/bar:latest
+</span><span class='line'>3f9cc17b3f71e7056fd8072449afa78eb9a6a166ac091d751b69545ead0438b1
+</span><span class='line'>
+</span><span class='line'>dxia@my-host:~$ docker run --net foo-network --name nginx1 -d -p 8080:80 nginx:latest
+</span><span class='line'>1b0b2b981f9389a989aa8f60a141b5e9a18ba5582141b6668c9078b6312dcfaf
+</span><span class='line'>
+</span><span class='line'>dxia@my-host:~$ docker ps
+</span><span class='line'>CONTAINER ID        IMAGE                                                                    COMMAND                  CREATED              STATUS              PORTS                     NAMES
+</span><span class='line'>1b0b2b981f93        nginx:latest                                                             "/docker-entrypoint.…"   5 seconds ago        Up 3 seconds        0.0.0.0:8080-&gt;80/tcp      nginx1
+</span><span class='line'>3f9cc17b3f71        foo/bar:latest                                   "./bar"               About a minute ago   Up 59 seconds       0.0.0.0:80-&gt;80/tcp        bar</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now a TCP connection from the nginx container to bar succeeded.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>dxia@my-host:~$ sudo nsenter --net=$(docker inspect --format  nginx1) nc 172.20.0.127 80 -nvz -w 5
+</span><span class='line'>(UNKNOWN) [172.20.0.127] 80 (http) open</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I checked iptables rules again and saw two additional rules (7 and 8) in the filter table&rsquo;s
+<code>FORWARD</code> chain. Rule 8 allowed IP packets coming in from the <code>br-8ce7e363e4f9</code> network interface
+(in this case a <a href="https://developers.redhat.com/blog/2018/10/22/introduction-to-linux-interfaces-for-virtual-networking/#bridge">Linux bridge</a>) and leaving through the same interface.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>dxia@my-host:~$ sudo iptables --list FORWARD --verbose --numeric --line-numbers --table filter
+</span><span class='line'>Chain FORWARD (policy DROP 0 packets, 0 bytes)
+</span><span class='line'>num   pkts bytes target     prot opt in     out     source               destination
+</span><span class='line'>1        0     0 DOCKER-USER  all  --  *      *       0.0.0.0/0            0.0.0.0/0
+</span><span class='line'>2        0     0 DOCKER-ISOLATION-STAGE-1  all  --  *      *       0.0.0.0/0            0.0.0.0/0
+</span><span class='line'>3        0     0 ACCEPT     all  --  *      corp0  0.0.0.0/0            0.0.0.0/0            ctstate RELATED,ESTABLISHED
+</span><span class='line'>4        0     0 DOCKER     all  --  *      corp0  0.0.0.0/0            0.0.0.0/0
+</span><span class='line'>5        0     0 ACCEPT     all  --  corp0 !corp0  0.0.0.0/0            0.0.0.0/0
+</span><span class='line'>6        0     0 ACCEPT     all  --  corp0 corp0  0.0.0.0/0            0.0.0.0/0
+</span><span class='line'>7        0     0 ACCEPT     all  --  *      br-8ce7e363e4f9  0.0.0.0/0            0.0.0.0/0            ctstate RELATED,ESTABLISHED
+</span><span class='line'>8        0     0 ACCEPT     all  --  br-8ce7e363e4f9 br-8ce7e363e4f9  0.0.0.0/0            0.0.0.0/0
+</span><span class='line'>9      264 17722 DOCKER     all  --  *      br-8ce7e363e4f9  0.0.0.0/0            0.0.0.0/0
+</span><span class='line'>10    7382   17M ACCEPT     all  --  br-8ce7e363e4f9 !br-8ce7e363e4f9  0.0.0.0/0            0.0.0.0/0</span></code></pre></td></tr></table></div></figure>
+
+
+<p>When I re-ran Puppet rules 7 and 8 were deleted and containers on the <code>foo-network</code> were again
+unable to establish a TCP connection. I added rule 8 manually and confirmed this is the rule
+causing my error above.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>dxia@my-host:~$ sudo iptables --table filter --append FORWARD --in-interface br-8ce7e363e4f9 --out-interface br-8ce7e363e4f9 --source 0.0.0.0/0 --destination 0.0.0.0/0 --jump ACCEPT
+</span><span class='line'>
+</span><span class='line'>dxia@my-host:~$ sudo iptables --list FORWARD --verbose --numeric --line-numbers --table filter
+</span><span class='line'>Chain FORWARD (policy DROP 0 packets, 0 bytes)
+</span><span class='line'>num   pkts bytes target     prot opt in     out     source               destination
+</span><span class='line'>1    23526 1377K DOCKER-USER  all  --  *      *       0.0.0.0/0            0.0.0.0/0
+</span><span class='line'>2    23526 1377K DOCKER-ISOLATION-STAGE-1  all  --  *      *       0.0.0.0/0            0.0.0.0/0
+</span><span class='line'>3    11728  755K ACCEPT     all  --  *      corp0  0.0.0.0/0            0.0.0.0/0            ctstate RELATED,ESTABLISHED
+</span><span class='line'>4        1    60 DOCKER     all  --  *      corp0  0.0.0.0/0            0.0.0.0/0
+</span><span class='line'>5    11737  617K ACCEPT     all  --  corp0 !corp0  0.0.0.0/0            0.0.0.0/0
+</span><span class='line'>6        0     0 ACCEPT     all  --  corp0 corp0  0.0.0.0/0            0.0.0.0/0
+</span><span class='line'>7      182 12970 DOCKER     all  --  *      br-8ce7e363e4f9  0.0.0.0/0            0.0.0.0/0
+</span><span class='line'>8       39  2748 ACCEPT     all  --  br-8ce7e363e4f9 !br-8ce7e363e4f9  0.0.0.0/0            0.0.0.0/0
+</span><span class='line'>9        0     0 ACCEPT     all  --  br-8ce7e363e4f9 br-8ce7e363e4f9  0.0.0.0/0            0.0.0.0/0
+</span><span class='line'>
+</span><span class='line'>dxia@my-host:~$ sudo nsenter --net=$(docker inspect --format  nginx1) nc 172.20.0.127 80 -nvz -w 5
+</span><span class='line'>(UNKNOWN) [172.20.0.127] 80 (http) open</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now running <code>foo</code> gave a different error.</p>
+
+<h2>Error #2: DNS queries for external records from bar failed</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>dxia@my-host$ foo run -f data-info.yaml -w DumpKubernetesContainerImagesJob -p 2021-04-26 -r my-project/target/image-name
+</span><span class='line'>INFO:run: starting workflow DumpKubernetesContainerImagesJob ...
+</span><span class='line'>ERROR: (gcloud.auth.activate-service-account) There was a problem refreshing your current auth tokens: Invalid response 500.
+</span><span class='line'>Please run:
+</span><span class='line'>
+</span><span class='line'>  $ gcloud auth login
+</span><span class='line'>
+</span><span class='line'>to obtain new credentials.
+</span><span class='line'>
+</span><span class='line'>If you have already logged in with a different account:
+</span><span class='line'>
+</span><span class='line'>    $ gcloud config set account ACCOUNT
+</span><span class='line'>
+</span><span class='line'>to select an already authenticated account to use.
+</span><span class='line'>Traceback (most recent call last):
+</span><span class='line'>  File "/usr/local/bin/activate-google-application-credentials", line 19, in &lt;module&gt;
+</span><span class='line'>    'auth', 'activate-service-account', '--key-file', json_path])
+</span><span class='line'>  File "/usr/lib/python3.6/subprocess.py", line 311, in check_call
+</span><span class='line'>    raise CalledProcessError(retcode, cmd)
+</span><span class='line'>subprocess.CalledProcessError: Command '['gcloud', 'auth', 'activate-service-account', '--key-file', '/etc/_foo/gcp-sa-key.json']' returned non-zero exit status 1.
+</span><span class='line'>ERROR:foo: non-zero exit code (1) from `/usr/bin/docker run -it -v /home/dxia/my-project/_foo:/etc/_foo:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python2.7/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.6/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.7/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.8/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.9/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python2.7/site-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.6/site-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.7/site-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.8/site-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.9/site-packages/oauth2client/__init__.py:ro --net foo-network -e FOO_COMPONENT_ID=my-project -e FOO_WORKFLOW_ID=DumpKubernetesContainerImagesJob -e FOO_PARAMETER=2021-04-02 -e FOO_DOCKER_IMAGE=my-project:20210422T065801-2b5452d -e 'FOO_DOCKER_ARGS=wrap-luigi --module luigi_tasks DumpKubernetesContainerImagesJob --when 2021-04-02' -e FOO_EXECUTION_ID=foorun-3feaee45-35e4-4c01-9430-86de52eb2db1 -e FOO_TRIGGER_ID=foo-f721de7f-edf9-4bb3-8cdf-1e9bbcec5035 -e FOO_TRIGGER_TYPE=foo -e FOO_ENVIRONMENT=foo -e FOO_LOGGING=text -e GOOGLE_APPLICATION_CREDENTIALS=/etc/_foo/gcp-sa-key.json -e FOO_SERVICE_ACCOUNT=dump-k8-deployment-info-pipeli@my-project.iam.gserviceaccount.com gcr.io/xpn-1/my-project:20210422T065801-2b5452d wrap-luigi --module luigi_tasks DumpKubernetesContainerImagesJob --when 2021-04-02`</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The only background knowledge we need to know here is that the qux container is sending a Google
+Service Account (GSA) JSON credential with <code>"token_uri": "http://172.20.0.127:80/token"</code>. Bar
+then uses that token for further GCP API requests. So bar needs to query DNS for
+accounts.google.com. Bar container logs show that it cannot lookup the DNS A record for
+accounts.google.com by querying <code>127.0.0.11:53</code>.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>dxia@my-host:~$ docker ps
+</span><span class='line'>CONTAINER ID        IMAGE                                                                    COMMAND                  CREATED             STATUS              PORTS                     NAMES
+</span><span class='line'>1b0b2b981f93        nginx:latest                                                             "/docker-entrypoint.…"   9 hours ago         Up 9 hours          0.0.0.0:8080-&gt;80/tcp      nginx1
+</span><span class='line'>3f9cc17b3f71        foo/bar:latest                                   "./bar"               9 hours ago         Up 9 hours          0.0.0.0:80-&gt;80/tcp        bar
+</span><span class='line'>
+</span><span class='line'>dxia@my-host:~$ docker logs --follow bar
+</span><span class='line'>2021/04/22 05:54:19 bar started
+</span><span class='line'>2021/04/22 06:59:13 Received JWT assertion: [REDACTED base-64 string]
+</span><span class='line'>2021/04/22 06:59:13 Servive account name:  projects/-/serviceAccounts/dump-k8-deployment-info-pipeli@my-project.iam.gserviceaccount.com
+</span><span class='line'>2021/04/22 06:59:28 Post https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/dump-k8-deployment-info-pipeli@my-project.iam.gserviceaccount.com:generateAccessToken?alt=json&prettyPrint=false: Post https://accounts.google.com/o/oauth2/token: dial tcp: lookup accounts.google.com on 127.0.0.11:53: read udp 127.0.0.1:46920-&gt;127.0.0.11:53: i/o timeout
+</span><span class='line'>2021/04/22 06:59:28 Failed to create new token for dump-k8-deployment-info-pipeli@my-project.iam.gserviceaccount.com</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I wondered why bar was querying <code>127.0.0.11</code> for DNS. It turns out this is another loopback
+address. In fact, all of <code>127.0.0.0/8</code> is loopback according to <a href="https://tools.ietf.org/html/rfc6890">RFC-6890</a>. I guess Docker
+containers that are attached to user-defined Docker networks are configured by default to use
+<code>127.0.0.11</code> in their <code>/etc/resolv.conf</code>.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>dxia@my-host$ docker ps
+</span><span class='line'>CONTAINER ID        IMAGE                                                                    COMMAND                  CREATED             STATUS              PORTS                     NAMES
+</span><span class='line'>1b0b2b981f93        nginx:latest                                                             "/docker-entrypoint.…"   9 hours ago         Up 9 hours          0.0.0.0:8080-&gt;80/tcp      nginx1
+</span><span class='line'>3f9cc17b3f71        foo/bar:latest                                   "./bar"               9 hours ago         Up 9 hours          0.0.0.0:80-&gt;80/tcp        bar
+</span><span class='line'>
+</span><span class='line'>dxia@my-host$ docker exec -it nginx1 /bin/sh -c "cat /etc/resolv.conf"
+</span><span class='line'>
+</span><span class='line'>search corp.net
+</span><span class='line'>nameserver 127.0.0.11
+</span><span class='line'>options attempts:1 timeout:5 ndots:0</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Why were these Docker containers configured to query for DNS records on <code>127.0.0.11</code>? It turned
+out after some Googling that</p>
+
+<blockquote><p>By default, a container inherits the DNS settings of the host, as defined in the /etc/resolv.conf
+configuration file. Containers that use the default bridge network get a copy of this file,
+whereas containers that use a custom network use Docker’s embedded DNS server, which forwards
+external DNS lookups to the DNS servers configured on the host.</p></blockquote>
+
+<p>&mdash; <a href="https://docs.docker.com/config/containers/container-networking/">https://docs.docker.com/config/containers/container-networking/</a></p>
+
+<p>Now I wondered if Docker&rsquo;s embedded DNS server is actually running. After some more Googling, I
+realized that each container also had its own set of firewall rules. So I listed bar&rsquo;s nat
+table&rsquo;s <code>DOCKER_OUTPUT</code> chain&rsquo;s rules. These two rules showed that the destination port is
+changed for TCP packets bound for 127.0.0.11:53 to 37619. UDP packets have their port changed to
+58552.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>dxia@my-host$ sudo nsenter -n -t $(docker inspect --format  bar) sudo iptables --list DOCKER_OUTPUT --verbose --numeric --line-numbers --table nat
+</span><span class='line'>
+</span><span class='line'>Chain DOCKER_OUTPUT (1 references)
+</span><span class='line'> pkts bytes target     prot opt in     out     source               destination
+</span><span class='line'>    0     0 DNAT       tcp  --  *      *       0.0.0.0/0            127.0.0.11           tcp dpt:53 to:127.0.0.11:37619
+</span><span class='line'>    0     0 DNAT       udp  --  *      *       0.0.0.0/0            127.0.0.11           udp dpt:53 to:127.0.0.11:58552</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Whatever&rsquo;s listening on those ports was accepting TCP and UDP connections.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>dxia@my-host$ sudo nsenter -n -t $(docker inspect --format  bar) nc 127.0.0.11 58552 -nvzu -w 5
+</span><span class='line'>(UNKNOWN) [127.0.0.11] 58552 (?) open
+</span><span class='line'>dxia@my-host$ sudo nsenter -n -t $(docker inspect --format  bar) nc 127.0.0.11 37619 -nvz -w 5
+</span><span class='line'>(UNKNOWN) [127.0.0.11] 37619 (?) open</span></code></pre></td></tr></table></div></figure>
+
+
+<p>But there was no DNS reply from either.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>dxia@my-host$ sudo nsenter -n -t $(docker inspect --format  bar) dig @127.0.0.11 -p 58552 accounts.google.com
+</span><span class='line'>
+</span><span class='line'>; &lt;&lt;&gt;&gt; DiG 9.11.3-1ubuntu1.14-Ubuntu &lt;&lt;&gt;&gt; @127.0.0.11 -p 58552 accounts.google.com
+</span><span class='line'>; (1 server found)
+</span><span class='line'>;; global options: +cmd
+</span><span class='line'>;; connection timed out; no servers could be reached
+</span><span class='line'>
+</span><span class='line'>dxia@my-host$ sudo nsenter -n -t $(docker inspect --format  bar) dig @127.0.0.11 -p 37619 accounts.google.com +tcp
+</span><span class='line'>
+</span><span class='line'>; &lt;&lt;&gt;&gt; DiG 9.11.3-1ubuntu1.14-Ubuntu &lt;&lt;&gt;&gt; @127.0.0.11 -p 37619 accounts.google.com +tcp
+</span><span class='line'>; (1 server found)
+</span><span class='line'>;; global options: +cmd
+</span><span class='line'>;; connection timed out; no servers could be reached</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Docker daemon was listening for DNS queries at that IP and port from within bar.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>dxia@my-host$ sudo nsenter -n -p -t $(docker inspect --format  bar) ss -utnlp
+</span><span class='line'>Netid        State          Recv-Q         Send-Q                    Local Address:Port                    Peer Address:Port
+</span><span class='line'>udp          UNCONN         0              0                            127.0.0.11:58552                        0.0.0.0:*             users:(("dockerd",pid=10984,fd=38))
+</span><span class='line'>tcp          LISTEN         0              128                          127.0.0.11:37619                        0.0.0.0:*             users:(("dockerd",pid=10984,fd=40))
+</span><span class='line'>tcp          LISTEN         0              128                                   *:80                                 *:*             users:(("bar",pid=12150,fd=3))</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After enabling <code>log-level": "debug"</code> in <code>/etc/docker/daemon.json</code> and reloading the configuration
+file, I saw that the daemon was trying to forward the DNS query to 10.99.0.1. This was the IP of
+the <code>corp0</code> bridge network interface which we create instead of the default <code>docker0</code> bridge
+network. I saw there was an IO timeout when the daemon was waiting for the DNS reply.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>dxia@my-host$ sudo journalctl --follow -u docker
+</span><span class='line'>-- Logs begin at Tue 2019-11-05 18:17:27 UTC. --
+</span><span class='line'>Apr 22 15:43:12 my-host.corp.net dockerd[10984]: time="2021-04-22T15:43:12.496979903Z" level=debug msg="[resolver] read from DNS server failed, read udp 172.20.0.127:37928-&gt;10.99.0.1:53: i/o timeout"
+</span><span class='line'>Apr 22 15:43:13 my-host.corp.net dockerd[10984]: time="2021-04-22T15:43:13.496539033Z" level=debug msg="Name To resolve: accounts.google.com."
+</span><span class='line'>Apr 22 15:43:13 my-host.corp.net dockerd[10984]: time="2021-04-22T15:43:13.496958664Z" level=debug msg="[resolver] query accounts.google.com. (A) from 172.20.0.127:51642, forwarding to udp:10.99.0.1"</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We set dockerd&rsquo;s upstream DNS server as 10.99.0.1 because we have unbound running as a DNS
+proxy/cache on the host. We configured it to bind on the bridge interface so Docker containers
+can hit the host-local unbound instance by routing DNS requests to corp0.</p>
+
+<p>So why can&rsquo;t the daemon forward IP packets from 172.20.0.127:37928 to 10.99.0.1:53? It seemed
+like UDP packets sent from bar were able to reach 10.99.0.1:53, but DNS requests failed. I also
+knew DNS requests from the host to 10.99.0.1:53 worked.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format  bar) nc 10.99.0.1 53 -nvzu -w 5
+</span><span class='line'>(UNKNOWN) [10.99.0.1] 53 (domain) open
+</span><span class='line'>
+</span><span class='line'>dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format  bar) dig @10.99.0.1 accounts.google.com
+</span><span class='line'>
+</span><span class='line'>; &lt;&lt;&gt;&gt; DiG 9.11.3-1ubuntu1.14-Ubuntu &lt;&lt;&gt;&gt; @10.99.0.1 accounts.google.com
+</span><span class='line'>; (1 server found)
+</span><span class='line'>;; global options: +cmd
+</span><span class='line'>;; connection timed out; no servers could be reached
+</span><span class='line'>
+</span><span class='line'>dxia@my-host:~$ dig @10.99.0.1 accounts.google.com
+</span><span class='line'>
+</span><span class='line'>; &lt;&lt;&gt;&gt; DiG 9.11.3-1ubuntu1.14-Ubuntu &lt;&lt;&gt;&gt; @10.99.0.1 accounts.google.com
+</span><span class='line'>; (1 server found)
+</span><span class='line'>;; global options: +cmd
+</span><span class='line'>;; Got answer:
+</span><span class='line'>;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 39308
+</span><span class='line'>;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+</span><span class='line'>
+</span><span class='line'>;; OPT PSEUDOSECTION:
+</span><span class='line'>; EDNS: version: 0, flags:; udp: 4096
+</span><span class='line'>;; QUESTION SECTION:
+</span><span class='line'>;accounts.google.com.     IN  A
+</span><span class='line'>
+</span><span class='line'>;; ANSWER SECTION:
+</span><span class='line'>accounts.google.com.  108 IN  A   142.250.31.84
+</span><span class='line'>
+</span><span class='line'>;; Query time: 1 msec
+</span><span class='line'>;; SERVER: 10.99.0.1#53(10.99.0.1)
+</span><span class='line'>;; WHEN: Mon Apr 26 23:58:28 UTC 2021
+</span><span class='line'>;; MSG SIZE  rcvd: 64</span></code></pre></td></tr></table></div></figure>
+
+
+<p>My hypothesis at this point was that Docker&rsquo;s embedded DNS server wasn&rsquo;t working in some way.
+After exploring this for a while with no luck, I questioned my assumption that UDP packets from
+172.20.0.127:37928 were able to reach 10.99.0.1:53. I realized TCP packets from
+172.20.0.127:37928 were not able to reach 10.99.0.1:53.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format  bar) nc 10.99.0.1 53 -nvz -w 5
+</span><span class='line'>(UNKNOWN) [10.99.0.1] 53 (domain) : Connection timed out</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So why were UDP packets able to? Isn&rsquo;t UDP a fire-and-forget protocol? How can <code>nc</code> even tell if
+an IP and port is listening for UDP packets at all? It was good that I backtracked and questioned
+my assumption because it turns out that one <a href="https://serverfault.com/questions/416205/testing-udp-port-connectivity/416269#416269">cannot distinguish between an open UDP port and
+dropped packets en route to that port</a>.</p>
+
+<p>So it must be another networking issue which means there must be another firewall rule that&rsquo;s
+blocking packets from the bar container to 10.99.0.1. After a while of looking, I realized the
+filter table&rsquo;s <code>INPUT</code> chain&rsquo;s default policy was <code>DROP</code> and that there was no rule that matched
+packets coming in from the <code>br-8ce7e363e4f9</code> interface.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>dxia@my-host:~$ sudo iptables --list INPUT --verbose --numeric --line-numbers --table filter
+</span><span class='line'>Chain INPUT (policy DROP 0 packets, 0 bytes)
+</span><span class='line'>num   pkts bytes target     prot opt in     out     source               destination
+</span><span class='line'>1     434M  345G            all  --  eth0   *       0.0.0.0/0            0.0.0.0/0            /* 00 ACC-eth0 input */
+</span><span class='line'>2        0     0            all  --  eth1   *       0.0.0.0/0            0.0.0.0/0            /* 00 ACC-eth1 input */
+</span><span class='line'>3     7080  283K DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* 000 drop invalid */ ctstate INVALID
+</span><span class='line'>4    1907M  568G ipthrouput  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* 000 track forward */
+</span><span class='line'>5     987M  414G ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* 001 accept established */ ctstate RELATED,ESTABLISHED
+</span><span class='line'>6     763M   95G ACCEPT     all  --  lo     *       0.0.0.0/0            0.0.0.0/0            /* 002 allow local */
+</span><span class='line'>7        0     0 ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* 003 accept ipsec */ policy match dir in pol ipsec
+</span><span class='line'>8        1    28 ACCEPT     icmp --  *      *       0.0.0.0/0            0.0.0.0/0            /* 004 allow icmp */ icmptype 8 limit: avg 10/sec burst 5
+</span><span class='line'>9        0     0 DROP       icmp --  *      *       0.0.0.0/0            0.0.0.0/0            /* 005 drop icmp */
+</span><span class='line'>10       0     0 DROP       tcp  --  eth0   *       0.0.0.0/0            0.0.0.0/0            multiport dports 9203 /* 006 block JMX on service net */
+</span><span class='line'>11       0     0 REJECT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            multiport dports 9203 /* 020 deny direct access to JMX port on helios nodes */ reject-with icmp-port-unreachable
+</span><span class='line'>12       0     0 DROP       all  --  eth0   *       10.48.64.0/22        0.0.0.0/0            /* 08 drop traffic from osxenv 10.48.64.0/22 */
+</span><span class='line'>13       0     0 DROP       all  --  eth0   *       10.97.16.0/21        0.0.0.0/0            /* 08 drop traffic from osxenv 10.97.16.0/21 */
+</span><span class='line'>14       0     0 DROP       all  --  eth0   *       172.24.32.0/22       0.0.0.0/0            /* 08 drop traffic from windowsbuildagentsenv 172.24.32.0/22 */
+</span><span class='line'>15       0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* 08 prevent access from buildagent machines */ match-set buildagent src
+</span><span class='line'>16       0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* 08 prevent access from paymentbamboo machines */ match-set paymentbamboo src
+</span><span class='line'>17   18168 1094K ACCEPT     all  --  eth0   *       0.0.0.0/0            0.0.0.0/0            /* 09 allow service nets */ match-set service_nets src
+</span><span class='line'>18     134  8496 ACCEPT     all  --  eth0   *       0.0.0.0/0            0.0.0.0/0            /* 09 allow tech offices */ match-set tech_offices src
+</span><span class='line'>19       0     0 ACCEPT     all  --  eth0   *       0.0.0.0/0            0.0.0.0/0            /* 09 allow testenv */ match-set testenv src
+</span><span class='line'>20       0     0 ACCEPT     all  --  eth0   *       130.211.0.0/22       0.0.0.0/0            /* 10 Google networks for 130.211.0.0/22 */
+</span><span class='line'>21       0     0 ACCEPT     all  --  eth0   *       35.191.0.0/16        0.0.0.0/0            /* 10 Google networks for 35.191.0.0/16 */
+</span><span class='line'>22       0     0 LOG        tcp  --  eth0   *       0.0.0.0/0            0.0.0.0/0            /* 11 inbound eth0: */ limit: avg 3/min burst 5 LOG flags 0 level 4 prefix "input eth0: "
+</span><span class='line'>23       0     0 LOG        tcp  --  eth1   *       0.0.0.0/0            0.0.0.0/0            /* 11 inbound eth1: */ limit: avg 3/min burst 5 LOG flags 0 level 4 prefix "input eth1: "
+</span><span class='line'>24       0     0 ACCEPT     all  --  docker0 *       0.0.0.0/0            0.0.0.0/0            /* 20 allow all docker0 traffic */
+</span><span class='line'>25    158M   59G ACCEPT     all  --  corp0 *       0.0.0.0/0            0.0.0.0/0            /* 20 allow all corp0 traffic */
+</span><span class='line'>26       0     0 ACCEPT     tcp  --  eth0   *       0.0.0.0/0            0.0.0.0/0            multiport dports 22 /* 500 allow ssh on service net */ ctstate NEW recent: SET name: DEFAULT side: source mask: 255.255.255.255
+</span><span class='line'>27       0     0 DROP       tcp  --  eth0   *       0.0.0.0/0            0.0.0.0/0            multiport dports 22 /* 501 limit ssh on service net */ ctstate NEW recent: UPDATE seconds: 180 hit_count: 20 name: DEFAULT side: source mask: 255.255.255.255</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So I added a matching rule that accepted those packets manually.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>sudo iptables --table filter --append INPUT --in-interface br-8ce7e363e4f9 --source 0.0.0.0/0 --destination 0.0.0.0/0 --jump ACCEPT
+</span><span class='line'>
+</span><span class='line'>dxia@my-host:~$ sudo iptables --list INPUT --verbose --numeric --line-numbers --table filter
+</span><span class='line'>Chain INPUT (policy DROP 0 packets, 0 bytes)
+</span><span class='line'>num   pkts bytes target     prot opt in     out     source               destination
+</span><span class='line'>1     434M  345G            all  --  eth0   *       0.0.0.0/0            0.0.0.0/0            /* 00 ACC-eth0 input */
+</span><span class='line'>2        0     0            all  --  eth1   *       0.0.0.0/0            0.0.0.0/0            /* 00 ACC-eth1 input */
+</span><span class='line'>3     7080  283K DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* 000 drop invalid */ ctstate INVALID
+</span><span class='line'>4    1908M  568G ipthrouput  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* 000 track forward */
+</span><span class='line'>5     987M  414G ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* 001 accept established */ ctstate RELATED,ESTABLISHED
+</span><span class='line'>6     763M   95G ACCEPT     all  --  lo     *       0.0.0.0/0            0.0.0.0/0            /* 002 allow local */
+</span><span class='line'>7        0     0 ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* 003 accept ipsec */ policy match dir in pol ipsec
+</span><span class='line'>8        1    28 ACCEPT     icmp --  *      *       0.0.0.0/0            0.0.0.0/0            /* 004 allow icmp */ icmptype 8 limit: avg 10/sec burst 5
+</span><span class='line'>9        0     0 DROP       icmp --  *      *       0.0.0.0/0            0.0.0.0/0            /* 005 drop icmp */
+</span><span class='line'>10       0     0 DROP       tcp  --  eth0   *       0.0.0.0/0            0.0.0.0/0            multiport dports 9203 /* 006 block JMX on service net */
+</span><span class='line'>11       0     0 REJECT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            multiport dports 9203 /* 020 deny direct access to JMX port on helios nodes */ reject-with icmp-port-unreachable
+</span><span class='line'>12       0     0 DROP       all  --  eth0   *       10.48.64.0/22        0.0.0.0/0            /* 08 drop traffic from osxenv 10.48.64.0/22 */
+</span><span class='line'>13       0     0 DROP       all  --  eth0   *       10.97.16.0/21        0.0.0.0/0            /* 08 drop traffic from osxenv 10.97.16.0/21 */
+</span><span class='line'>14       0     0 DROP       all  --  eth0   *       172.24.32.0/22       0.0.0.0/0            /* 08 drop traffic from windowsbuildagentsenv 172.24.32.0/22 */
+</span><span class='line'>15       0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* 08 prevent access from buildagent machines */ match-set buildagent src
+</span><span class='line'>16       0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* 08 prevent access from paymentbamboo machines */ match-set paymentbamboo src
+</span><span class='line'>17   18168 1094K ACCEPT     all  --  eth0   *       0.0.0.0/0            0.0.0.0/0            /* 09 allow service nets */ match-set service_nets src
+</span><span class='line'>18     134  8496 ACCEPT     all  --  eth0   *       0.0.0.0/0            0.0.0.0/0            /* 09 allow tech offices */ match-set tech_offices src
+</span><span class='line'>19       0     0 ACCEPT     all  --  eth0   *       0.0.0.0/0            0.0.0.0/0            /* 09 allow testenv */ match-set testenv src
+</span><span class='line'>20       0     0 ACCEPT     all  --  eth0   *       130.211.0.0/22       0.0.0.0/0            /* 10 Google networks for 130.211.0.0/22 */
+</span><span class='line'>21       0     0 ACCEPT     all  --  eth0   *       35.191.0.0/16        0.0.0.0/0            /* 10 Google networks for 35.191.0.0/16 */
+</span><span class='line'>22       0     0 LOG        tcp  --  eth0   *       0.0.0.0/0            0.0.0.0/0            /* 11 inbound eth0: */ limit: avg 3/min burst 5 LOG flags 0 level 4 prefix "input eth0: "
+</span><span class='line'>23       0     0 LOG        tcp  --  eth1   *       0.0.0.0/0            0.0.0.0/0            /* 11 inbound eth1: */ limit: avg 3/min burst 5 LOG flags 0 level 4 prefix "input eth1: "
+</span><span class='line'>24       0     0 ACCEPT     all  --  docker0 *       0.0.0.0/0            0.0.0.0/0            /* 20 allow all docker0 traffic */
+</span><span class='line'>25    158M   59G ACCEPT     all  --  corp0 *       0.0.0.0/0            0.0.0.0/0            /* 20 allow all corp0 traffic */
+</span><span class='line'>26       0     0 ACCEPT     tcp  --  eth0   *       0.0.0.0/0            0.0.0.0/0            multiport dports 22 /* 500 allow ssh on service net */ ctstate NEW recent: SET name: DEFAULT side: source mask: 255.255.255.255
+</span><span class='line'>27       0     0 DROP       tcp  --  eth0   *       0.0.0.0/0            0.0.0.0/0            multiport dports 22 /* 501 limit ssh on service net */ ctstate NEW recent: UPDATE seconds: 180 hit_count: 20 name: DEFAULT side: source mask: 255.255.255.255
+</span><span class='line'>28       0     0 ACCEPT     all  --  br-8ce7e363e4f9 *       0.0.0.0/0            0.0.0.0/0</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I retried querying for accounts.google.com, and I got a DNS reply!</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format  bar) dig @127.0.0.11 accounts.google.com
+</span><span class='line'>
+</span><span class='line'>; &lt;&lt;&gt;&gt; DiG 9.11.3-1ubuntu1.14-Ubuntu &lt;&lt;&gt;&gt; @127.0.0.11 accounts.google.com
+</span><span class='line'>; (1 server found)
+</span><span class='line'>;; global options: +cmd
+</span><span class='line'>;; Got answer:
+</span><span class='line'>;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: REFUSED, id: 9592
+</span><span class='line'>;; flags: qr rd ad; QUERY: 0, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 0
+</span><span class='line'>;; WARNING: recursion requested but not available
+</span><span class='line'>
+</span><span class='line'>;; Query time: 0 msec
+</span><span class='line'>;; SERVER: 127.0.0.11#53(127.0.0.11)
+</span><span class='line'>;; WHEN: Tue Apr 27 00:07:13 UTC 2021
+</span><span class='line'>;; MSG SIZE  rcvd: 12</span></code></pre></td></tr></table></div></figure>
+
+
+<p>But&hellip; there&rsquo;s no A records? Docker daemon logs stated that the upstream local unbound DNS server
+did not return any A records.</p>
+
+<h2>Error #3: unbound refused to reply to DNS queries from a private IP range used by the Docker network we&rsquo;re using</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Apr 27 00:07:13 my-host.corp.net dockerd[32659]: time="2021-04-27T00:07:13.864160829Z" level=debug msg="Name To resolve: accounts.google.com."
+</span><span class='line'>Apr 27 00:07:13 my-host.corp.net dockerd[32659]: time="2021-04-27T00:07:13.864325564Z" level=debug msg="[resolver] query accounts.google.com. (A) from 172.20.0.127:57576, forwarding to udp:10.99.0.1"
+</span><span class='line'>Apr 27 00:07:13 my-host.corp.net dockerd[32659]: time="2021-04-27T00:07:13.864537556Z" level=debug msg="[resolver] external DNS udp:10.99.0.1 did not return any A records for \"accounts.google.com.\""</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Hm, I noticed the status in the empty DNS reply is <code>REFUSED</code>. I recalled that <a href="https://linux.die.net/man/5/unbound.conf">unbound supports
+configuring which DNS queries it will reply to based on originating interface and
+IP</a>.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>dxia@my-host:~$ grep access-control /etc/unbound/unbound.conf
+</span><span class='line'>    access-control: 127.0.0.1 allow
+</span><span class='line'>    access-control: 10.99.0.0/24 allow
+</span><span class='line'>    access-control: 10.174.18.90 allow</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Bingo! There&rsquo;s no <code>access-control</code> entry that allowed DNS queries from 172.20.0.127. I added
+<code>access-control: 172.16.0.0/12 allow</code> (since all of 172.16.0.0/12 is private IPv4 address space
+according to <a href="https://tools.ietf.org/html/rfc1918">RFC-1918</a>) and reloaded unbound. Now it worked!</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>dxia@my-host:~$ sudo systemctl reload unbound
+</span><span class='line'>dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format  bar) dig @127.0.0.11 accounts.google.com
+</span><span class='line'>
+</span><span class='line'>; &lt;&lt;&gt;&gt; DiG 9.11.3-1ubuntu1.14-Ubuntu &lt;&lt;&gt;&gt; @127.0.0.11 accounts.google.com
+</span><span class='line'>; (1 server found)
+</span><span class='line'>;; global options: +cmd
+</span><span class='line'>;; Got answer:
+</span><span class='line'>;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 36432
+</span><span class='line'>;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+</span><span class='line'>
+</span><span class='line'>;; OPT PSEUDOSECTION:
+</span><span class='line'>; EDNS: version: 0, flags:; udp: 4096
+</span><span class='line'>;; QUESTION SECTION:
+</span><span class='line'>;accounts.google.com.     IN  A
+</span><span class='line'>
+</span><span class='line'>;; ANSWER SECTION:
+</span><span class='line'>accounts.google.com.  143 IN  A   74.125.202.84
+</span><span class='line'>
+</span><span class='line'>;; Query time: 2 msec
+</span><span class='line'>;; SERVER: 127.0.0.11#53(127.0.0.11)
+</span><span class='line'>;; WHEN: Tue Apr 27 00:11:41 UTC 2021
+</span><span class='line'>;; MSG SIZE  rcvd: 64</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Docker daemon logs showed the following.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Apr 27 00:11:41 my-host.corp.net dockerd[32659]: time="2021-04-27T00:11:41.957934764Z" level=debug msg="Name To resolve: accounts.google.com."
+</span><span class='line'>Apr 27 00:11:41 my-host.corp.net dockerd[32659]: time="2021-04-27T00:11:41.958087666Z" level=debug msg="[resolver] query accounts.google.com. (A) from 172.20.0.127:33346, forwarding to udp:10.99.0.1"
+</span><span class='line'>Apr 27 00:11:41 my-host.corp.net dockerd[32659]: time="2021-04-27T00:11:41.960007990Z" level=debug msg="[resolver] received A record \"74.125.202.84\" for \"accounts.google.com.\" from udp:10.99.0.1"</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>General Debugging Strategies and Techniques I Used</h2>
+
+<p>Here are the general debugging strategies I used and reinforced for myself.</p>
+
+<ul>
+<li>When network requests fail, go down one layer on the stack to identify on exactly which layer it
+fails. I.e. find out which protocol is responsible for the failure: HTTP, TCP, IP?</li>
+<li>Try to reproduce the error by running the most direct and minimal command that simulates my actual
+failure. In this case, an HTTP request made by <code>gcloud</code> was failing. I translated that into an <code>nc</code> command
+that simulated the establishment of the TCP connection between containers. Or a DNS query from
+bar was failing. I translated that into a <code>dig</code> command. And in all these cases, the origin of
+these IP packets mattered. So knowing how to use <code>nsenter</code> to enter a network namespace and create
+IP packets that originate from the same container was useful. <code>nsenter</code> is essential when debugging
+containers that don&rsquo;t have any tools installed in them. The bar image only contains one
+go-compiled executable. There&rsquo;s no other tools I can use in there.</li>
+<li>I encountered three errors in this case. Tackle one error at a time, and don&rsquo;t give up.</li>
+<li>Be scientific. Have a working hypothesis at each step for which you collect evidence that either
+supports or refutes it.</li>
+<li>If you get stuck, go back and question your previous assumptions or conclusions. Are there other
+tests you can run that can confirm or disprove what you thought was true?</li>
+</ul>
+
+
+<h2>Patches</h2>
+
+<p>Error #1: I created a patch that makes our Puppet installation ignore rules created by Docker
+networks in the filter table&rsquo;s FORWARD chain.</p>
+
+<p>Error #2: Unfortunately, I don&rsquo;t think there&rsquo;s a good solution to this other than disabling our
+GCE VM&rsquo;s periodic Puppet runs and manually adding a rule to allow packets from the new interface.
+The chain&rsquo;s default policy is <code>DROP</code>, and interface names are dynamic.</p>
+
+<p>Error #3: I made a patch that makes unbound reply to DNS queries with source IPs of in the range
+<code>172.16.0.0/12</code>.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[How Kubernetes Routes IP Packets to Services' Cluster IPs]]></title>
@@ -6106,16 +6977,6 @@ community, allowing it to influence key decision-makers on a range of issues ove
 <li><a href="https://en.wikipedia.org/wiki/Community_development#Definitions">community development</a></li>
 <li>Education</li>
 </ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[A Recent Family Photo]]></title>
-    <link href="https://www.davidxia.com/2016/09/a-recent-family-photo/"/>
-    <updated>2016-09-18T18:29:07-04:00</updated>
-    <id>https://www.davidxia.com/2016/09/a-recent-family-photo</id>
-    <content type="html"><![CDATA[<div class='image center'><img  src="https://i.imgur.com/mwtquEjl.jpg" width="640" height="640" title="Post-dimsum photo with my parents and maternal grandparents on their weekend visit to NYC." ><div class='caption'>Post-dimsum photo with my parents and maternal grandparents on their weekend visit to NYC.</div></div>
 
 ]]></content>
   </entry>

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Electronics | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/electronics/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2021-01-27T16:16:34-05:00</updated>
+  <updated>2021-05-02T23:41:44+00:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Setting Up My New Home Server]]></title>
     <link href="https://www.davidxia.com/2013/01/setting-up-my-new-home-server/"/>
-    <updated>2013-01-10T00:00:00-05:00</updated>
+    <updated>2013-01-10T00:00:00+00:00</updated>
     <id>https://www.davidxia.com/2013/01/setting-up-my-new-home-server</id>
     <content type="html"><![CDATA[<h2>Hardware and OS</h2>
 
@@ -120,7 +120,7 @@ add-apt-repository ppa:nginx/development
   <entry>
     <title type="html"><![CDATA[Are You Making a Bomb?]]></title>
     <link href="https://www.davidxia.com/2011/06/are-you-making-a-bomb/"/>
-    <updated>2011-06-21T00:00:00-04:00</updated>
+    <updated>2011-06-21T00:00:00+00:00</updated>
     <id>https://www.davidxia.com/2011/06/are-you-making-a-bomb</id>
     <content type="html"><![CDATA[<p>It was only a matter of time before the RadioShack sales rep asked me. I&rsquo;d just brought $40 worth
 of electronic components to his checkout counter. Eleven small plastic bags filled with resistors,
@@ -150,7 +150,7 @@ some fertilizer.&rdquo;</p>
   <entry>
     <title type="html"><![CDATA[My First Soldering Iron]]></title>
     <link href="https://www.davidxia.com/2011/06/my-first-soldering-iron/"/>
-    <updated>2011-06-20T00:00:00-04:00</updated>
+    <updated>2011-06-20T00:00:00+00:00</updated>
     <id>https://www.davidxia.com/2011/06/my-first-soldering-iron</id>
     <content type="html"><![CDATA[<p>Christmas comes early this year. Yesterday I drove to Sears and bought myself a new toy – an $8,
 30 watt, 700°F soldering iron. I know nothing about different types of solder, other than not to

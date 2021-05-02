@@ -10,8 +10,7 @@
   <meta name="author" content="David Xia">
 
   
-  <meta name="description" content="I was inspired by Rob Spectre&rsquo;s Laugh-o-tron and made a telephony extension to my
-Twitter Bots. Try it out. Call 646-480-6046 to talk to various TV show &hellip;">
+  <meta name="description" content="1. Don&rsquo;t Display Error Messages on Failed Login WordPress' admin screen displays &ldquo;ERROR: Invalid username.&rdquo; if you enter an invalid username &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -31,8 +30,7 @@ Twitter Bots. Try it out. Call 646-480-6046 to talk to various TV show &hellip;"
   <meta property="og:url" content="https://www.davidxia.com/posts/12/" />
   <meta property="og:image" content="https://i.imgur.com/BJPOY0D.jpg" />
   <meta property="og:locale" content="en_US" />
-  <meta property="og:description" content="I was inspired by Rob Spectre&rsquo;s Laugh-o-tron and made a telephony extension to my
-Twitter Bots. Try it out. Call 646-480-6046 to talk to various TV show &hellip;" />
+  <meta property="og:description" content="1. Don&rsquo;t Display Error Messages on Failed Login WordPress' admin screen displays &ldquo;ERROR: Invalid username.&rdquo; if you enter an invalid username &hellip;" />
   <meta property="fb:admins" content="122703" />
 
   <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -107,6 +105,96 @@ Twitter Bots. Try it out. Call 646-480-6046 to talk to various TV show &hellip;"
   <header>
     <span itemprop="name headline">
       
+        <h2 class="entry-title"><a href="/2012/02/15-ways-to-increase-your-wordpress-security/">15 Ways to Increase Your WordPress&#8217; Security</a></h2>
+      
+    </span>
+    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2012/02/15-ways-to-increase-your-wordpress-security/">
+    
+      <p class="meta">
+        
+  
+  
+
+  
+    
+  
+
+  
+    
+  
+
+
+
+<span itemprop="datePublished" content="February 18, 2012"><time class='entry-date' datetime='2012-02-18T00:00:00+00:00'><span class='date'>February 18, 2012</span></time></span>
+<meta itemprop="dateModified" content="February 18, 2012">
+ | 
+  
+
+
+
+  <span class="byline author vcard">
+    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
+  </span>
+
+
+        
+        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
+  <meta itemprop="name" content="David Xia">
+  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
+    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
+  </div>
+</div>
+
+        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
+  
+    
+    
+    
+  
+  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
+  <meta itemprop="height" content="696">
+  <meta itemprop="width" content="696">
+</span>
+
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>1. Don&rsquo;t Display Error Messages on Failed Login</h2>
+
+<p>WordPress&#8217; admin screen displays &ldquo;ERROR: Invalid username.&rdquo; if you enter an invalid username. But
+if you enter a valid username and an incorrect password, it&rsquo;ll say &ldquo;ERROR: Incorrect password.&rdquo;
+This basic security flaw tells intruders which usernames to target. I don&rsquo;t understand why the
+WordPress team designed it this way.</p>
+
+<p>You can disable the error message by putting this in your theme&rsquo;s <code>functions.php</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="nx">add_filter</span><span class="p">(</span><span class="s1">&#39;login_errors&#39;</span><span class="p">,</span><span class="nb">create_function</span><span class="p">(</span><span class="s1">&#39;$a&#39;</span><span class="p">,</span> <span class="s2">&quot;return null;&quot;</span><span class="p">));</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="https://www.davidxia.com/2012/02/15-ways-to-increase-your-wordpress-security/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+    <br class="clear">
+  
+    
+    <article itemscope itemtype="http://schema.org/BlogPosting" >
+      
+  <header>
+    <span itemprop="name headline">
+      
         <h2 class="entry-title"><a href="/2012/02/hear-tv-show-characters-say-a-quote-playing-with-twilio/">Hear TV Show Characters Say a Quote, Playing With Twilio</a></h2>
       
     </span>
@@ -127,7 +215,7 @@ Twitter Bots. Try it out. Call 646-480-6046 to talk to various TV show &hellip;"
 
 
 
-<span itemprop="datePublished" content="February 15, 2012"><time class='entry-date' datetime='2012-02-15T00:00:00-05:00'><span class='date'>February 15, 2012</span></time></span>
+<span itemprop="datePublished" content="February 15, 2012"><time class='entry-date' datetime='2012-02-15T00:00:00+00:00'><span class='date'>February 15, 2012</span></time></span>
 <meta itemprop="dateModified" content="February 15, 2012">
  | 
   
@@ -204,7 +292,7 @@ me know how I can improve it.</p>
 
 
 
-<span itemprop="datePublished" content="February 12, 2012"><time class='entry-date' datetime='2012-02-12T00:00:00-05:00'><span class='date'>February 12, 2012</span></time></span>
+<span itemprop="datePublished" content="February 12, 2012"><time class='entry-date' datetime='2012-02-12T00:00:00+00:00'><span class='date'>February 12, 2012</span></time></span>
 <meta itemprop="dateModified" content="February 12, 2012">
  | 
   
@@ -296,7 +384,7 @@ on Ubuntu unless otherwise specified.)</p>
 
 
 
-<span itemprop="datePublished" content="February  9, 2012"><time class='entry-date' datetime='2012-02-09T00:00:00-05:00'><span class='date'>February  9, 2012</span></time></span>
+<span itemprop="datePublished" content="February  9, 2012"><time class='entry-date' datetime='2012-02-09T00:00:00+00:00'><span class='date'>February  9, 2012</span></time></span>
 <meta itemprop="dateModified" content="February  9, 2012">
  | 
   
@@ -377,7 +465,7 @@ don&rsquo;t understand all of it, but it works.</p>
 
 
 
-<span itemprop="datePublished" content="February  7, 2012"><time class='entry-date' datetime='2012-02-07T00:00:00-05:00'><span class='date'>February  7, 2012</span></time></span>
+<span itemprop="datePublished" content="February  7, 2012"><time class='entry-date' datetime='2012-02-07T00:00:00+00:00'><span class='date'>February  7, 2012</span></time></span>
 <meta itemprop="dateModified" content="February  7, 2012">
  | 
   
@@ -456,7 +544,7 @@ designer <a href="http://www.subtraction.com/" title="Khoi Vinh's personal websi
 
 
 
-<span itemprop="datePublished" content="February  1, 2012"><time class='entry-date' datetime='2012-02-01T00:00:00-05:00'><span class='date'>February  1, 2012</span></time></span>
+<span itemprop="datePublished" content="February  1, 2012"><time class='entry-date' datetime='2012-02-01T00:00:00+00:00'><span class='date'>February  1, 2012</span></time></span>
 <meta itemprop="dateModified" content="February  1, 2012">
  | 
   
@@ -537,7 +625,7 @@ this is just a testament to how successful Berners-Lee&rsquo;s creation is.</p>
 
 
 
-<span itemprop="datePublished" content="January  8, 2012"><time class='entry-date' datetime='2012-01-08T00:00:00-05:00'><span class='date'>January  8, 2012</span></time></span>
+<span itemprop="datePublished" content="January  8, 2012"><time class='entry-date' datetime='2012-01-08T00:00:00+00:00'><span class='date'>January  8, 2012</span></time></span>
 <meta itemprop="dateModified" content="January  8, 2012">
  | 
   
@@ -620,7 +708,7 @@ requests from web browsers or applications and respond with the appropriate cont
 
 
 
-<span itemprop="datePublished" content="January  7, 2012"><time class='entry-date' datetime='2012-01-07T00:00:00-05:00'><span class='date'>January  7, 2012</span></time></span>
+<span itemprop="datePublished" content="January  7, 2012"><time class='entry-date' datetime='2012-01-07T00:00:00+00:00'><span class='date'>January  7, 2012</span></time></span>
 <meta itemprop="dateModified" content="January  7, 2012">
  | 
   
@@ -699,7 +787,7 @@ where to invest.</p>
 
 
 
-<span itemprop="datePublished" content="January  7, 2012"><time class='entry-date' datetime='2012-01-07T00:00:00-05:00'><span class='date'>January  7, 2012</span></time></span>
+<span itemprop="datePublished" content="January  7, 2012"><time class='entry-date' datetime='2012-01-07T00:00:00+00:00'><span class='date'>January  7, 2012</span></time></span>
 <meta itemprop="dateModified" content="January  7, 2012">
  | 
   
@@ -779,7 +867,7 @@ a harmful sentiment to say or hear, you&rsquo;re with me.</p>
 
 
 
-<span itemprop="datePublished" content="January  4, 2012"><time class='entry-date' datetime='2012-01-04T00:00:00-05:00'><span class='date'>January  4, 2012</span></time></span>
+<span itemprop="datePublished" content="January  4, 2012"><time class='entry-date' datetime='2012-01-04T00:00:00+00:00'><span class='date'>January  4, 2012</span></time></span>
 <meta itemprop="dateModified" content="January  4, 2012">
  | 
   
@@ -824,84 +912,6 @@ possible. Their primary concern isn&rsquo;t how it looks, just that it gets ther
   
     <footer>
       <a rel="full-article" href="https://www.davidxia.com/2012/01/why-an-aesthetically-pleasing-internet-is-important/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-    <br class="clear">
-  
-    
-    <article itemscope itemtype="http://schema.org/BlogPosting" >
-      
-  <header>
-    <span itemprop="name headline">
-      
-        <h2 class="entry-title"><a href="/2012/01/how-to-work-happily-with-developers/">How to Work Happily With Developers</a></h2>
-      
-    </span>
-    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2012/01/how-to-work-happily-with-developers/">
-    
-      <p class="meta">
-        
-  
-  
-
-  
-    
-  
-
-  
-    
-  
-
-
-
-<span itemprop="datePublished" content="January  4, 2012"><time class='entry-date' datetime='2012-01-04T00:00:00-05:00'><span class='date'>January  4, 2012</span></time></span>
-<meta itemprop="dateModified" content="January  4, 2012">
- | 
-  
-
-
-
-  <span class="byline author vcard">
-    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
-  </span>
-
-
-        
-        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
-  <meta itemprop="name" content="David Xia">
-  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
-    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
-  </div>
-</div>
-
-        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
-  
-    
-    
-    
-  
-  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
-  <meta itemprop="height" content="696">
-  <meta itemprop="width" content="696">
-</span>
-
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Since I didn&rsquo;t know how to program last year, it&rsquo;s better to write my thoughts down now before I
-become a tech elitist who can&rsquo;t relate to people who don&rsquo;t know and don&rsquo;t care about the
-difference between interpreted and compiled languages.</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="https://www.davidxia.com/2012/01/how-to-work-happily-with-developers/">Read on &rarr;</a>
     </footer>
   
 
@@ -1018,11 +1028,11 @@ difference between interpreted and compiled languages.</p>
 <li class='category'><a href='/categories/new-york-city/'>New York City (17)</a></li>
 <li class='category'><a href='/categories/personal/'>Personal (55)</a></li>
 <li class='category'><a href='/categories/photography/'>Photography (3)</a></li>
-<li class='category'><a href='/categories/programming-and-software/'>Programming & Software (53)</a></li>
+<li class='category'><a href='/categories/programming-and-software/'>Programming & Software (54)</a></li>
 <li class='category'><a href='/categories/spy-shit/'>Spy Shit (5)</a></li>
 <li class='category'><a href='/categories/startups-and-entrepreneurism/'>Startups & Entrepreneurism (4)</a></li>
 <li class='category'><a href='/categories/swimming/'>Swimming (2)</a></li>
-<li class='category'><a href='/categories/technology/'>Technology (34)</a></li>
+<li class='category'><a href='/categories/technology/'>Technology (35)</a></li>
 <li class='category'><a href='/categories/travel/'>Travel (28)</a></li>
 <li class='category'><a href='/categories/tv-and-movies/'>Tv & Movies (20)</a></li>
 <li class='category'><a href='/categories/uncategorized/'>Uncategorized (22)</a></li>

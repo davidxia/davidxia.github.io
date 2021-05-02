@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Information Security | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/information-security/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2021-01-27T16:16:34-05:00</updated>
+  <updated>2021-05-02T23:41:44+00:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -256,7 +256,7 @@ was able to see unencrypted data in Charles!</p>
   <entry>
     <title type="html"><![CDATA[Why We Should All Care About Digital Privacy]]></title>
     <link href="https://www.davidxia.com/2015/05/why-we-should-all-care-about-digital-privacy/"/>
-    <updated>2015-05-03T00:00:00-04:00</updated>
+    <updated>2015-05-03T00:00:00+00:00</updated>
     <id>https://www.davidxia.com/2015/05/why-we-should-all-care-about-digital-privacy</id>
     <content type="html"><![CDATA[<p>I&rsquo;ve been reading and thinking a lot about digital privacy in the past two weeks. It&rsquo;s
 disconcerting that so many AMericans are resigned about the current state of digital surveillance.
@@ -364,7 +364,7 @@ each of our actions or inactions affect those around us.</p>
   <entry>
     <title type="html"><![CDATA[5 Ways to Security Harden Your Linux System]]></title>
     <link href="https://www.davidxia.com/2012/05/5-ways-to-security-harden-your-linux-system/"/>
-    <updated>2012-05-29T00:00:00-04:00</updated>
+    <updated>2012-05-29T00:00:00+00:00</updated>
     <id>https://www.davidxia.com/2012/05/5-ways-to-security-harden-your-linux-system</id>
     <content type="html"><![CDATA[<h2>1. Don&rsquo;t Use FTP or Telnet</h2>
 
@@ -445,7 +445,7 @@ user&rsquo;s password expiration info:</p>
   <entry>
     <title type="html"><![CDATA[How to Setup HTTPS and Secure WordPress Admin With a Self-Signed Certificate]]></title>
     <link href="https://www.davidxia.com/2012/02/how-to-setup-https-and-secure-wordpress-admin-with-a-self-signed-certificate/"/>
-    <updated>2012-02-28T00:00:00-05:00</updated>
+    <updated>2012-02-28T00:00:00+00:00</updated>
     <id>https://www.davidxia.com/2012/02/how-to-setup-https-and-secure-wordpress-admin-with-a-self-signed-certificate</id>
     <content type="html"><![CDATA[<p>I got bored so I learned how to setup HTTPS on the admin parts of my WordPress blog. At first I
 was generating self-signed certificates because I read that buying a third-party verified
@@ -511,7 +511,7 @@ admin parts of WordPress. The general idea is to:</p>
   <entry>
     <title type="html"><![CDATA[15 Ways to Increase Your WordPress' Security]]></title>
     <link href="https://www.davidxia.com/2012/02/15-ways-to-increase-your-wordpress-security/"/>
-    <updated>2012-02-18T00:00:00-05:00</updated>
+    <updated>2012-02-18T00:00:00+00:00</updated>
     <id>https://www.davidxia.com/2012/02/15-ways-to-increase-your-wordpress-security</id>
     <content type="html"><![CDATA[<h2>1. Don&rsquo;t Display Error Messages on Failed Login</h2>
 

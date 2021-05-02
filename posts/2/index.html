@@ -10,8 +10,8 @@
   <meta name="author" content="David Xia">
 
   
-  <meta name="description" content="I&rsquo;m compiling a list of Internet meme role models. Here&rsquo;s what I have so far. These people &mdash;
-they must be real human beings &mdash; must have &hellip;">
+  <meta name="description" content="It&rsquo;s been a while since I blogged about something tech related, but I had some
+free time today. Recently, I&rsquo;ve been trying to refactor an internal &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -31,8 +31,8 @@ they must be real human beings &mdash; must have &hellip;">
   <meta property="og:url" content="https://www.davidxia.com/posts/2/" />
   <meta property="og:image" content="https://i.imgur.com/BJPOY0D.jpg" />
   <meta property="og:locale" content="en_US" />
-  <meta property="og:description" content="I&rsquo;m compiling a list of Internet meme role models. Here&rsquo;s what I have so far. These people &mdash;
-they must be real human beings &mdash; must have &hellip;" />
+  <meta property="og:description" content="It&rsquo;s been a while since I blogged about something tech related, but I had some
+free time today. Recently, I&rsquo;ve been trying to refactor an internal &hellip;" />
   <meta property="fb:admins" content="122703" />
 
   <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -103,6 +103,106 @@ they must be real human beings &mdash; must have &hellip;" />
   
     
     <article itemscope itemtype="http://schema.org/BlogPosting" class="first">
+      
+  <header>
+    <span itemprop="name headline">
+      
+        <h2 class="entry-title"><a href="/2018/11/using-upstream-kubernetes-java-models-is-much-better-than-raw-yaml/">Using Upstream Kubernetes Java Models Is Much Better Than Raw YAML</a></h2>
+      
+    </span>
+    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2018/11/using-upstream-kubernetes-java-models-is-much-better-than-raw-yaml/">
+    
+      <p class="meta">
+        
+  
+  
+
+  
+    
+  
+
+  
+    
+  
+
+
+
+<span itemprop="datePublished" content="November 11, 2018"><time class='entry-date' datetime='2018-11-11T17:11:38-05:00'><span class='date'>November 11, 2018</span></time></span>
+<meta itemprop="dateModified" content="November 11, 2018">
+ | 
+  
+
+
+
+  <span class="byline author vcard">
+    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
+  </span>
+
+
+        
+        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
+  <meta itemprop="name" content="David Xia">
+  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
+    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
+  </div>
+</div>
+
+        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
+  
+    
+    
+    
+  
+  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
+  <meta itemprop="height" content="696">
+  <meta itemprop="width" content="696">
+</span>
+
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>It&rsquo;s been a while since I blogged about something tech related, but I had some
+free time today.</p>
+
+<p>Recently, I&rsquo;ve been trying to refactor an internal Spotify deployment tool my
+team built and maintains. This deployment tool takes Kubernetes (k8s) YAML
+manifests, changes them, and essentially runs <code>kubectl apply</code>. We add metadata
+to the k8s manifests like labels.</p>
+
+<p>Right now this tool receives the input YAML as strings, converts them to
+Jackson ObjectNodes, and manipulates those ObjectNodes. The disadvantage of
+this is that there&rsquo;s no k8s type-safety. We might accidentally add a field to a
+Deployment that isn&rsquo;t valid or remove something from a Service that&rsquo;s required.</p>
+
+<p>My refactor uses upstream k8s model classes from <a href="https://github.com/kubernetes-client/java">kubernetes-client/java</a>
+which are themselves <a href="https://github.com/kubernetes-client/gen">generated</a> from the official Swagger spec. Here&rsquo;s a
+helpful Yaml utility class that deserializes YAML strings into concrete classes
+and can also serialize them back into YAML strings. So helpful.</p>
+
+<p>Unfortunately, there&rsquo;s some bugs in the YAML (de)serialization that prevent me
+from finishing this effort.</p>
+
+<ul>
+<li><a href="https://github.com/kubernetes-client/java/pull/417">kubernetes-client/java issue 417</a></li>
+<li><a href="https://github.com/kubernetes-client/java/issues/431">kubernetes-client/java issue 431</a></li>
+<li><a href="https://github.com/kubernetes-client/java/issues/340">kubernetes-client/java issue 340</a></li>
+</ul>
+
+
+<p>Nonetheless, it&rsquo;ll be much nicer to change k8s resources in a type-safe way
+instead of parsing and rewriting raw YAML strings.</p>
+</div>
+  
+  
+
+
+    </article>
+    <br class="clear">
+  
+    
+    <article itemscope itemtype="http://schema.org/BlogPosting" >
       
   <header>
     <span itemprop="name headline">
@@ -913,78 +1013,6 @@ engineer.)</li>
     </article>
     <br class="clear">
   
-    
-    <article itemscope itemtype="http://schema.org/BlogPosting" >
-      
-  <header>
-    <span itemprop="name headline">
-      
-        <h2 class="entry-title"><a href="/2016/09/a-recent-family-photo/">A Recent Family Photo</a></h2>
-      
-    </span>
-    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2016/09/a-recent-family-photo/">
-    
-      <p class="meta">
-        
-  
-  
-
-  
-    
-  
-
-  
-    
-  
-
-
-
-<span itemprop="datePublished" content="September 18, 2016"><time class='entry-date' datetime='2016-09-18T18:29:07-04:00'><span class='date'>September 18, 2016</span></time></span>
-<meta itemprop="dateModified" content="September 18, 2016">
- | 
-  
-
-
-
-  <span class="byline author vcard">
-    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
-  </span>
-
-
-        
-        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
-  <meta itemprop="name" content="David Xia">
-  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
-    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
-  </div>
-</div>
-
-        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
-  
-    
-    
-    
-  
-  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
-  <meta itemprop="height" content="696">
-  <meta itemprop="width" content="696">
-</span>
-
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><div class='image center'><img  src="https://i.imgur.com/mwtquEjl.jpg" width="640" height="640" title="Post-dimsum photo with my parents and maternal grandparents on their weekend visit to NYC." ><div class='caption'>Post-dimsum photo with my parents and maternal grandparents on their weekend visit to NYC.</div></div>
-
-</div>
-  
-  
-
-
-    </article>
-    <br class="clear">
-  
   <div class="pagination">
     
     <div class="col-md-4">
@@ -1094,11 +1122,11 @@ engineer.)</li>
 <li class='category'><a href='/categories/new-york-city/'>New York City (17)</a></li>
 <li class='category'><a href='/categories/personal/'>Personal (55)</a></li>
 <li class='category'><a href='/categories/photography/'>Photography (3)</a></li>
-<li class='category'><a href='/categories/programming-and-software/'>Programming & Software (53)</a></li>
+<li class='category'><a href='/categories/programming-and-software/'>Programming & Software (54)</a></li>
 <li class='category'><a href='/categories/spy-shit/'>Spy Shit (5)</a></li>
 <li class='category'><a href='/categories/startups-and-entrepreneurism/'>Startups & Entrepreneurism (4)</a></li>
 <li class='category'><a href='/categories/swimming/'>Swimming (2)</a></li>
-<li class='category'><a href='/categories/technology/'>Technology (34)</a></li>
+<li class='category'><a href='/categories/technology/'>Technology (35)</a></li>
 <li class='category'><a href='/categories/travel/'>Travel (28)</a></li>
 <li class='category'><a href='/categories/tv-and-movies/'>Tv & Movies (20)</a></li>
 <li class='category'><a href='/categories/uncategorized/'>Uncategorized (22)</a></li>
