@@ -4,7 +4,7 @@
   <title><![CDATA[David Xia]]></title>
   <link href="https://www.davidxia.com/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2021-05-02T23:45:34+00:00</updated>
+  <updated>2021-05-08T22:54:46-07:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -12,6 +12,176 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[How to Install Grpcio Pip Package on Apple M1]]></title>
+    <link href="https://www.davidxia.com/2021/05/how-to-install-grpcio-pip-package-on-apple-m1/"/>
+    <updated>2021-05-08T22:42:53-07:00</updated>
+    <id>https://www.davidxia.com/2021/05/how-to-install-grpcio-pip-package-on-apple-m1</id>
+    <content type="html"><![CDATA[<p>I spent a long time figuring out how to install the latest <a href="https://pypi.org/project/grpcio/">grpcio</a> Pip package (version 1.37.1) on
+my Apple M1 Macbook.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>pip install grpcio
+</span><span class='line'>
+</span><span class='line'>Looking in indexes: https://pypi.org/simple, https://artifactory.spotify.net/artifactory/api/pypi/pypi/simple
+</span><span class='line'>Collecting grpcio
+</span><span class='line'>  Downloading https://artifactory.spotify.net/artifactory/api/pypi/pypi/packages/packages/a0/d6/d04c6550debe23e2eaef0d9c4adccbb6e20d8cce6da40ae989fe8836e287/grpcio-1.37.1.tar.gz (21.7 MB)
+</span><span class='line'>     |████████████████████████████████| 21.7 MB 143 kB/s
+</span><span class='line'>Requirement already satisfied: six&gt;=1.5.2 in ./.virtualenvs/spotify/lib/python3.9/site-packages (from grpcio) (1.12.0)
+</span><span class='line'>Building wheels for collected packages: grpcio
+</span><span class='line'>  Building wheel for grpcio (setup.py) ... error
+</span><span class='line'>  ERROR: Command errored out with exit status 1:
+</span><span class='line'>...
+</span><span class='line'>
+</span><span class='line'>  third_party/zlib/gzlib.c:252:9: error: implicit declaration of function 'lseek' is invalid in C99 [-Werror,-Wimplicit-function-declaration]
+</span><span class='line'>          LSEEK(state-&gt;fd, 0, SEEK_END);  /* so gzoffset() is correct */
+</span><span class='line'>          ^
+</span><span class='line'>  third_party/zlib/gzlib.c:14:17: note: expanded from macro 'LSEEK'
+</span><span class='line'>  #  define LSEEK lseek
+</span><span class='line'>                  ^
+</span><span class='line'>  third_party/zlib/gzlib.c:252:9: note: did you mean 'fseek'?
+</span><span class='line'>  third_party/zlib/gzlib.c:14:17: note: expanded from macro 'LSEEK'
+</span><span class='line'>  #  define LSEEK lseek
+</span><span class='line'>                  ^
+</span><span class='line'>  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/stdio.h:162:6: note: 'fseek' declared here
+</span><span class='line'>  int      fseek(FILE *, long, int);
+</span><span class='line'>           ^
+</span><span class='line'>  third_party/zlib/gzlib.c:258:24: error: implicit declaration of function 'lseek' is invalid in C99 [-Werror,-Wimplicit-function-declaration]
+</span><span class='line'>          state-&gt;start = LSEEK(state-&gt;fd, 0, SEEK_CUR);
+</span><span class='line'>                         ^
+</span><span class='line'>  third_party/zlib/gzlib.c:14:17: note: expanded from macro 'LSEEK'
+</span><span class='line'>  #  define LSEEK lseek
+</span><span class='line'>                  ^
+</span><span class='line'>  third_party/zlib/gzlib.c:359:9: error: implicit declaration of function 'lseek' is invalid in C99 [-Werror,-Wimplicit-function-declaration]
+</span><span class='line'>      if (LSEEK(state-&gt;fd, state-&gt;start, SEEK_SET) == -1)
+</span><span class='line'>          ^
+</span><span class='line'>  third_party/zlib/gzlib.c:14:17: note: expanded from macro 'LSEEK'
+</span><span class='line'>  #  define LSEEK lseek
+</span><span class='line'>                  ^
+</span><span class='line'>  third_party/zlib/gzlib.c:400:15: error: implicit declaration of function 'lseek' is invalid in C99 [-Werror,-Wimplicit-function-declaration]
+</span><span class='line'>          ret = LSEEK(state-&gt;fd, offset - state-&gt;x.have, SEEK_CUR);
+</span><span class='line'>                ^
+</span><span class='line'>  third_party/zlib/gzlib.c:14:17: note: expanded from macro 'LSEEK'
+</span><span class='line'>  #  define LSEEK lseek
+</span><span class='line'>                  ^
+</span><span class='line'>  third_party/zlib/gzlib.c:496:14: error: implicit declaration of function 'lseek' is invalid in C99 [-Werror,-Wimplicit-function-declaration]
+</span><span class='line'>      offset = LSEEK(state-&gt;fd, 0, SEEK_CUR);
+</span><span class='line'>               ^
+</span><span class='line'>  third_party/zlib/gzlib.c:14:17: note: expanded from macro 'LSEEK'
+</span><span class='line'>  #  define LSEEK lseek
+</span><span class='line'>                  ^
+</span><span class='line'>  5 errors generated.
+</span><span class='line'>
+</span><span class='line'>...
+</span><span class='line'>
+</span><span class='line'>  clang -Wno-unused-result -Wsign-compare -Wunreachable-code -DNDEBUG -g -fwrapv -O3 -Wall -I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include -I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include -I/Users/dxia/.virtualenvs/spotify/include -I/Users/dxia/.pyenv/versions/3.9.1/include/python3.9 -c /var/folders/x1/f9sjnv7j43z73sdv5lsk3r8h0000gp/T/tmpyvic7ha6/a.c -o None/var/folders/x1/f9sjnv7j43z73sdv5lsk3r8h0000gp/T/tmpyvic7ha6/a.o
+</span><span class='line'>  Traceback (most recent call last):
+</span><span class='line'>    File "/Users/dxia/.pyenv/versions/3.9.1/lib/python3.9/distutils/unixccompiler.py", line 117, in _compile
+</span><span class='line'>      self.spawn(compiler_so + cc_args + [src, '-o', obj] +
+</span><span class='line'>    File "/private/var/folders/x1/f9sjnv7j43z73sdv5lsk3r8h0000gp/T/pip-install-1ha5py6y/grpcio_12658497b5464faa852de046ce91485a/src/python/grpcio/_spawn_patch.py", line 54, in _commandfile_spawn
+</span><span class='line'>      _classic_spawn(self, command)
+</span><span class='line'>    File "/Users/dxia/.pyenv/versions/3.9.1/lib/python3.9/distutils/ccompiler.py", line 910, in spawn
+</span><span class='line'>      spawn(cmd, dry_run=self.dry_run)
+</span><span class='line'>    File "/Users/dxia/.pyenv/versions/3.9.1/lib/python3.9/distutils/spawn.py", line 87, in spawn
+</span><span class='line'>      raise DistutilsExecError(
+</span><span class='line'>  distutils.errors.DistutilsExecError: command '/usr/bin/clang' failed with exit code 1
+</span><span class='line'>
+</span><span class='line'>...
+</span><span class='line'>
+</span><span class='line'>    ----------------------------------------
+</span><span class='line'>ERROR: Command errored out with exit status 1: /Users/dxia/.virtualenvs/spotify/bin/python -u -c 'import io, os, sys, setuptools, tokenize; sys.argv[0] = '"'"'/private/var/folders/x1/f9sjnv7j43z73sdv5lsk3r8h0000gp/T/pip-install-1ha5py6y/grpcio_12658497b5464faa852de046ce91485a/setup.py'"'"'; __file__='"'"'/private/var/folders/x1/f9sjnv7j43z73sdv5lsk3r8h0000gp/T/pip-install-1ha5py6y/grpcio_12658497b5464faa852de046ce91485a/setup.py'"'"';f = getattr(tokenize, '"'"'open'"'"', open)(__file__) if os.path.exists(__file__) else io.StringIO('"'"'from setuptools import setup; setup()'"'"');code = f.read().replace('"'"'\r\n'"'"', '"'"'\n'"'"');f.close();exec(compile(code, __file__, '"'"'exec'"'"'))' install --record /private/var/folders/x1/f9sjnv7j43z73sdv5lsk3r8h0000gp/T/pip-record-n4ihfdh1/install-record.txt --single-version-externally-managed --compile --install-headers /Users/dxia/.virtualenvs/spotify/include/site/python3.9/grpcio Check the logs for full command output.</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Fixed by setting the following (I use <a href="https://fishshell.com">fish shell</a>). I found the first four environment variables in
+this <a href="https://github.com/grpc/grpc/issues/24677#issuecomment-729983060">Github comment</a>. The second two I knew to add because I was seeing errors about the compiler
+not being able to find the openssl.h and re.h header files.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>set -x GRPC_BUILD_WITH_BORING_SSL_ASM ""
+</span><span class='line'>set -x GRPC_PYTHON_BUILD_SYSTEM_RE2 true
+</span><span class='line'>set -x GRPC_PYTHON_BUILD_SYSTEM_OPENSSL true
+</span><span class='line'>set -x GRPC_PYTHON_BUILD_SYSTEM_ZLIB true
+</span><span class='line'>set -x CPPFLAGS "-I"(brew --prefix openssl)"/include -I"(brew --prefix re2)"/include"
+</span><span class='line'>set -x LDFLAGS "-L"(brew --prefix openssl)"/lib -L"(brew --prefix re2)"/lib"</span></code></pre></td></tr></table></div></figure>
+
+
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[What I Recently Learned About Docker Networking and Debugging Networking Issues in General]]></title>
@@ -6835,152 +7005,6 @@ federal action level of 15 micrograms per liter (μg/L). Your specific results w
 <p><img class="center" src="https://i.imgur.com/uxwBi0bl.jpg"></p>
 
 <p><img class="center" src="https://i.imgur.com/98MoXGNl.jpg"></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[What I'm Looking for in a Volunteering Position]]></title>
-    <link href="https://www.davidxia.com/2016/10/what-im-looking-for-in-a-volunteering-position/"/>
-    <updated>2016-10-31T13:59:34-04:00</updated>
-    <id>https://www.davidxia.com/2016/10/what-im-looking-for-in-a-volunteering-position</id>
-    <content type="html"><![CDATA[<h2>My Absolute Requirements</h2>
-
-<ul>
-<li><strong>Does not require a law degree</strong>
-
-<ul>
-<li>Although I have thought about getting one just so I can apply for certain volunteering gigs that require one.</li>
-</ul>
-</li>
-<li><strong>Does not require me to write code</strong> for a significant portion of my volunteer time. I already do
-that full time and am not looking for more. I am fine giving high level tech guidance, however.</li>
-</ul>
-
-
-<h2>My Preferences</h2>
-
-<p><em>In rough order of preference</em></p>
-
-<ul>
-<li>in-person and local</li>
-<li>intellectually challenging</li>
-<li>accommodating of my full time work schedule and personal life</li>
-<li>5-10 hours a week</li>
-<li>months-long to year-long commitment</li>
-<li>not just a desk job but also field work</li>
-</ul>
-
-
-<h2>Skills I Want to Learn or Improve Upon</h2>
-
-<p><em>In rough order of preference</em></p>
-
-<ul>
-<li>public speaking</li>
-<li>community organizing and building trust with people who have different backgrounds</li>
-<li>negotiating and building consensus with and between people who don&rsquo;t necessarily see eye-to-eye</li>
-<li>Learning to lobby public officials and organizations</li>
-<li>learning more about the law or government or various industries</li>
-<li>investigative reporting</li>
-</ul>
-
-
-<h2>Values of Organizations in which I&rsquo;ll Thrive</h2>
-
-<p><em>In rough order of preference</em></p>
-
-<ul>
-<li>competence</li>
-<li>hard work</li>
-<li>innovation or at least open-mindedness</li>
-<li>passion and compassion</li>
-<li>personal responsibility</li>
-</ul>
-
-
-<h2>Skills I Can Contribute</h2>
-
-<p><em>In rough order of ability</em></p>
-
-<ul>
-<li>writing code, creating web sites, general computer stuff (see my <a href="https://github.com/davidxia">github</a>)</li>
-<li>writing prose such as reports, summaries, and essays (see my <a href="https://www.davidxia.com/">blog</a>)</li>
-<li>analytical and quantitative (I was a math major in college. Now I work at Spotify as a software
-engineer.)</li>
-<li>effective at collaborating and working as part of a team</li>
-<li>good at spoken communication</li>
-<li>has a knack for establishing rapport and building strong relationships with all kinds of people</li>
-</ul>
-
-
-<!-- more -->
-
-
-<h2>Causes I Believe In</h2>
-
-<p><em>In rough order of preference</em></p>
-
-<ul>
-<li>civil rights
-
-<ul>
-<li>&ldquo;protect individuals&#8217; freedom from infringement by governments, social organizations, and
-private individuals. They ensure one&rsquo;s ability to participate in the civil and political life
-of the society and state without discrimination or repression&rdquo;</li>
-</ul>
-</li>
-<li><a href="https://en.wikipedia.org/wiki/Environmentalism">environmentalism</a>
-
-<ul>
-<li>&ldquo;advocate for the lawful preservation, restoration and/or improvement of the natural
-environment&rdquo;</li>
-<li>&ldquo;attempt to balance relations between humans and the various natural systems on which they
-depend in such a way that all the components are accorded a proper degree of sustainability&rdquo;</li>
-</ul>
-</li>
-<li><a href="https://en.wikipedia.org/wiki/Consumer_protection">consumer protection</a>
-
-<ul>
-<li>&ldquo;promoting laws and organizations that ensure the rights of consumers as well as fair trade,
-competition and accurate information in the marketplace. The laws are designed to prevent
-businesses that engage in fraud or specified unfair practices from gaining an advantage over
-competitors&rdquo;</li>
-</ul>
-</li>
-<li><a href="http://www.nypirg.org/goodgov/">good governance</a>
-
-<ul>
-<li>&ldquo;advocate for eliminating barriers to voting, fighting for better ethics oversight and limiting
-the role of powerful interests in elections,&rdquo; etc</li>
-<li>examples include making &ldquo;campaign finance information for state and local candidates&rdquo;
-available on the Internet, reporting &ldquo;lobbying of state agencies and local governments&rdquo;,
-deterring and justly punishing ethical misconduct, and making legislative and budgetary
-processes more transparent.</li>
-</ul>
-</li>
-<li><a href="https://en.wikipedia.org/wiki/Labor_rights">labor rights</a>
-
-<ul>
-<li>advocating for &ldquo;legal rights and claimed human rights having to do with labor relations
-between workers and their employers, usually obtained under labor and employment law. In
-general, these rights&#8217; debates have to do with negotiating workers&#8217; pay, benefits, and safe
-working conditions&rdquo;</li>
-<li>e.g. <a href="http://www.nytimes.com/2016/08/24/business/graduate-students-clear-hurdle-in-effort-to-form-union.html">Grad Students Win Right to Unionize in an Ivy League Case</a></li>
-</ul>
-</li>
-<li><a href="https://en.wikipedia.org/wiki/Community_organizing">community organizing</a>
-
-<ul>
-<li>&ldquo;community organizers generally assume that social change necessarily involves conflict and
-social struggle in order to generate collective power for the powerless. A core goal of
-community organizing is to generate durable power for an organization representing the
-community, allowing it to influence key decision-makers on a range of issues over time&rdquo;</li>
-</ul>
-</li>
-<li><a href="https://en.wikipedia.org/wiki/Community_development#Definitions">community development</a></li>
-<li>Education</li>
-</ul>
-
 ]]></content>
   </entry>
   

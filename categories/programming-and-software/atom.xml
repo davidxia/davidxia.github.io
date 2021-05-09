@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Programming & Software | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/programming-and-software/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2021-05-02T23:46:21+00:00</updated>
+  <updated>2021-05-08T22:54:46-07:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -12,6 +12,99 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[How to Install Grpcio Pip Package on Apple M1]]></title>
+    <link href="https://www.davidxia.com/2021/05/how-to-install-grpcio-pip-package-on-apple-m1/"/>
+    <updated>2021-05-08T22:42:53-07:00</updated>
+    <id>https://www.davidxia.com/2021/05/how-to-install-grpcio-pip-package-on-apple-m1</id>
+    <content type="html"><![CDATA[<p>I spent a long time figuring out how to install the latest <a href="https://pypi.org/project/grpcio/">grpcio</a> Pip package (version 1.37.1) on
+my Apple M1 Macbook.</p>
+
+<pre><code>pip install grpcio
+
+Looking in indexes: https://pypi.org/simple, https://artifactory.spotify.net/artifactory/api/pypi/pypi/simple
+Collecting grpcio
+  Downloading https://artifactory.spotify.net/artifactory/api/pypi/pypi/packages/packages/a0/d6/d04c6550debe23e2eaef0d9c4adccbb6e20d8cce6da40ae989fe8836e287/grpcio-1.37.1.tar.gz (21.7 MB)
+     |████████████████████████████████| 21.7 MB 143 kB/s
+Requirement already satisfied: six&gt;=1.5.2 in ./.virtualenvs/spotify/lib/python3.9/site-packages (from grpcio) (1.12.0)
+Building wheels for collected packages: grpcio
+  Building wheel for grpcio (setup.py) ... error
+  ERROR: Command errored out with exit status 1:
+...
+
+  third_party/zlib/gzlib.c:252:9: error: implicit declaration of function 'lseek' is invalid in C99 [-Werror,-Wimplicit-function-declaration]
+          LSEEK(state-&gt;fd, 0, SEEK_END);  /* so gzoffset() is correct */
+          ^
+  third_party/zlib/gzlib.c:14:17: note: expanded from macro 'LSEEK'
+  #  define LSEEK lseek
+                  ^
+  third_party/zlib/gzlib.c:252:9: note: did you mean 'fseek'?
+  third_party/zlib/gzlib.c:14:17: note: expanded from macro 'LSEEK'
+  #  define LSEEK lseek
+                  ^
+  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/stdio.h:162:6: note: 'fseek' declared here
+  int      fseek(FILE *, long, int);
+           ^
+  third_party/zlib/gzlib.c:258:24: error: implicit declaration of function 'lseek' is invalid in C99 [-Werror,-Wimplicit-function-declaration]
+          state-&gt;start = LSEEK(state-&gt;fd, 0, SEEK_CUR);
+                         ^
+  third_party/zlib/gzlib.c:14:17: note: expanded from macro 'LSEEK'
+  #  define LSEEK lseek
+                  ^
+  third_party/zlib/gzlib.c:359:9: error: implicit declaration of function 'lseek' is invalid in C99 [-Werror,-Wimplicit-function-declaration]
+      if (LSEEK(state-&gt;fd, state-&gt;start, SEEK_SET) == -1)
+          ^
+  third_party/zlib/gzlib.c:14:17: note: expanded from macro 'LSEEK'
+  #  define LSEEK lseek
+                  ^
+  third_party/zlib/gzlib.c:400:15: error: implicit declaration of function 'lseek' is invalid in C99 [-Werror,-Wimplicit-function-declaration]
+          ret = LSEEK(state-&gt;fd, offset - state-&gt;x.have, SEEK_CUR);
+                ^
+  third_party/zlib/gzlib.c:14:17: note: expanded from macro 'LSEEK'
+  #  define LSEEK lseek
+                  ^
+  third_party/zlib/gzlib.c:496:14: error: implicit declaration of function 'lseek' is invalid in C99 [-Werror,-Wimplicit-function-declaration]
+      offset = LSEEK(state-&gt;fd, 0, SEEK_CUR);
+               ^
+  third_party/zlib/gzlib.c:14:17: note: expanded from macro 'LSEEK'
+  #  define LSEEK lseek
+                  ^
+  5 errors generated.
+
+...
+
+  clang -Wno-unused-result -Wsign-compare -Wunreachable-code -DNDEBUG -g -fwrapv -O3 -Wall -I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include -I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include -I/Users/dxia/.virtualenvs/spotify/include -I/Users/dxia/.pyenv/versions/3.9.1/include/python3.9 -c /var/folders/x1/f9sjnv7j43z73sdv5lsk3r8h0000gp/T/tmpyvic7ha6/a.c -o None/var/folders/x1/f9sjnv7j43z73sdv5lsk3r8h0000gp/T/tmpyvic7ha6/a.o
+  Traceback (most recent call last):
+    File "/Users/dxia/.pyenv/versions/3.9.1/lib/python3.9/distutils/unixccompiler.py", line 117, in _compile
+      self.spawn(compiler_so + cc_args + [src, '-o', obj] +
+    File "/private/var/folders/x1/f9sjnv7j43z73sdv5lsk3r8h0000gp/T/pip-install-1ha5py6y/grpcio_12658497b5464faa852de046ce91485a/src/python/grpcio/_spawn_patch.py", line 54, in _commandfile_spawn
+      _classic_spawn(self, command)
+    File "/Users/dxia/.pyenv/versions/3.9.1/lib/python3.9/distutils/ccompiler.py", line 910, in spawn
+      spawn(cmd, dry_run=self.dry_run)
+    File "/Users/dxia/.pyenv/versions/3.9.1/lib/python3.9/distutils/spawn.py", line 87, in spawn
+      raise DistutilsExecError(
+  distutils.errors.DistutilsExecError: command '/usr/bin/clang' failed with exit code 1
+
+...
+
+    ----------------------------------------
+ERROR: Command errored out with exit status 1: /Users/dxia/.virtualenvs/spotify/bin/python -u -c 'import io, os, sys, setuptools, tokenize; sys.argv[0] = '"'"'/private/var/folders/x1/f9sjnv7j43z73sdv5lsk3r8h0000gp/T/pip-install-1ha5py6y/grpcio_12658497b5464faa852de046ce91485a/setup.py'"'"'; __file__='"'"'/private/var/folders/x1/f9sjnv7j43z73sdv5lsk3r8h0000gp/T/pip-install-1ha5py6y/grpcio_12658497b5464faa852de046ce91485a/setup.py'"'"';f = getattr(tokenize, '"'"'open'"'"', open)(__file__) if os.path.exists(__file__) else io.StringIO('"'"'from setuptools import setup; setup()'"'"');code = f.read().replace('"'"'\r\n'"'"', '"'"'\n'"'"');f.close();exec(compile(code, __file__, '"'"'exec'"'"'))' install --record /private/var/folders/x1/f9sjnv7j43z73sdv5lsk3r8h0000gp/T/pip-record-n4ihfdh1/install-record.txt --single-version-externally-managed --compile --install-headers /Users/dxia/.virtualenvs/spotify/include/site/python3.9/grpcio Check the logs for full command output.
+</code></pre>
+
+<p>Fixed by setting the following (I use <a href="https://fishshell.com">fish shell</a>). I found the first four environment variables in
+this <a href="https://github.com/grpc/grpc/issues/24677#issuecomment-729983060">Github comment</a>. The second two I knew to add because I was seeing errors about the compiler
+not being able to find the openssl.h and re.h header files.</p>
+
+<pre><code>set -x GRPC_BUILD_WITH_BORING_SSL_ASM ""
+set -x GRPC_PYTHON_BUILD_SYSTEM_RE2 true
+set -x GRPC_PYTHON_BUILD_SYSTEM_OPENSSL true
+set -x GRPC_PYTHON_BUILD_SYSTEM_ZLIB true
+set -x CPPFLAGS "-I"(brew --prefix openssl)"/include -I"(brew --prefix re2)"/include"
+set -x LDFLAGS "-L"(brew --prefix openssl)"/lib -L"(brew --prefix re2)"/lib"
+</code></pre>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[What I Recently Learned About Docker Networking and Debugging Networking Issues in General]]></title>
@@ -104,7 +197,7 @@ CONTAINER ID        IMAGE                                                       
 a0e872188831        my-project:20210426T211411-2b5452d         "/usr/local/bin/edge…"   2 seconds ago       Up 1 second                                   relaxed_pike
 4dda670a2ee1        foo/bar:latest                                   "./bar"               2 hours ago         Up 2 hours          0.0.0.0:80-&gt;80/tcp        bar
 
-dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format {{.State.Pid}} a0e872188831)  nc 172.20.0.127 80 -nvz -w 5
+dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format  a0e872188831)  nc 172.20.0.127 80 -nvz -w 5
 (UNKNOWN) [172.20.0.127] 80 (http) : Connection timed out
 </code></pre>
 
@@ -149,7 +242,7 @@ CONTAINER ID        IMAGE                                                       
 
 <p>Now a TCP connection from the nginx container to bar succeeded.</p>
 
-<pre><code>dxia@my-host:~$ sudo nsenter --net=$(docker inspect --format {{.NetworkSettings.SandboxKey}} nginx1) nc 172.20.0.127 80 -nvz -w 5
+<pre><code>dxia@my-host:~$ sudo nsenter --net=$(docker inspect --format  nginx1) nc 172.20.0.127 80 -nvz -w 5
 (UNKNOWN) [172.20.0.127] 80 (http) open
 </code></pre>
 
@@ -191,7 +284,7 @@ num   pkts bytes target     prot opt in     out     source               destina
 8       39  2748 ACCEPT     all  --  br-8ce7e363e4f9 !br-8ce7e363e4f9  0.0.0.0/0            0.0.0.0/0
 9        0     0 ACCEPT     all  --  br-8ce7e363e4f9 br-8ce7e363e4f9  0.0.0.0/0            0.0.0.0/0
 
-dxia@my-host:~$ sudo nsenter --net=$(docker inspect --format {{.NetworkSettings.SandboxKey}} nginx1) nc 172.20.0.127 80 -nvz -w 5
+dxia@my-host:~$ sudo nsenter --net=$(docker inspect --format  nginx1) nc 172.20.0.127 80 -nvz -w 5
 (UNKNOWN) [172.20.0.127] 80 (http) open
 </code></pre>
 
@@ -274,7 +367,7 @@ table&rsquo;s <code>DOCKER_OUTPUT</code> chain&rsquo;s rules. These two rules sh
 changed for TCP packets bound for 127.0.0.11:53 to 37619. UDP packets have their port changed to
 58552.</p>
 
-<pre><code>dxia@my-host$ sudo nsenter -n -t $(docker inspect --format {{.State.Pid}} bar) sudo iptables --list DOCKER_OUTPUT --verbose --numeric --line-numbers --table nat
+<pre><code>dxia@my-host$ sudo nsenter -n -t $(docker inspect --format  bar) sudo iptables --list DOCKER_OUTPUT --verbose --numeric --line-numbers --table nat
 
 Chain DOCKER_OUTPUT (1 references)
  pkts bytes target     prot opt in     out     source               destination
@@ -284,22 +377,22 @@ Chain DOCKER_OUTPUT (1 references)
 
 <p>Whatever&rsquo;s listening on those ports was accepting TCP and UDP connections.</p>
 
-<pre><code>dxia@my-host$ sudo nsenter -n -t $(docker inspect --format {{.State.Pid}} bar) nc 127.0.0.11 58552 -nvzu -w 5
+<pre><code>dxia@my-host$ sudo nsenter -n -t $(docker inspect --format  bar) nc 127.0.0.11 58552 -nvzu -w 5
 (UNKNOWN) [127.0.0.11] 58552 (?) open
-dxia@my-host$ sudo nsenter -n -t $(docker inspect --format {{.State.Pid}} bar) nc 127.0.0.11 37619 -nvz -w 5
+dxia@my-host$ sudo nsenter -n -t $(docker inspect --format  bar) nc 127.0.0.11 37619 -nvz -w 5
 (UNKNOWN) [127.0.0.11] 37619 (?) open
 </code></pre>
 
 <p>But there was no DNS reply from either.</p>
 
-<pre><code>dxia@my-host$ sudo nsenter -n -t $(docker inspect --format {{.State.Pid}} bar) dig @127.0.0.11 -p 58552 accounts.google.com
+<pre><code>dxia@my-host$ sudo nsenter -n -t $(docker inspect --format  bar) dig @127.0.0.11 -p 58552 accounts.google.com
 
 ; &lt;&lt;&gt;&gt; DiG 9.11.3-1ubuntu1.14-Ubuntu &lt;&lt;&gt;&gt; @127.0.0.11 -p 58552 accounts.google.com
 ; (1 server found)
 ;; global options: +cmd
 ;; connection timed out; no servers could be reached
 
-dxia@my-host$ sudo nsenter -n -t $(docker inspect --format {{.State.Pid}} bar) dig @127.0.0.11 -p 37619 accounts.google.com +tcp
+dxia@my-host$ sudo nsenter -n -t $(docker inspect --format  bar) dig @127.0.0.11 -p 37619 accounts.google.com +tcp
 
 ; &lt;&lt;&gt;&gt; DiG 9.11.3-1ubuntu1.14-Ubuntu &lt;&lt;&gt;&gt; @127.0.0.11 -p 37619 accounts.google.com +tcp
 ; (1 server found)
@@ -309,7 +402,7 @@ dxia@my-host$ sudo nsenter -n -t $(docker inspect --format {{.State.Pid}} bar) d
 
 <p>Docker daemon was listening for DNS queries at that IP and port from within bar.</p>
 
-<pre><code>dxia@my-host$ sudo nsenter -n -p -t $(docker inspect --format {{.State.Pid}} bar) ss -utnlp
+<pre><code>dxia@my-host$ sudo nsenter -n -p -t $(docker inspect --format  bar) ss -utnlp
 Netid        State          Recv-Q         Send-Q                    Local Address:Port                    Peer Address:Port
 udp          UNCONN         0              0                            127.0.0.11:58552                        0.0.0.0:*             users:(("dockerd",pid=10984,fd=38))
 tcp          LISTEN         0              128                          127.0.0.11:37619                        0.0.0.0:*             users:(("dockerd",pid=10984,fd=40))
@@ -336,10 +429,10 @@ can hit the host-local unbound instance by routing DNS requests to corp0.</p>
 like UDP packets sent from bar were able to reach 10.99.0.1:53, but DNS requests failed. I also
 knew DNS requests from the host to 10.99.0.1:53 worked.</p>
 
-<pre><code>dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format {{.State.Pid}} bar) nc 10.99.0.1 53 -nvzu -w 5
+<pre><code>dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format  bar) nc 10.99.0.1 53 -nvzu -w 5
 (UNKNOWN) [10.99.0.1] 53 (domain) open
 
-dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format {{.State.Pid}} bar) dig @10.99.0.1 accounts.google.com
+dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format  bar) dig @10.99.0.1 accounts.google.com
 
 ; &lt;&lt;&gt;&gt; DiG 9.11.3-1ubuntu1.14-Ubuntu &lt;&lt;&gt;&gt; @10.99.0.1 accounts.google.com
 ; (1 server found)
@@ -374,7 +467,7 @@ After exploring this for a while with no luck, I questioned my assumption that U
 172.20.0.127:37928 were able to reach 10.99.0.1:53. I realized TCP packets from
 172.20.0.127:37928 were not able to reach 10.99.0.1:53.</p>
 
-<pre><code>dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format {{.State.Pid}} bar) nc 10.99.0.1 53 -nvz -w 5
+<pre><code>dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format  bar) nc 10.99.0.1 53 -nvz -w 5
 (UNKNOWN) [10.99.0.1] 53 (domain) : Connection timed out
 </code></pre>
 
@@ -459,7 +552,7 @@ num   pkts bytes target     prot opt in     out     source               destina
 
 <p>I retried querying for accounts.google.com, and I got a DNS reply!</p>
 
-<pre><code>dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format {{.State.Pid}} bar) dig @127.0.0.11 accounts.google.com
+<pre><code>dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format  bar) dig @127.0.0.11 accounts.google.com
 
 ; &lt;&lt;&gt;&gt; DiG 9.11.3-1ubuntu1.14-Ubuntu &lt;&lt;&gt;&gt; @127.0.0.11 accounts.google.com
 ; (1 server found)
@@ -500,7 +593,7 @@ IP</a>.</p>
 according to <a href="https://tools.ietf.org/html/rfc1918">RFC-1918</a>) and reloaded unbound. Now it worked!</p>
 
 <pre><code>dxia@my-host:~$ sudo systemctl reload unbound
-dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format {{.State.Pid}} bar) dig @127.0.0.11 accounts.google.com
+dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format  bar) dig @127.0.0.11 accounts.google.com
 
 ; &lt;&lt;&gt;&gt; DiG 9.11.3-1ubuntu1.14-Ubuntu &lt;&lt;&gt;&gt; @127.0.0.11 accounts.google.com
 ; (1 server found)
@@ -1248,11 +1341,7 @@ I&rsquo;ll write the explanation while it&rsquo;s still fresh in my head.</p>
 
 <p>The level&rsquo;s description is</p>
 
-<p>{% blockquote %}
-Remote heap level :)
-Core files will be in /tmp.
-This level is at /opt/protostar/bin/final2
-{% endblockquote %}</p>
+<p><blockquote><p>Remote heap level :)<br/>Core files will be in /tmp.<br/>This level is at /opt/protostar/bin/final2</p></blockquote></p>
 
 <!-- more -->
 
@@ -1845,246 +1934,6 @@ root
 
 <ul>
 <li><a href="https://medium.com/@iphelix/exploit-exercises-protostar-final-levels-72875b0c3387">https://medium.com/@iphelix/exploit-exercises-protostar-final-levels-72875b0c3387</a></li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[How to Analyze Mobile App Traffic and Reverse Engineer Its Non-Public API]]></title>
-    <link href="https://www.davidxia.com/2020/10/how-to-analyze-mobile-app-traffic-and-reverse-engineer-its-non-public-api/"/>
-    <updated>2020-10-16T17:08:35-04:00</updated>
-    <id>https://www.davidxia.com/2020/10/how-to-analyze-mobile-app-traffic-and-reverse-engineer-its-non-public-api</id>
-    <content type="html"><![CDATA[<p>Have you ever wanted to analyze the traffic between a mobile app and its servers or reverse engineer
-a mobile app&rsquo;s non-public API? Here&rsquo;s one way.</p>
-
-<p>The basic principle is to proxy the traffic from the app through a computer you control on which you
-can capture and analyze traffic. If the app you&rsquo;re interested in is using an unencrypted protocol
-like HTTP, this is pretty easy. Just run a proxy on your computer and configure your mobile device
-to proxy network traffic through your computer&rsquo;s IP.</p>
-
-<!-- more -->
-
-
-<p>Most apps these days, however, use encrypted protocols like HTTPS (or are even required to by
-default by mobile OSes). Data at the TCP layer and below like IP addresses and port numbers are
-visible in plaintext, but all application level data at the HTTPS layer is encrypted. So you run a
-proxy that supports HTTPS on your computer, but then your app doesn&rsquo;t trust the self-signed TLS
-certificate your computer presents. Mobile apps used to trust certificates that the mobile device&rsquo;s
-system trusted. So you could just download the self-signed certificate onto the mobile device and
-configure the mobile OS to trust it. But these days mobile app frameworks let developers customize
-their app&rsquo;s network security settings (<a href="https://developer.android.com/training/articles/security-config.html">like so for Android</a>).</p>
-
-<p>Let&rsquo;s say your mobile app has custom trust anchors or pins certificates. What do you do now? You can
-either</p>
-
-<ol>
-<li>disable the certificate check completely</li>
-<li>or alter the certificate check</li>
-</ol>
-
-
-<p>I&rsquo;m not familiar with how to do this on iOS (there seem to be good resources out there <a href="https://www.guardsquare.com/en/blog/iOS-SSL-certificate-pinning-bypassing">like
-this</a>) so will show how to do option two on Android.</p>
-
-<h2>Setup mobile device and app</h2>
-
-<p>I don&rsquo;t have an Android so used an emulator called <a href="https://www.genymotion.com/">Genymotion</a>. I created a Samsung Galaxy S9
-virtual device which is has a recent enough Android OS to run most mobile apps. In order to install
-the mobile app from the Google Play Store I had to install <a href="https://docs.genymotion.com/paas/7.0/07_Installing_OpenGApps.html#from-the-open-gapps-website">OpenGApps</a>. I think I&rsquo;m also able to
-download the APK from the web and drag and drop it into the emulator to install.</p>
-
-<!-- installed Hinge APK from here by drag and drop into emulator window
-https://hinge-app.en.uptodown.com/android/download -->
-
-
-<h2>Install Charles Proxy TLS certificate on device</h2>
-
-<p>To install the <a href="https://www.charlesproxy.com/documentation/using-charles/ssl-certificates/">Charles cert</a>, I had to open <a href="http://www.charlesproxy.com/getssl/">this page</a> in Chrome. The built-in browser in the
-emulator didn&rsquo;t seem to prompt me to download the Charles cert, but Chrome did. I installed Chrome
-by install OpenGApps and then installing Chrome from the Play store. I think I also needed to
-configure the Android device to use Charles as its proxy with <a href="https://stackoverflow.com/a/32865855">these steps</a> in order to get the
-certificate download prompt. Then I made the Android device trust it.</p>
-
-<h2>Patch the Android app&rsquo;s network security config</h2>
-
-<p>I used `apktool to decompile the APK.</p>
-
-<pre><code>brew install apktool
-
-apktool d /path/to/app.apk
-cd app
-find . -name network_security_config.xml
-./res/xml/network_security_config.xml
-
-cat res/xml/network_security_config.xml
-
-&lt;?xml version="1.0" encoding="utf-8"?&gt;
-&lt;network-security-config&gt;
-    &lt;domain-config cleartextTrafficPermitted="true"&gt;
-        &lt;domain includeSubdomains="true"&gt;res.cloudinary.com&lt;/domain&gt;
-        &lt;domain includeSubdomains="true"&gt;app-res.cloudinary.com&lt;/domain&gt;
-    &lt;/domain-config&gt;
-&lt;/network-security-config&gt;
-</code></pre>
-
-<p>The app only allows cleartext to the above two domains. I don&rsquo;t see any pinned certificates, but
-there must be some defaults since the app didn&rsquo;t trust the same certs trusted by the Android OS. So
-I updated <code>network_security_config.xml</code> to be the following.</p>
-
-<pre><code>&lt;?xml version="1.0" encoding="utf-8"?&gt;
-&lt;network-security-config&gt;
-    &lt;domain-config cleartextTrafficPermitted="true"&gt;
-        &lt;domain includeSubdomains="true"&gt;res.cloudinary.com&lt;/domain&gt;
-        &lt;domain includeSubdomains="true"&gt;app-res.cloudinary.com&lt;/domain&gt;
-    &lt;/domain-config&gt;
-    &lt;base-config&gt;
-        &lt;trust-anchors&gt;
-            &lt;certificates src="system" /&gt;
-            &lt;certificates src="user" /&gt;
-        &lt;/trust-anchors&gt;
-    &lt;/base-config&gt;
-&lt;/network-security-config&gt;
-</code></pre>
-
-<p>Then I tried recompiling the patched APK but got the following error.</p>
-
-<pre><code>cd app
-apktool b . -o ~/Downloads/app-patched.apk
-
-I: Using Apktool 2.4.1
-I: Checking whether sources has changed...
-I: Smaling smali folder into classes.dex...
-I: Checking whether sources has changed...
-I: Smaling smali_classes10 folder into classes10.dex...
-I: Checking whether sources has changed...
-I: Smaling smali_classes9 folder into classes9.dex...
-I: Checking whether sources has changed...
-I: Smaling smali_classes7 folder into classes7.dex...
-I: Checking whether sources has changed...
-I: Smaling smali_classes6 folder into classes6.dex...
-I: Checking whether sources has changed...
-I: Smaling smali_classes8 folder into classes8.dex...
-I: Checking whether sources has changed...
-I: Smaling smali_classes3 folder into classes3.dex...
-I: Checking whether sources has changed...
-I: Smaling smali_classes4 folder into classes4.dex...
-I: Checking whether sources has changed...
-I: Smaling smali_classes5 folder into classes5.dex...
-I: Checking whether sources has changed...
-I: Smaling smali_classes2 folder into classes2.dex...
-I: Checking whether resources has changed...
-I: Building resources...
-W: invalid resource directory name: /Users/dxia/Downloads/app/./res navigation
-brut.androlib.AndrolibException: brut.common.BrutException: could not exec (exit code = 1): [/var/folders/y_/sjt8100n43g69mtr9t588d6r0000gp/T/brut_util_Jar_15064276297777137207.tmp, p, --forced-package-id, 127, --min-sdk-version, 21, --target-sdk-version, 29, --version-code, 160072564, --version-name, 7.21.0, --no-version-vectors, -F, /var/folders/y_/sjt8100n43g69mtr9t588d6r0000gp/T/APKTOOL339327577576851750.tmp, -e, /var/folders/y_/sjt8100n43g69mtr9t588d6r0000gp/T/APKTOOL5191817693537904820.tmp, -0, arsc, -I, /Users/dxia/Library/apktool/framework/1.apk, -S, /Users/dxia/Downloads/app/./res, -M, /Users/dxia/Downloads/app/./AndroidManifest.xml]
-</code></pre>
-
-<p>This <a href="https://github.com/iBotPeaches/Apktool/issues/1978#issuecomment-452894225">Github issue comment</a> suggested I run that command with the <code>--use-aapt2</code> switch.
-Then I got another error.</p>
-
-<pre><code>apktool b --use-aapt2 . -o ~/Downloads/app-patched.apk
-
-I: Using Apktool 2.4.1
-I: Checking whether sources has changed...
-I: Checking whether sources has changed...
-I: Checking whether sources has changed...
-I: Checking whether sources has changed...
-I: Checking whether sources has changed...
-I: Checking whether sources has changed...
-I: Checking whether sources has changed...
-I: Checking whether sources has changed...
-I: Checking whether sources has changed...
-I: Checking whether sources has changed...
-I: Checking whether resources has changed...
-I: Building resources...
-W: /Users/dxia/Downloads/app-patched/./res/values/public.xml:2119: error: resource 'drawable/$avd_hide_password__0' has invalid entry name '$avd_hide_password__0'. Invalid character '$avd_hide_password__0'.
-W: /Users/dxia/Downloads/app-patched/./res/values/public.xml:2120: error: resource 'drawable/$avd_hide_password__1' has invalid entry name '$avd_hide_password__1'. Invalid character '$avd_hide_password__1'.
-W: /Users/dxia/Downloads/app-patched/./res/values/public.xml:2121: error: resource 'drawable/$avd_hide_password__2' has invalid entry name '$avd_hide_password__2'. Invalid character '$avd_hide_password__2'.
-W: /Users/dxia/Downloads/app-patched/./res/values/public.xml:2122: error: resource 'drawable/$avd_show_password__0' has invalid entry name '$avd_show_password__0'. Invalid character '$avd_show_password__0'.
-W: /Users/dxia/Downloads/app-patched/./res/values/public.xml:2123: error: resource 'drawable/$avd_show_password__1' has invalid entry name '$avd_show_password__1'. Invalid character '$avd_show_password__1'.
-W: /Users/dxia/Downloads/app-patched/./res/values/public.xml:2124: error: resource 'drawable/$avd_show_password__2' has invalid entry name '$avd_show_password__2'. Invalid character '$avd_show_password__2'.
-W: error: resource android:style/Animation.InputMethodFancy is private.
-W: error: resource android:style/Animation.VoiceInteractionSession is private.
-W: error: resource android:style/AlertDialog is private.
-W: /Users/dxia/Downloads/app-patched/./res/values-v24/styles.xml:10: error: style attribute 'android:attr/preferenceListStyle' is private.
-W: /Users/dxia/Downloads/app-patched/./res/values-v24/styles.xml:40: error: style attribute 'android:attr/preferenceListStyle' is private.
-W: /Users/dxia/Downloads/app-patched/./res/values-v24/styles.xml:70: error: style attribute 'android:attr/preferenceListStyle' is private.
-W: /Users/dxia/Downloads/app-patched/./res/values-v24/styles.xml:99: error: style attribute 'android:attr/preferenceListStyle' is private.
-W: /Users/dxia/Downloads/app-patched/./res/values-v28/styles.xml:8: error: style attribute 'android:attr/allowMassStorage' is private.
-W: /Users/dxia/Downloads/app-patched/./res/values-v26/styles.xml:13: error: resource android:attr/internalMaxWidth is private.
-W: /Users/dxia/Downloads/app-patched/./res/values-v26/styles.xml:16: error: resource android:attr/internalMaxWidth is private.
-W: /Users/dxia/Downloads/app-patched/./res/values-v26/styles.xml:20: error: style attribute 'android:attr/internalMinHeight' is private.
-W: /Users/dxia/Downloads/app-patched/./res/values-v28/styles.xml:17: error: resource android:attr/allowMassStorage is private.
-W: /Users/dxia/Downloads/app-patched/./res/values-v28/styles.xml:20: error: resource android:attr/allowMassStorage is private.
-W: error: resource android:style/DialogWindowTitle is private.
-W: /Users/dxia/Downloads/app-patched/./res/values-v23/styles.xml:13: error: style attribute 'android:attr/attr/private_resource_pad36' not found.
-W: /Users/dxia/Downloads/app-patched/./res/values-v23/styles.xml:14: error: style attribute 'android:attr/attr/private_resource_pad35' not found.
-W: /Users/dxia/Downloads/app-patched/./res/values-v23/styles.xml:20: error: style attribute 'android:attr/attr/private_resource_pad36' not found.
-W: /Users/dxia/Downloads/app-patched/./res/values-v23/styles.xml:21: error: style attribute 'android:attr/attr/private_resource_pad35' not found.
-W: /Users/dxia/Downloads/app-patched/./res/values-v23/styles.xml:24: error: resource android:attr/private_resource_pad31 not found.
-W: /Users/dxia/Downloads/app-patched/./res/values-v26/styles.xml:10: error: style attribute 'android:attr/internalMinHeight' is private.
-brut.androlib.AndrolibException: brut.common.BrutException: could not exec (exit code = 1): [/var/folders/y_/sjt8100n43g69mtr9t588d6r0000gp/T/brut_util_Jar_11817644492691338390.tmp, link, -o, /var/folders/y_/sjt8100n43g69mtr9t588d6r0000gp/T/APKTOOL6551307854758959712.tmp, --package-id, 127, --min-sdk-version, 21, --target-sdk-version, 29, --version-code, 160072564, --version-name, 7.21.0, --no-auto-version, --no-version-vectors, --no-version-transitions, --no-resource-deduping, -e, /var/folders/y_/sjt8100n43g69mtr9t588d6r0000gp/T/APKTOOL6723837428467013762.tmp, -0, arsc, -I, /Users/dxia/Library/apktool/framework/1.apk, --manifest, /Users/dxia/Downloads/app-patched/./AndroidManifest.xml, /Users/dxia/Downloads/app-patched/./build/resources.zip]
-</code></pre>
-
-<p><a href="https://github.com/iBotPeaches/Apktool/issues/2386#issuecomment-669505659">This PR</a> fixes the above on Linux and Windows. As of this writing, it&rsquo;s not released
-yet. So I had to <a href="https://ibotpeaches.github.io/Apktool/build/">build from source</a> on an Ubuntu VM.</p>
-
-<pre><code>java -jar ~/Apktool/brut.apktool/apktool-cli/build/libs/apktool-cli-all.jar b --use-aapt2 . -o ~/Downloads/app-patched.apk
-
-I: Using Apktool 2.4.2-3ac7e8-SNAPSHOT
-I: Checking whether sources has changed...
-I: Checking whether sources has changed...
-I: Checking whether sources has changed...
-I: Checking whether sources has changed...
-I: Checking whether sources has changed...
-I: Checking whether sources has changed...
-I: Checking whether sources has changed...
-I: Checking whether sources has changed...
-I: Checking whether sources has changed...
-I: Checking whether sources has changed...
-I: Checking whether resources has changed...
-I: Building apk file...
-I: Copying unknown files/dir...
-I: Built apk...
-</code></pre>
-
-<p>I signed the patched APK. First I generated some keys. I&rsquo;m not sure if certain signing and key
-algorithms are required, but these are the ones I used.</p>
-
-<pre><code>keytool -genkey -alias keys -keystore keys -sigalg MD5withRSA -keyalg RSA -keysize 2048 -validity 10000
-
-Enter keystore password:
-Re-enter new password:
-What is your first and last name?
-What is the name of your organizational unit?
-What is the name of your organization?
-What is the name of your City or Locality?
-What is the two-letter country code for this unit?
-Is CN=Unknown, OU=Unknown, O=Unknown, L=Unknown, ST=Unknown, C=Unknown correct?
-Warning:
-The generated certificate uses the MD5withRSA signature algorithm which is considered a security risk.
-
-jarsigner -sigalg MD5withRSA -digestalg SHA1 -verbose -keystore keys app-patched.apk keys
-</code></pre>
-
-<p>Then when dragging and dropping the patched APK into the virtual device, I got an error saying the
-app couldn&rsquo;t be installed. In these cases, generating the logs and grepping through them for errors
-like <code>INSTALL_PARSE_FAILED_NO_CERTIFICATES</code> and <code>INSTALL_FAILED_VERIFICATION_FAILURE</code> helps. I fixed
-this last error by <a href="https://stackoverflow.com/questions/15014519/apk-installation-failed-install-failed-verification-failure">disabling USB verification</a> in the virtual device
-settings. The setting for this is inside the virtual Android device itself under &ldquo;developer
-settings.&rdquo;</p>
-
-<h2>Sniff the traffic</h2>
-
-<p>I made sure the traffic was proxied through my computer, the patched app started successfully, and I
-was able to see unencrypted data in Charles!</p>
-
-<p>{% img center <a href="https://i.imgur.com/e8p2Ne3h.jpg">https://i.imgur.com/e8p2Ne3h.jpg</a> %}</p>
-
-<h2>References</h2>
-
-<ul>
-<li>&ldquo;<a href="https://gist.github.com/unoexperto/80694ccaed6dadc304ad5b8196cbbd2c">How to patch Android app to sniff its HTTPS traffic with self-signed certificate</a>&rdquo;</li>
 </ul>
 
 ]]></content>

@@ -105,6 +105,238 @@
   <header>
     <span itemprop="name headline">
       
+        <h2 class="entry-title"><a href="/2021/05/how-to-install-grpcio-pip-package-on-apple-m1/">How to Install Grpcio Pip Package on Apple M1</a></h2>
+      
+    </span>
+    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2021/05/how-to-install-grpcio-pip-package-on-apple-m1/">
+    
+      <p class="meta">
+        
+  
+  
+
+  
+    
+  
+
+  
+    
+  
+
+
+
+<span itemprop="datePublished" content="May  8, 2021"><time class='entry-date' datetime='2021-05-08T22:42:53-07:00'><span class='date'>May  8, 2021</span></time></span>
+<meta itemprop="dateModified" content="May  8, 2021">
+ | 
+  
+
+
+
+  <span class="byline author vcard">
+    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
+  </span>
+
+
+        
+        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
+  <meta itemprop="name" content="David Xia">
+  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
+    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
+  </div>
+</div>
+
+        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
+  
+    
+    
+    
+  
+  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
+  <meta itemprop="height" content="696">
+  <meta itemprop="width" content="696">
+</span>
+
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>I spent a long time figuring out how to install the latest <a href="https://pypi.org/project/grpcio/">grpcio</a> Pip package (version 1.37.1) on
+my Apple M1 Macbook.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>pip install grpcio
+</span><span class='line'>
+</span><span class='line'>Looking in indexes: https://pypi.org/simple, https://artifactory.spotify.net/artifactory/api/pypi/pypi/simple
+</span><span class='line'>Collecting grpcio
+</span><span class='line'>  Downloading https://artifactory.spotify.net/artifactory/api/pypi/pypi/packages/packages/a0/d6/d04c6550debe23e2eaef0d9c4adccbb6e20d8cce6da40ae989fe8836e287/grpcio-1.37.1.tar.gz (21.7 MB)
+</span><span class='line'>     |████████████████████████████████| 21.7 MB 143 kB/s
+</span><span class='line'>Requirement already satisfied: six&gt;=1.5.2 in ./.virtualenvs/spotify/lib/python3.9/site-packages (from grpcio) (1.12.0)
+</span><span class='line'>Building wheels for collected packages: grpcio
+</span><span class='line'>  Building wheel for grpcio (setup.py) ... error
+</span><span class='line'>  ERROR: Command errored out with exit status 1:
+</span><span class='line'>...
+</span><span class='line'>
+</span><span class='line'>  third_party/zlib/gzlib.c:252:9: error: implicit declaration of function 'lseek' is invalid in C99 [-Werror,-Wimplicit-function-declaration]
+</span><span class='line'>          LSEEK(state-&gt;fd, 0, SEEK_END);  /* so gzoffset() is correct */
+</span><span class='line'>          ^
+</span><span class='line'>  third_party/zlib/gzlib.c:14:17: note: expanded from macro 'LSEEK'
+</span><span class='line'>  #  define LSEEK lseek
+</span><span class='line'>                  ^
+</span><span class='line'>  third_party/zlib/gzlib.c:252:9: note: did you mean 'fseek'?
+</span><span class='line'>  third_party/zlib/gzlib.c:14:17: note: expanded from macro 'LSEEK'
+</span><span class='line'>  #  define LSEEK lseek
+</span><span class='line'>                  ^
+</span><span class='line'>  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/stdio.h:162:6: note: 'fseek' declared here
+</span><span class='line'>  int      fseek(FILE *, long, int);
+</span><span class='line'>           ^
+</span><span class='line'>  third_party/zlib/gzlib.c:258:24: error: implicit declaration of function 'lseek' is invalid in C99 [-Werror,-Wimplicit-function-declaration]
+</span><span class='line'>          state-&gt;start = LSEEK(state-&gt;fd, 0, SEEK_CUR);
+</span><span class='line'>                         ^
+</span><span class='line'>  third_party/zlib/gzlib.c:14:17: note: expanded from macro 'LSEEK'
+</span><span class='line'>  #  define LSEEK lseek
+</span><span class='line'>                  ^
+</span><span class='line'>  third_party/zlib/gzlib.c:359:9: error: implicit declaration of function 'lseek' is invalid in C99 [-Werror,-Wimplicit-function-declaration]
+</span><span class='line'>      if (LSEEK(state-&gt;fd, state-&gt;start, SEEK_SET) == -1)
+</span><span class='line'>          ^
+</span><span class='line'>  third_party/zlib/gzlib.c:14:17: note: expanded from macro 'LSEEK'
+</span><span class='line'>  #  define LSEEK lseek
+</span><span class='line'>                  ^
+</span><span class='line'>  third_party/zlib/gzlib.c:400:15: error: implicit declaration of function 'lseek' is invalid in C99 [-Werror,-Wimplicit-function-declaration]
+</span><span class='line'>          ret = LSEEK(state-&gt;fd, offset - state-&gt;x.have, SEEK_CUR);
+</span><span class='line'>                ^
+</span><span class='line'>  third_party/zlib/gzlib.c:14:17: note: expanded from macro 'LSEEK'
+</span><span class='line'>  #  define LSEEK lseek
+</span><span class='line'>                  ^
+</span><span class='line'>  third_party/zlib/gzlib.c:496:14: error: implicit declaration of function 'lseek' is invalid in C99 [-Werror,-Wimplicit-function-declaration]
+</span><span class='line'>      offset = LSEEK(state-&gt;fd, 0, SEEK_CUR);
+</span><span class='line'>               ^
+</span><span class='line'>  third_party/zlib/gzlib.c:14:17: note: expanded from macro 'LSEEK'
+</span><span class='line'>  #  define LSEEK lseek
+</span><span class='line'>                  ^
+</span><span class='line'>  5 errors generated.
+</span><span class='line'>
+</span><span class='line'>...
+</span><span class='line'>
+</span><span class='line'>  clang -Wno-unused-result -Wsign-compare -Wunreachable-code -DNDEBUG -g -fwrapv -O3 -Wall -I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include -I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include -I/Users/dxia/.virtualenvs/spotify/include -I/Users/dxia/.pyenv/versions/3.9.1/include/python3.9 -c /var/folders/x1/f9sjnv7j43z73sdv5lsk3r8h0000gp/T/tmpyvic7ha6/a.c -o None/var/folders/x1/f9sjnv7j43z73sdv5lsk3r8h0000gp/T/tmpyvic7ha6/a.o
+</span><span class='line'>  Traceback (most recent call last):
+</span><span class='line'>    File "/Users/dxia/.pyenv/versions/3.9.1/lib/python3.9/distutils/unixccompiler.py", line 117, in _compile
+</span><span class='line'>      self.spawn(compiler_so + cc_args + [src, '-o', obj] +
+</span><span class='line'>    File "/private/var/folders/x1/f9sjnv7j43z73sdv5lsk3r8h0000gp/T/pip-install-1ha5py6y/grpcio_12658497b5464faa852de046ce91485a/src/python/grpcio/_spawn_patch.py", line 54, in _commandfile_spawn
+</span><span class='line'>      _classic_spawn(self, command)
+</span><span class='line'>    File "/Users/dxia/.pyenv/versions/3.9.1/lib/python3.9/distutils/ccompiler.py", line 910, in spawn
+</span><span class='line'>      spawn(cmd, dry_run=self.dry_run)
+</span><span class='line'>    File "/Users/dxia/.pyenv/versions/3.9.1/lib/python3.9/distutils/spawn.py", line 87, in spawn
+</span><span class='line'>      raise DistutilsExecError(
+</span><span class='line'>  distutils.errors.DistutilsExecError: command '/usr/bin/clang' failed with exit code 1
+</span><span class='line'>
+</span><span class='line'>...
+</span><span class='line'>
+</span><span class='line'>    ----------------------------------------
+</span><span class='line'>ERROR: Command errored out with exit status 1: /Users/dxia/.virtualenvs/spotify/bin/python -u -c 'import io, os, sys, setuptools, tokenize; sys.argv[0] = '"'"'/private/var/folders/x1/f9sjnv7j43z73sdv5lsk3r8h0000gp/T/pip-install-1ha5py6y/grpcio_12658497b5464faa852de046ce91485a/setup.py'"'"'; __file__='"'"'/private/var/folders/x1/f9sjnv7j43z73sdv5lsk3r8h0000gp/T/pip-install-1ha5py6y/grpcio_12658497b5464faa852de046ce91485a/setup.py'"'"';f = getattr(tokenize, '"'"'open'"'"', open)(__file__) if os.path.exists(__file__) else io.StringIO('"'"'from setuptools import setup; setup()'"'"');code = f.read().replace('"'"'\r\n'"'"', '"'"'\n'"'"');f.close();exec(compile(code, __file__, '"'"'exec'"'"'))' install --record /private/var/folders/x1/f9sjnv7j43z73sdv5lsk3r8h0000gp/T/pip-record-n4ihfdh1/install-record.txt --single-version-externally-managed --compile --install-headers /Users/dxia/.virtualenvs/spotify/include/site/python3.9/grpcio Check the logs for full command output.</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Fixed by setting the following (I use <a href="https://fishshell.com">fish shell</a>). I found the first four environment variables in
+this <a href="https://github.com/grpc/grpc/issues/24677#issuecomment-729983060">Github comment</a>. The second two I knew to add because I was seeing errors about the compiler
+not being able to find the openssl.h and re.h header files.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>set -x GRPC_BUILD_WITH_BORING_SSL_ASM ""
+</span><span class='line'>set -x GRPC_PYTHON_BUILD_SYSTEM_RE2 true
+</span><span class='line'>set -x GRPC_PYTHON_BUILD_SYSTEM_OPENSSL true
+</span><span class='line'>set -x GRPC_PYTHON_BUILD_SYSTEM_ZLIB true
+</span><span class='line'>set -x CPPFLAGS "-I"(brew --prefix openssl)"/include -I"(brew --prefix re2)"/include"
+</span><span class='line'>set -x LDFLAGS "-L"(brew --prefix openssl)"/lib -L"(brew --prefix re2)"/lib"</span></code></pre></td></tr></table></div></figure>
+
+
+
+</div>
+  
+  
+
+
+    </article>
+    <br class="clear">
+  
+    
+    <article itemscope itemtype="http://schema.org/BlogPosting" >
+      
+  <header>
+    <span itemprop="name headline">
+      
         <h2 class="entry-title"><a href="/2021/05/what-i-recently-learned-about-docker-networking-and-debugging-network-issues-in-general/">What I Recently Learned About Docker Networking and Debugging Networking Issues in General</a></h2>
       
     </span>
@@ -938,130 +1170,6 @@ and moral support from my Spotify colleagues.</p>
     </article>
     <br class="clear">
   
-    
-    <article itemscope itemtype="http://schema.org/BlogPosting" >
-      
-  <header>
-    <span itemprop="name headline">
-      
-        <h2 class="entry-title"><a href="/2019/05/more-about-nginx-dns-resolution-than-you-ever-wanted-to-know/">More About Nginx DNS Resolution Than You Ever Wanted to Know</a></h2>
-      
-    </span>
-    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2019/05/more-about-nginx-dns-resolution-than-you-ever-wanted-to-know/">
-    
-      <p class="meta">
-        
-  
-  
-
-  
-    
-  
-
-  
-    
-  
-
-
-
-<span itemprop="datePublished" content="May 17, 2019"><time class='entry-date' datetime='2019-05-17T12:58:38-04:00'><span class='date'>May 17, 2019</span></time></span>
-<meta itemprop="dateModified" content="May 17, 2019">
- | 
-  
-
-
-
-  <span class="byline author vcard">
-    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
-  </span>
-
-
-        
-        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
-  <meta itemprop="name" content="David Xia">
-  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
-    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
-  </div>
-</div>
-
-        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
-  
-    
-    
-    
-  
-  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
-  <meta itemprop="height" content="696">
-  <meta itemprop="width" content="696">
-</span>
-
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>This is a post about Nginx&rsquo;s DNS resolution behavior I didn&rsquo;t know about but wish I did before I
-started using Kubernetes (K8s).</p>
-
-<h2>Nginx caches statically configured domains once</h2>
-
-<h3>Symptoms</h3>
-
-<p>I moved a backend service <code>foo</code> from running on a virtual machine to K8s. Foo&rsquo;s clients include an
-Nginx instance running outside K8s configured with this <code>upstream</code> block.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>upstream foo {
-</span><span class='line'>  server foo.example.com.;
-</span><span class='line'>}
-</span><span class='line'>
-</span><span class='line'>server {
-</span><span class='line'>  ...
-</span><span class='line'>
-</span><span class='line'>  location ~* /_foo/(.*) {
-</span><span class='line'>    proxy_pass https://foo/$1;
-</span><span class='line'>    ...
-</span><span class='line'>  }
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>K8s Pods can be rescheduled anytime so their IPs aren&rsquo;t stable. I&rsquo;m supposed to use K8s Services
-to avoid caching these ephemeral Pod IPs. But in my case because of interoperability reasons I was
-registering Pod IPs directly as A records for <code>foo.example.com.</code>. I started noticing that after my Pod
-IPs changed either because of rescheduling or updating the Deployment, Nginx started throwing
-<code>502 Bad Gateway</code> errors.</p>
-
-<h3>Root Problem</h3>
-
-<p>Nginx resolves statically configured domain names only once at startup or configuration
-reload time. So Nginx resolved <code>foo.example.com.</code> once at startup to several Pod IPs and cached
-them forever.</p>
-
-<h3>Solution</h3>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="https://www.davidxia.com/2019/05/more-about-nginx-dns-resolution-than-you-ever-wanted-to-know/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-    <br class="clear">
-  
   <div class="pagination">
     
     <div class="col-md-4">
@@ -1167,7 +1275,7 @@ them forever.</p>
 <li class='category'><a href='/categories/new-york-city/'>New York City (17)</a></li>
 <li class='category'><a href='/categories/personal/'>Personal (55)</a></li>
 <li class='category'><a href='/categories/photography/'>Photography (3)</a></li>
-<li class='category'><a href='/categories/programming-and-software/'>Programming & Software (54)</a></li>
+<li class='category'><a href='/categories/programming-and-software/'>Programming & Software (55)</a></li>
 <li class='category'><a href='/categories/spy-shit/'>Spy Shit (5)</a></li>
 <li class='category'><a href='/categories/startups-and-entrepreneurism/'>Startups & Entrepreneurism (4)</a></li>
 <li class='category'><a href='/categories/swimming/'>Swimming (2)</a></li>
