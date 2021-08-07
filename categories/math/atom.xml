@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Math | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/math/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2021-05-08T22:54:46-07:00</updated>
+  <updated>2021-08-07T12:59:29-04:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Proof of the Irrationality of √2]]></title>
     <link href="https://www.davidxia.com/2012/04/proof-of-the-irrationality-of-square-root-of-2/"/>
-    <updated>2012-04-30T00:00:00-07:00</updated>
+    <updated>2012-04-30T00:00:00-04:00</updated>
     <id>https://www.davidxia.com/2012/04/proof-of-the-irrationality-of-square-root-of-2</id>
     <content type="html"><![CDATA[<script type="text/x-mathjax-config">
   MathJax.Hub.Config({
@@ -69,7 +69,7 @@ $$</p>
   <entry>
     <title type="html"><![CDATA[Euclid's Algorithm]]></title>
     <link href="https://www.davidxia.com/2012/04/euclids-algorithm/"/>
-    <updated>2012-04-25T00:00:00-07:00</updated>
+    <updated>2012-04-25T00:00:00-04:00</updated>
     <id>https://www.davidxia.com/2012/04/euclids-algorithm</id>
     <content type="html"><![CDATA[<script type="text/x-mathjax-config">
   MathJax.Hub.Config({
@@ -148,7 +148,7 @@ $$</p>
   <entry>
     <title type="html"><![CDATA[Secretary Problem]]></title>
     <link href="https://www.davidxia.com/2011/09/secretary-problem/"/>
-    <updated>2011-09-07T00:00:00-07:00</updated>
+    <updated>2011-09-07T00:00:00-04:00</updated>
     <id>https://www.davidxia.com/2011/09/secretary-problem</id>
     <content type="html"><![CDATA[<ol>
 <li>There is a single position to fill.</li>
@@ -338,7 +338,7 @@ bachelor&rsquo;s degree: 15.8% <a href="http://www.city-data.com/city/New-York-N
   <entry>
     <title type="html"><![CDATA[How to Install Python's Matplotlib on Mac OS X Lion]]></title>
     <link href="https://www.davidxia.com/2011/08/how-to-install-pythons-matplotlib-on-mac-os-x-lion/"/>
-    <updated>2011-08-16T00:00:00-07:00</updated>
+    <updated>2011-08-16T00:00:00-04:00</updated>
     <id>https://www.davidxia.com/2011/08/how-to-install-pythons-matplotlib-on-mac-os-x-lion</id>
     <content type="html"><![CDATA[<p>Argh. I just want to plot some charts in Python. Why does it have to be so hard?</p>
 
@@ -414,7 +414,7 @@ print scipy.__file__
   <entry>
     <title type="html"><![CDATA[Letter Frequency Analysis]]></title>
     <link href="https://www.davidxia.com/2011/06/letter-frequency-analysis/"/>
-    <updated>2011-06-18T00:00:00-07:00</updated>
+    <updated>2011-06-18T00:00:00-04:00</updated>
     <id>https://www.davidxia.com/2011/06/letter-frequency-analysis</id>
     <content type="html"><![CDATA[<p>This page analyzes a text&rsquo;s letter frequency and is an emulation of <a href="http://rumkin.com/tools/cipher/frequency.php">Tyler Atkin&rsquo;s page</a>. One
 application is decoding a <a href="http://en.wikipedia.org/wiki/Caesar_cipher">Caesar cipher</a>. A Caesar or &ldquo;shift&rdquo; cipher is an encryption

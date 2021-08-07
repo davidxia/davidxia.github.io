@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Wellesley | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/wellesley/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2021-05-08T22:54:46-07:00</updated>
+  <updated>2021-08-07T12:59:29-04:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[A Description of the Wellesley Weston Magazine]]></title>
     <link href="https://www.davidxia.com/2011/07/a-description-of-the-wellesley-weston-magazine/"/>
-    <updated>2011-07-08T00:00:00-07:00</updated>
+    <updated>2011-07-08T00:00:00-04:00</updated>
     <id>https://www.davidxia.com/2011/07/a-description-of-the-wellesley-weston-magazine</id>
     <content type="html"><![CDATA[<p>For several years now, the residents of my hometown of Wellesley, Massachussetts have received
 free copies of the <em>Wellesley Weston Magazine</em> once a quarter. The nearly 200-page, glossy,
@@ -50,7 +50,7 @@ magnifying monocle.</p>
   <entry>
     <title type="html"><![CDATA[Wellesley High School 2006 Commencement Address]]></title>
     <link href="https://www.davidxia.com/2011/05/wellesley-high-school-2006-commencement-address/"/>
-    <updated>2011-05-05T00:00:00-07:00</updated>
+    <updated>2011-05-05T00:00:00-04:00</updated>
     <id>https://www.davidxia.com/2011/05/wellesley-high-school-2006-commencement-address</id>
     <content type="html"><![CDATA[<p><em>This is the commencement address delivered at my high school graduation by David McCullough Jr.,
 son of historian <a href="http://en.wikipedia.org/wiki/David_McCullough">David McCullough</a> Sr. As I was about to post this, I tried to find this
@@ -227,15 +227,15 @@ June 2, 2006</p>
   <entry>
     <title type="html"><![CDATA[You Wish Your Town Had This Park]]></title>
     <link href="https://www.davidxia.com/2010/07/you-wish-your-town-had-this-park/"/>
-    <updated>2010-07-08T00:00:00-07:00</updated>
+    <updated>2010-07-08T00:00:00-04:00</updated>
     <id>https://www.davidxia.com/2010/07/you-wish-your-town-had-this-park</id>
-    <content type="html"><![CDATA[<p><img class="center <a" src="href="https://lh3.googleusercontent.com/-JL2RJ7TU6ok/TyB8SYHdYlI/AAAAAAAAAEs/0y79SZRmL4Y/s800/20070515_18.jpg">https://lh3.googleusercontent.com/-JL2RJ7TU6ok/TyB8SYHdYlI/AAAAAAAAAEs/0y79SZRmL4Y/s800/20070515_18.jpg</a>&#8221; width=&#8221;510&#8221; height=&#8221;680&#8221;></p>
+    <content type="html"><![CDATA[<p>{% img center <a href="https://lh3.googleusercontent.com/-JL2RJ7TU6ok/TyB8SYHdYlI/AAAAAAAAAEs/0y79SZRmL4Y/s800/20070515_18.jpg">https://lh3.googleusercontent.com/-JL2RJ7TU6ok/TyB8SYHdYlI/AAAAAAAAAEs/0y79SZRmL4Y/s800/20070515_18.jpg</a> 510 680 %}</p>
 
 <p>Centennial Park is one of the local parks in my town. I often bike or walk there to enjoy its
 wildlife and scenery. I&rsquo;ve seen snakes, deer, hawks, and tadpoles there. There&#8217;s jewelweed,
 rhubarb, milkweed, and bittersweet vine too.</p>
 
-<p><img class="center <a" src="href="https://lh6.googleusercontent.com/-KmjEhcTbxRE/TyB8SYgQAgI/AAAAAAAAAEs/l5wb3I3oCWE/s800/100_0045.jpg">https://lh6.googleusercontent.com/-KmjEhcTbxRE/TyB8SYgQAgI/AAAAAAAAAEs/l5wb3I3oCWE/s800/100_0045.jpg</a>&#8221; width=&#8221;510&#8221; height=&#8221;383&#8221;></p>
+<p>{% img center <a href="https://lh6.googleusercontent.com/-KmjEhcTbxRE/TyB8SYgQAgI/AAAAAAAAAEs/l5wb3I3oCWE/s800/100_0045.jpg">https://lh6.googleusercontent.com/-KmjEhcTbxRE/TyB8SYgQAgI/AAAAAAAAAEs/l5wb3I3oCWE/s800/100_0045.jpg</a> 510 383 %}</p>
 
 <p>At the back of the park, on top of a hill, there&rsquo;s a bench with a plastic container filled with
 journals. The container&rsquo;s lid reads, &ldquo;A little book for your thoughts as you sit in this beautiful
@@ -245,14 +245,14 @@ will sit down and share their lives.</p>
 <!--more-->
 
 
-<p><img class="center <a" src="href="https://lh4.googleusercontent.com/-sYa5uEbslcw/TyB8SfwSyoI/AAAAAAAAAEs/q1c25GOvzMU/s800/20070521_1.jpg">https://lh4.googleusercontent.com/-sYa5uEbslcw/TyB8SfwSyoI/AAAAAAAAAEs/q1c25GOvzMU/s800/20070521_1.jpg</a>&#8221; width=&#8221;510&#8221; height=&#8221;680&#8221;></p>
+<p>{% img center <a href="https://lh4.googleusercontent.com/-sYa5uEbslcw/TyB8SfwSyoI/AAAAAAAAAEs/q1c25GOvzMU/s800/20070521_1.jpg">https://lh4.googleusercontent.com/-sYa5uEbslcw/TyB8SfwSyoI/AAAAAAAAAEs/q1c25GOvzMU/s800/20070521_1.jpg</a> 510 680 %}</p>
 ]]></content>
   </entry>
   
   <entry>
     <title type="html"><![CDATA[Why My English Teacher Is So Cool]]></title>
     <link href="https://www.davidxia.com/2009/10/why-my-english-teacher-is-so-cool/"/>
-    <updated>2009-10-17T00:00:00-07:00</updated>
+    <updated>2009-10-17T00:00:00-04:00</updated>
     <id>https://www.davidxia.com/2009/10/why-my-english-teacher-is-so-cool</id>
     <content type="html"><![CDATA[<p><em>My younger brother Harvey, who has become a contributing blogger to this hopelessly doomed
 enterprise, has something to say about what makes an engaging teacher. Listen up all you boring
@@ -268,7 +268,7 @@ professors.</em></p>
 <p>Michael could only avert his embarrassed eyes from the looks of his classmates while Mr. Wilson
 grinned.</p>
 
-<p><img class="center <a" src="href="http://lh6.ggpht.com/_lgMz7QRk66k/TJfm-vzUwkI/AAAAAAAAAqw/jSD2_sLoQio/s800/1.jpg">http://lh6.ggpht.com/_lgMz7QRk66k/TJfm-vzUwkI/AAAAAAAAAqw/jSD2_sLoQio/s800/1.jpg</a>&#8221; title=&#8221;high school hallway&#8221; ></p>
+<p>{% img center <a href="http://lh6.ggpht.com/_lgMz7QRk66k/TJfm-vzUwkI/AAAAAAAAAqw/jSD2_sLoQio/s800/1.jpg">http://lh6.ggpht.com/_lgMz7QRk66k/TJfm-vzUwkI/AAAAAAAAAqw/jSD2_sLoQio/s800/1.jpg</a> high school hallway %}</p>
 
 <p>Mr. Wilson teaches honors sophomore English in my school, <a href="http://en.wikipedia.org/wiki/Wellesley_High_School">Wellesley High</a>. His students
 quickly realized his class wasn&rsquo;t the typical English class filled with boring analysis of boring
@@ -286,7 +286,7 @@ at him.&rdquo;</p>
 
 <p>to demonstrate the idea of how people should follow through on what they say.</p>
 
-<p><div class='image left <a'><img  src="href="http://lh3.ggpht.com/_lgMz7QRk66k/TJfm-6jASqI/AAAAAAAAAq0/GNBHAslaEqU/s288/2.jpg">http://lh3.ggpht.com/_lgMz7QRk66k/TJfm-6jASqI/AAAAAAAAAq0/GNBHAslaEqU/s288/2.jpg</a>&#8221; width=&#8221;252&#8221; height=&#8221;314&#8221; title=&#8221;&ldquo;This man had the balls to ask out Livy. Do you?&rdquo; &ldquo;Emerson&rdquo;&#8221; ><div class='caption'>&ldquo;This man had the balls to ask out Livy. Do you?&rdquo; &ldquo;Emerson&rdquo;</div></div></p>
+<p>{% img_caption left <a href="http://lh3.ggpht.com/_lgMz7QRk66k/TJfm-6jASqI/AAAAAAAAAq0/GNBHAslaEqU/s288/2.jpg">http://lh3.ggpht.com/_lgMz7QRk66k/TJfm-6jASqI/AAAAAAAAAq0/GNBHAslaEqU/s288/2.jpg</a> 252 314 &ldquo;This man had the balls to ask out Livy. Do you?&rdquo; &ldquo;Emerson&rdquo; %}</p>
 
 <p>Cody&rsquo;s used to all the directed comments by now. The class was a <strong>breath of fresh air</strong> for him
 and many others during a monotonous school day. For one hour they can enjoy entertainment, humor,
@@ -305,7 +305,7 @@ administration considers &ldquo;inappropriate.&rdquo; He is, however, nothing le
   <entry>
     <title type="html"><![CDATA[Back-to-School Cockout?]]></title>
     <link href="https://www.davidxia.com/2009/09/back-to-school-cockout/"/>
-    <updated>2009-09-14T00:00:00-07:00</updated>
+    <updated>2009-09-14T00:00:00-04:00</updated>
     <id>https://www.davidxia.com/2009/09/back-to-school-cockout</id>
     <content type="html"><![CDATA[<p>My brother&rsquo;s school, <a href="http://www.wellesley.k12.ma.us/whs/WHS_HOME.HTM">Wellesley High</a>, recently invited students, family members, and teachers
 to attend their annual &ldquo;Back-to-School Cockout.&rdquo;</p>

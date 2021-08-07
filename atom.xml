@@ -4,7 +4,7 @@
   <title><![CDATA[David Xia]]></title>
   <link href="https://www.davidxia.com/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2021-05-08T22:54:46-07:00</updated>
+  <updated>2021-08-07T12:59:02-04:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -12,6 +12,75 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Mushroom Foraging in Waltham]]></title>
+    <link href="https://www.davidxia.com/2021/08/mushroom-foraging-in-waltham/"/>
+    <updated>2021-08-07T11:53:58-04:00</updated>
+    <id>https://www.davidxia.com/2021/08/mushroom-foraging-in-waltham</id>
+    <content type="html"><![CDATA[<p>I collected mushrooms this morning with G and my parents. It rained a lot last week in
+Waltham, MA. Many mushrooms had sprung up in Prospect Hill Park nearby. The temperature forecast
+for today said the highs would be 32°C. So I wanted to go out in the morning while it was not too
+hot. Over the objections of my mother, G, my father, and I picked different mushrooms and
+carried them back to the car. Next time we&rsquo;ll bring a basket and a trowel. I took them back only to
+identify them. I am definitely neither experienced nor confident enough to eat any wild mushrooms I
+find.</p>
+
+<p><strong>Do not use this post as any basis for consuming mushrooms yourself. Some mushrooms are extremely
+poisonous and can be fatal if ingested.</strong></p>
+
+<p>Here&rsquo;s photos of what we found and my amateur guess at what they are.</p>
+
+<p><img class="center" src="https://i.imgur.com/Ws1IRx1h.jpg"></p>
+
+<!-- more -->
+
+
+<h2>Russula cremoricolor (Creamy Russula)</h2>
+
+<p><img class="center" src="https://i.imgur.com/PThequEh.jpg">
+<img class="center" src="https://i.imgur.com/rLu3aqCh.jpg">
+<img class="center" src="https://i.imgur.com/bYureAHh.jpg">
+<img class="center" src="https://i.imgur.com/lHr7464h.jpg"></p>
+
+<h2>Russula brevipes (Short-Stemmed Russula)</h2>
+
+<p><img class="center" src="https://i.imgur.com/j9hEaxbh.jpg">
+<img class="center" src="https://i.imgur.com/eO5MxIMh.jpg">
+<img class="center" src="https://i.imgur.com/Fq66oRSh.jpg"></p>
+
+<h2>Russula albonigra</h2>
+
+<p><img class="center" src="https://i.imgur.com/6d88fa2h.jpg">
+<img class="center" src="https://i.imgur.com/y4vVfllh.jpg">
+<img class="center" src="https://i.imgur.com/kXXmR1Qh.jpg"></p>
+
+<h2>Amanita bisporigera (Destroying angel)</h2>
+
+<p><img class="center" src="https://i.imgur.com/TdU6v0ih.jpg">
+<img class="center" src="https://i.imgur.com/W2GwWT2h.jpg"></p>
+
+<h2>some type of Grisette</h2>
+
+<p><img class="center" src="https://i.imgur.com/3xicjwZh.jpg">
+<img class="center" src="https://i.imgur.com/fA2LEbzh.jpg">
+<img class="center" src="https://i.imgur.com/MNauz2Sh.jpg"></p>
+
+<h2>Boletus pseudosensibilis</h2>
+
+<p>We saw what I think is a <a href="https://www.mushroomexpert.com/boletus_pseudosensibilis.html">Boletus pseudosensibilis</a>, but my mom snatched it out of my hands and
+threw it away before I could take it home.</p>
+
+<h2>Monotropa uniflora (Ghost pipe)</h2>
+
+<p>Monotropa uniflora isn&rsquo;t a fungus but needs them. It has no chlorophyll and doesn&rsquo;t depend on
+photosynthesis. It&rsquo;s a saprophyte that gets nutrients by tapping into the resources of trees,
+indirectly through myccorhizal fungi.</p>
+
+<p><img class="center" src="https://i.imgur.com/6Vaadzlh.jpg">
+<img class="center" src="https://i.imgur.com/kEvKCqhh.jpg"></p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[How to Install Grpcio Pip Package on Apple M1]]></title>
@@ -6972,39 +7041,6 @@ and we needed to return the charter boat on time.</p>
 
 <div class='image center'><img  src="https://i.imgur.com/62Prw81h.jpg" title="We saw lots of nice houses built on cliffs." ><div class='caption'>We saw lots of nice houses built on cliffs.</div></div>
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[How to Test Your Home's Water for Lead]]></title>
-    <link href="https://www.davidxia.com/2017/02/how-to-test-your-homes-water-for-lead/"/>
-    <updated>2017-02-20T19:37:52-05:00</updated>
-    <id>https://www.davidxia.com/2017/02/how-to-test-your-homes-water-for-lead</id>
-    <content type="html"><![CDATA[<p>I read the <em>New York Times</em> article <a href="https://www.nytimes.com/interactive/2016/03/24/nyregion/how-nyc-gets-its-water-new-york-101.html">&ldquo;How New York Gets Its Water&rdquo;</a> a while ago. The end of the
-article described how you could order a free lead testing kit.</p>
-
-<blockquote><p>The <a href="https://www.epa.gov/sites/production/files/2015-11/documents/2005_09_14_faq_fs_homewatertesting.pdf">EPA offers some guidance</a> on how and when to obtain an in-home testing kit through your local
-water supplier. In New York City, residents can obtain one <a href="http://www1.nyc.gov/nyc-resources/service/1266/water-lead-test-kit-request">at no cost through 311</a>.</p>
-
-<p>For more information, visit <a href="www.epa.gov/safewater/lead">www.epa.gov/safewater/lead</a>, or call the Safe Drinking Water Hotline
-at 1-800-426-4791.</p></blockquote>
-
-<p>I read this article in the aftermath of the <a href="https://en.wikipedia.org/wiki/Flint_water_crisis">Flint water crisis</a> and wanted to test my
-apartment&rsquo;s drinking water. I filled out the online form, received a package in the mail containing
-two large plastic bottles, a pre-paid mailing label, and detailed instructions. The instructions
-said to fill one bottle with water after not using any faucet in my apartment for six hours. I
-filled the second bottle with water after having run the tap. After dropping the bottles now full
-of water into a mailbox, NYC&rsquo;s Nureau of Water Supply sent me the results only week or so later.</p>
-
-<blockquote><p>We have received the results of your recent tap water lead test. Both samples were under the
-federal action level of 15 micrograms per liter (μg/L). Your specific results were:</p>
-
-<p>First draw: 0 μg/L
-1-2 minute flush: 0 μg/L</p></blockquote>
-
-<p><img class="center" src="https://i.imgur.com/uxwBi0bl.jpg"></p>
-
-<p><img class="center" src="https://i.imgur.com/98MoXGNl.jpg"></p>
 ]]></content>
   </entry>
   

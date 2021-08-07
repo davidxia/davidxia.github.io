@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Technology | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/technology/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2021-05-08T22:54:46-07:00</updated>
+  <updated>2021-08-07T12:59:29-04:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -104,7 +104,7 @@ CONTAINER ID        IMAGE                                                       
 a0e872188831        my-project:20210426T211411-2b5452d         "/usr/local/bin/edge…"   2 seconds ago       Up 1 second                                   relaxed_pike
 4dda670a2ee1        foo/bar:latest                                   "./bar"               2 hours ago         Up 2 hours          0.0.0.0:80-&gt;80/tcp        bar
 
-dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format  a0e872188831)  nc 172.20.0.127 80 -nvz -w 5
+dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format {{.State.Pid}} a0e872188831)  nc 172.20.0.127 80 -nvz -w 5
 (UNKNOWN) [172.20.0.127] 80 (http) : Connection timed out
 </code></pre>
 
@@ -149,7 +149,7 @@ CONTAINER ID        IMAGE                                                       
 
 <p>Now a TCP connection from the nginx container to bar succeeded.</p>
 
-<pre><code>dxia@my-host:~$ sudo nsenter --net=$(docker inspect --format  nginx1) nc 172.20.0.127 80 -nvz -w 5
+<pre><code>dxia@my-host:~$ sudo nsenter --net=$(docker inspect --format {{.NetworkSettings.SandboxKey}} nginx1) nc 172.20.0.127 80 -nvz -w 5
 (UNKNOWN) [172.20.0.127] 80 (http) open
 </code></pre>
 
@@ -191,7 +191,7 @@ num   pkts bytes target     prot opt in     out     source               destina
 8       39  2748 ACCEPT     all  --  br-8ce7e363e4f9 !br-8ce7e363e4f9  0.0.0.0/0            0.0.0.0/0
 9        0     0 ACCEPT     all  --  br-8ce7e363e4f9 br-8ce7e363e4f9  0.0.0.0/0            0.0.0.0/0
 
-dxia@my-host:~$ sudo nsenter --net=$(docker inspect --format  nginx1) nc 172.20.0.127 80 -nvz -w 5
+dxia@my-host:~$ sudo nsenter --net=$(docker inspect --format {{.NetworkSettings.SandboxKey}} nginx1) nc 172.20.0.127 80 -nvz -w 5
 (UNKNOWN) [172.20.0.127] 80 (http) open
 </code></pre>
 
@@ -274,7 +274,7 @@ table&rsquo;s <code>DOCKER_OUTPUT</code> chain&rsquo;s rules. These two rules sh
 changed for TCP packets bound for 127.0.0.11:53 to 37619. UDP packets have their port changed to
 58552.</p>
 
-<pre><code>dxia@my-host$ sudo nsenter -n -t $(docker inspect --format  bar) sudo iptables --list DOCKER_OUTPUT --verbose --numeric --line-numbers --table nat
+<pre><code>dxia@my-host$ sudo nsenter -n -t $(docker inspect --format {{.State.Pid}} bar) sudo iptables --list DOCKER_OUTPUT --verbose --numeric --line-numbers --table nat
 
 Chain DOCKER_OUTPUT (1 references)
  pkts bytes target     prot opt in     out     source               destination
@@ -284,22 +284,22 @@ Chain DOCKER_OUTPUT (1 references)
 
 <p>Whatever&rsquo;s listening on those ports was accepting TCP and UDP connections.</p>
 
-<pre><code>dxia@my-host$ sudo nsenter -n -t $(docker inspect --format  bar) nc 127.0.0.11 58552 -nvzu -w 5
+<pre><code>dxia@my-host$ sudo nsenter -n -t $(docker inspect --format {{.State.Pid}} bar) nc 127.0.0.11 58552 -nvzu -w 5
 (UNKNOWN) [127.0.0.11] 58552 (?) open
-dxia@my-host$ sudo nsenter -n -t $(docker inspect --format  bar) nc 127.0.0.11 37619 -nvz -w 5
+dxia@my-host$ sudo nsenter -n -t $(docker inspect --format {{.State.Pid}} bar) nc 127.0.0.11 37619 -nvz -w 5
 (UNKNOWN) [127.0.0.11] 37619 (?) open
 </code></pre>
 
 <p>But there was no DNS reply from either.</p>
 
-<pre><code>dxia@my-host$ sudo nsenter -n -t $(docker inspect --format  bar) dig @127.0.0.11 -p 58552 accounts.google.com
+<pre><code>dxia@my-host$ sudo nsenter -n -t $(docker inspect --format {{.State.Pid}} bar) dig @127.0.0.11 -p 58552 accounts.google.com
 
 ; &lt;&lt;&gt;&gt; DiG 9.11.3-1ubuntu1.14-Ubuntu &lt;&lt;&gt;&gt; @127.0.0.11 -p 58552 accounts.google.com
 ; (1 server found)
 ;; global options: +cmd
 ;; connection timed out; no servers could be reached
 
-dxia@my-host$ sudo nsenter -n -t $(docker inspect --format  bar) dig @127.0.0.11 -p 37619 accounts.google.com +tcp
+dxia@my-host$ sudo nsenter -n -t $(docker inspect --format {{.State.Pid}} bar) dig @127.0.0.11 -p 37619 accounts.google.com +tcp
 
 ; &lt;&lt;&gt;&gt; DiG 9.11.3-1ubuntu1.14-Ubuntu &lt;&lt;&gt;&gt; @127.0.0.11 -p 37619 accounts.google.com +tcp
 ; (1 server found)
@@ -309,7 +309,7 @@ dxia@my-host$ sudo nsenter -n -t $(docker inspect --format  bar) dig @127.0.0.11
 
 <p>Docker daemon was listening for DNS queries at that IP and port from within bar.</p>
 
-<pre><code>dxia@my-host$ sudo nsenter -n -p -t $(docker inspect --format  bar) ss -utnlp
+<pre><code>dxia@my-host$ sudo nsenter -n -p -t $(docker inspect --format {{.State.Pid}} bar) ss -utnlp
 Netid        State          Recv-Q         Send-Q                    Local Address:Port                    Peer Address:Port
 udp          UNCONN         0              0                            127.0.0.11:58552                        0.0.0.0:*             users:(("dockerd",pid=10984,fd=38))
 tcp          LISTEN         0              128                          127.0.0.11:37619                        0.0.0.0:*             users:(("dockerd",pid=10984,fd=40))
@@ -336,10 +336,10 @@ can hit the host-local unbound instance by routing DNS requests to corp0.</p>
 like UDP packets sent from bar were able to reach 10.99.0.1:53, but DNS requests failed. I also
 knew DNS requests from the host to 10.99.0.1:53 worked.</p>
 
-<pre><code>dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format  bar) nc 10.99.0.1 53 -nvzu -w 5
+<pre><code>dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format {{.State.Pid}} bar) nc 10.99.0.1 53 -nvzu -w 5
 (UNKNOWN) [10.99.0.1] 53 (domain) open
 
-dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format  bar) dig @10.99.0.1 accounts.google.com
+dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format {{.State.Pid}} bar) dig @10.99.0.1 accounts.google.com
 
 ; &lt;&lt;&gt;&gt; DiG 9.11.3-1ubuntu1.14-Ubuntu &lt;&lt;&gt;&gt; @10.99.0.1 accounts.google.com
 ; (1 server found)
@@ -374,7 +374,7 @@ After exploring this for a while with no luck, I questioned my assumption that U
 172.20.0.127:37928 were able to reach 10.99.0.1:53. I realized TCP packets from
 172.20.0.127:37928 were not able to reach 10.99.0.1:53.</p>
 
-<pre><code>dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format  bar) nc 10.99.0.1 53 -nvz -w 5
+<pre><code>dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format {{.State.Pid}} bar) nc 10.99.0.1 53 -nvz -w 5
 (UNKNOWN) [10.99.0.1] 53 (domain) : Connection timed out
 </code></pre>
 
@@ -459,7 +459,7 @@ num   pkts bytes target     prot opt in     out     source               destina
 
 <p>I retried querying for accounts.google.com, and I got a DNS reply!</p>
 
-<pre><code>dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format  bar) dig @127.0.0.11 accounts.google.com
+<pre><code>dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format {{.State.Pid}} bar) dig @127.0.0.11 accounts.google.com
 
 ; &lt;&lt;&gt;&gt; DiG 9.11.3-1ubuntu1.14-Ubuntu &lt;&lt;&gt;&gt; @127.0.0.11 accounts.google.com
 ; (1 server found)
@@ -500,7 +500,7 @@ IP</a>.</p>
 according to <a href="https://tools.ietf.org/html/rfc1918">RFC-1918</a>) and reloaded unbound. Now it worked!</p>
 
 <pre><code>dxia@my-host:~$ sudo systemctl reload unbound
-dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format  bar) dig @127.0.0.11 accounts.google.com
+dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format {{.State.Pid}} bar) dig @127.0.0.11 accounts.google.com
 
 ; &lt;&lt;&gt;&gt; DiG 9.11.3-1ubuntu1.14-Ubuntu &lt;&lt;&gt;&gt; @127.0.0.11 accounts.google.com
 ; (1 server found)
@@ -919,7 +919,7 @@ Testing.&rdquo;</a> in various formats. <span xmlns:dct="http://purl.org/dc/term
 </ul>
 
 
-<p><img class="center <a" src="href="https://i.imgur.com/w0P47Ugl.jpg">https://i.imgur.com/w0P47Ugl.jpg</a>&#8221; width=&#8221;640&#8221; height=&#8221;619&#8221;></p>
+<p>{% img center <a href="https://i.imgur.com/w0P47Ugl.jpg">https://i.imgur.com/w0P47Ugl.jpg</a> 640 619 %}</p>
 ]]></content>
   </entry>
   

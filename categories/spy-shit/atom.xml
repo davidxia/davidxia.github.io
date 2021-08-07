@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Spy Shit | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/spy-shit/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2021-05-08T22:54:46-07:00</updated>
+  <updated>2021-08-07T12:59:29-04:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Why We Should All Care About Digital Privacy]]></title>
     <link href="https://www.davidxia.com/2015/05/why-we-should-all-care-about-digital-privacy/"/>
-    <updated>2015-05-03T00:00:00-07:00</updated>
+    <updated>2015-05-03T00:00:00-04:00</updated>
     <id>https://www.davidxia.com/2015/05/why-we-should-all-care-about-digital-privacy</id>
     <content type="html"><![CDATA[<p>I&rsquo;ve been reading and thinking a lot about digital privacy in the past two weeks. It&rsquo;s
 disconcerting that so many AMericans are resigned about the current state of digital surveillance.
@@ -77,7 +77,8 @@ what the intelligence agencies have cracked and what&rsquo;s still safe. Has the
 general or only in targeted cases? But I wonder if this discussion is useful or if it misses the
 point as Kamp inspiringly points out at the end of his talk.</p>
 
-<p><blockquote><p>So the standard reaction in the open source environment to Edward Snowden&rsquo;s disclosures have been,
+<p>{% blockquote_nobr Poul-Henning Kamp <a href="https://youtu.be/fwcl17Q0bpk?t=30m8s">https://youtu.be/fwcl17Q0bpk?t=30m8s</a> %}
+So the standard reaction in the open source environment to Edward Snowden&rsquo;s disclosures have been,
 &ldquo;We need to strengthen the protocols! We need to have SSL everywhere.&rdquo; And I think that misses the
 point by a large margin. The things that have been published by the Snowden documents by now are
 the things that the general public can understand reading their newspaper. The stuff we would be
@@ -90,7 +91,8 @@ it. If you cannot find politicians, get you some politicians who can understand 
 is a renewable resource. Use your pencil when you vote. Or run yourself.</p>
 
 <p><strong>This is your children&rsquo;s and grandchildren&rsquo;s future society you&rsquo;re looking at. And we&rsquo;re the guys
-who sort of missed the boat.</strong></p><footer><strong>Poul-Henning Kamp <a href="https://youtu.be/fwcl17Q0bpk?t=30m8s">https://youtu.be/fwcl17Q0bpk?t=30m8s</a></strong></footer></blockquote></p>
+who sort of missed the boat.</strong>
+{% endblockquote_nobr %}</p>
 
 <p>If a guy who&rsquo;s been committing to the FreeBSD kernel for over 15 years says he doesn&rsquo;t see a
 technical solution to mass digital surveillance, he&rsquo;s probably got a point. He doesn&rsquo;t see a
@@ -117,14 +119,14 @@ each of our actions or inactions affect those around us.</p>
 
 <p>I&rsquo;ve drawn a flow chart of my argument of why we should stop mass surveillance below.</p>
 
-<p><a href="https://i.imgur.com/athtKWxh.jpg"><img class="center" src="https://i.imgur.com/athtKWxh.jpg" width="640" height="480"></a></p>
+<p><a href="https://i.imgur.com/athtKWxh.jpg">{% img center https://i.imgur.com/athtKWxh.jpg 640 480 %}</a></p>
 ]]></content>
   </entry>
   
   <entry>
     <title type="html"><![CDATA[Letter Frequency Analysis]]></title>
     <link href="https://www.davidxia.com/2011/06/letter-frequency-analysis/"/>
-    <updated>2011-06-18T00:00:00-07:00</updated>
+    <updated>2011-06-18T00:00:00-04:00</updated>
     <id>https://www.davidxia.com/2011/06/letter-frequency-analysis</id>
     <content type="html"><![CDATA[<p>This page analyzes a text&rsquo;s letter frequency and is an emulation of <a href="http://rumkin.com/tools/cipher/frequency.php">Tyler Atkin&rsquo;s page</a>. One
 application is decoding a <a href="http://en.wikipedia.org/wiki/Caesar_cipher">Caesar cipher</a>. A Caesar or &ldquo;shift&rdquo; cipher is an encryption
@@ -173,21 +175,21 @@ the plaintext by changing the amount the alphabet is shifted.
   <entry>
     <title type="html"><![CDATA[Wikileaks' Cablegate Tag Wordle]]></title>
     <link href="https://www.davidxia.com/2010/12/wikileaks-cablegate-tag-wordle/"/>
-    <updated>2010-12-27T00:00:00-08:00</updated>
+    <updated>2010-12-27T00:00:00-05:00</updated>
     <id>https://www.davidxia.com/2010/12/wikileaks-cablegate-tag-wordle</id>
     <content type="html"><![CDATA[<p>I did a frequency analysis on the tags of all 251,287 Wikileaks diplomatic cables and created a
 Wordle word cloud. Size is positively related to frequency. You can download the basic data set
 from <em>The Guardian</em> (sorry, no text included) <a href="http://www.guardian.co.uk/news/datablog/2010/nov/29/wikileaks-cables-data">here</a>, and create your own Wordle <a href="http://www.wordle.net/">here</a>. The
 meanings of the tags are <a href="https://spreadsheets.google.com/pub?key=0Auo8KSVAc9r8dHdnMGhjOXhhNzY0LTE0M0NqNmNTRHc&amp;hl=en&amp;output=html">here</a>.</p>
 
-<p><div class='image center <a'><img  src="href="https://lh3.ggpht.com/-DkELRSEMINg/TyB8ScldhKI/AAAAAAAAAAA/JXdRj5UZ_sg/s640/cablegate+tags+wordle.png">https://lh3.ggpht.com/-DkELRSEMINg/TyB8ScldhKI/AAAAAAAAAAA/JXdRj5UZ_sg/s640/cablegate+tags+wordle.png</a>&#8221; width=&#8221;522&#8221; height=&#8221;340&#8221; title=&#8221;Wikileaks&#8217; Cablegate Tag Wordle&#8221; ><div class='caption'>Wikileaks&#8217; Cablegate Tag Wordle</div></div></p>
+<p>{% img_caption center <a href="https://lh3.ggpht.com/-DkELRSEMINg/TyB8ScldhKI/AAAAAAAAAAA/JXdRj5UZ_sg/s640/cablegate+tags+wordle.png">https://lh3.ggpht.com/-DkELRSEMINg/TyB8ScldhKI/AAAAAAAAAAA/JXdRj5UZ_sg/s640/cablegate+tags+wordle.png</a> 522 340 Wikileaks&#8217; Cablegate Tag Wordle %}</p>
 ]]></content>
   </entry>
   
   <entry>
     <title type="html"><![CDATA[A Spy? No! Look at Her Hydrangeas!]]></title>
     <link href="https://www.davidxia.com/2010/06/a-spy-no-look-at-her-hydrangeas/"/>
-    <updated>2010-06-29T00:00:00-07:00</updated>
+    <updated>2010-06-29T00:00:00-04:00</updated>
     <id>https://www.davidxia.com/2010/06/a-spy-no-look-at-her-hydrangeas</id>
     <content type="html"><![CDATA[<p>Recent news about FBI busting into suburban homes and handcuffing couples they accuse of being
 Russian spies are quite intriguing and ridiculous. The <em>Times</em> has an <a href="http://www.nytimes.com/2010/06/29/world/europe/29spy.html?fta=y">article</a> with a money
@@ -215,7 +217,7 @@ stuff.</p>
   <entry>
     <title type="html"><![CDATA[Can We Please Get Some Qualified People?]]></title>
     <link href="https://www.davidxia.com/2009/05/can-we-please-get-some-qualified-people/"/>
-    <updated>2009-05-27T00:00:00-07:00</updated>
+    <updated>2009-05-27T00:00:00-04:00</updated>
     <id>https://www.davidxia.com/2009/05/can-we-please-get-some-qualified-people</id>
     <content type="html"><![CDATA[<p>When you think of the CIA, you may envision an elite squad of the brightest and most daring
 individuals in the country equipped with <a href="http://popsci.typepad.com/popsci/2006/12/the_15_best_bon.html" title="the 15 best Bond gadgets of all time">state-of-the-art gadgets and weapons</a>. You may
@@ -235,7 +237,7 @@ glamorous and a whole lot more disturbing.</p>
 interviews with those who&rsquo;ve worked at the Agency. The result was his latest book, <a href="http://www.washingtonpost.com/wp-srv/style/longterm/books/chap1/legacyofashes.htm" title="book excerpt - chapter 1"><em>Legacy of
 Ashes: The History of the CIA</em></a> (200).</p>
 
-<p><a href="http://www.amazon.com/gp/product/0307389006/ref=as_li_ss_il?ie=UTF8&amp;camp=1789&amp;creative=390957&amp;creativeASIN=0307389006&amp;linkCode=as2&amp;tag=easiamus00-20" title=""><img class="left" src="http://ecx.images-amazon.com/images/I/51qrPWpbewL.<em>SL160</em>.jpg&#8221; title=&#8221;&lsquo;Legacy of Ashes: The History of the CIA&rsquo;&#8221; ></a></p>
+<p><a href="http://www.amazon.com/gp/product/0307389006/ref=as_li_ss_il?ie=UTF8&amp;camp=1789&amp;creative=390957&amp;creativeASIN=0307389006&amp;linkCode=as2&amp;tag=easiamus00-20" title="">{% img left http://ecx.images-amazon.com/images/I/51qrPWpbewL.<em>SL160</em>.jpg &lsquo;Legacy of Ashes: The History of the CIA&rsquo; %}</a></p>
 
 <p>Weiner begins with the creation of the CIA in 1947 as a civilian intelligence agency whose main
 objective was to check the spread of communism during the Cold War. In the long run, the CIA was
