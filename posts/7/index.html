@@ -10,8 +10,8 @@
   <meta name="author" content="David Xia">
 
   
-  <meta name="description" content="The New Yorker recently redesigned their web site and made all articles free for a limited time.
-Everything looks great except for that giant sticky header &hellip;">
+  <meta name="description" content="It took me a while to figure out how connect to freenode&rsquo;s IRC servers via SSL today.
+Here&rsquo;s a reference for my future self and anyone else who &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -31,8 +31,8 @@ Everything looks great except for that giant sticky header &hellip;">
   <meta property="og:url" content="https://www.davidxia.com/posts/7/" />
   <meta property="og:image" content="https://i.imgur.com/BJPOY0D.jpg" />
   <meta property="og:locale" content="en_US" />
-  <meta property="og:description" content="The New Yorker recently redesigned their web site and made all articles free for a limited time.
-Everything looks great except for that giant sticky header &hellip;" />
+  <meta property="og:description" content="It took me a while to figure out how connect to freenode&rsquo;s IRC servers via SSL today.
+Here&rsquo;s a reference for my future self and anyone else who &hellip;" />
   <meta property="fb:admins" content="122703" />
 
   <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -103,6 +103,166 @@ Everything looks great except for that giant sticky header &hellip;" />
   
     
     <article itemscope itemtype="http://schema.org/BlogPosting" class="first">
+      
+  <header>
+    <span itemprop="name headline">
+      
+        <h2 class="entry-title"><a href="/2014/09/How-to-Connect-to-freenode-IRC/">How to Connect to Freenode IRC via SSL</a></h2>
+      
+    </span>
+    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2014/09/How-to-Connect-to-freenode-IRC/">
+    
+      <p class="meta">
+        
+  
+  
+
+  
+    
+  
+
+  
+    
+  
+
+
+
+<span itemprop="datePublished" content="September  1, 2014"><time class='entry-date' datetime='2014-09-01T00:00:00-04:00'><span class='date'>September  1, 2014</span></time></span>
+<meta itemprop="dateModified" content="September  1, 2014">
+ | 
+  
+
+
+
+  <span class="byline author vcard">
+    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
+  </span>
+
+
+        
+        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
+  <meta itemprop="name" content="David Xia">
+  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
+    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
+  </div>
+</div>
+
+        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
+  
+    
+    
+    
+  
+  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
+  <meta itemprop="height" content="696">
+  <meta itemprop="width" content="696">
+</span>
+
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>It took me a while to figure out how connect to freenode&rsquo;s IRC servers via SSL today.
+Here&rsquo;s a reference for my future self and anyone else who might find this helpful.</p>
+
+<p>N.B. I use weechat as my IRC client.</p>
+
+<ol>
+<li>Pick a nick that&rsquo;s not already taken. Weechat kept retrying unsuccessfully when I used one that
+was already taken.</li>
+<li>freenode has instructions here on <a href="https://freenode.net/irc_servers.shtml#ssl">how to connect via SSL</a></li>
+<li>I run weechat on Ubuntu 12.04 and had to install the intermediate and root certificates mentioned
+in the link above. Otherwise, weechat complains that it doesn&rsquo;t recognize the certificate.</li>
+<li><code>sudo mkdir /usr/share/ca-certificates/extra</code></li>
+<li>Copy the Gandi and InstantSSL certificates to that directory.</li>
+<li>Let Ubuntu add the new certificates&#8217; path relative to <code>/usr/share/ca-certificates</code> to
+<code>/etc/ca-certificates.conf</code> by running <code>sudo dpkg-reconfigure ca-certificates</code>.</li>
+</ol>
+
+
+<p>This should be all. Here&rsquo;s the weechat IRC configuration for freenode which should be written to
+<code>~/.weechat/irc.conf</code>.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>freenode.addresses = "dickson.freenode.net/7000"
+</span><span class='line'>freenode.proxy
+</span><span class='line'>freenode.ipv6
+</span><span class='line'>freenode.ssl = on
+</span><span class='line'>freenode.ssl_cert
+</span><span class='line'>freenode.ssl_priorities
+</span><span class='line'>freenode.ssl_dhkey_size = 1024
+</span><span class='line'>freenode.ssl_verify
+</span><span class='line'>freenode.password
+</span><span class='line'>freenode.capabilities
+</span><span class='line'>freenode.sasl_mechanism
+</span><span class='line'>freenode.sasl_username
+</span><span class='line'>freenode.sasl_password
+</span><span class='line'>freenode.sasl_timeout
+</span><span class='line'>freenode.autoconnect = on
+</span><span class='line'>freenode.autoreconnect
+</span><span class='line'>freenode.autoreconnect_delay
+</span><span class='line'>freenode.nicks = "davidxia"
+</span><span class='line'>freenode.username
+</span><span class='line'>freenode.realname = "David Xia"
+</span><span class='line'>freenode.local_hostname
+</span><span class='line'>freenode.command
+</span><span class='line'>freenode.command_delay
+</span><span class='line'>freenode.autojoin
+</span><span class='line'>freenode.autorejoin
+</span><span class='line'>freenode.autorejoin_delay
+</span><span class='line'>freenode.connection_timeout
+</span><span class='line'>freenode.anti_flood_prio_high
+</span><span class='line'>freenode.anti_flood_prio_low
+</span><span class='line'>freenode.away_check
+</span><span class='line'>freenode.away_check_max_nicks
+</span><span class='line'>freenode.default_msg_part
+</span><span class='line'>freenode.default_msg_quit
+</span><span class='line'>freenode.notify</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
+    <br class="clear">
+  
+    
+    <article itemscope itemtype="http://schema.org/BlogPosting" >
       
   <header>
     <span itemprop="name headline">
@@ -859,92 +1019,6 @@ at Reciprocal Skateboards: 8.25-inch wide deck, Independent trucks, and Bones Re
     </article>
     <br class="clear">
   
-    
-    <article itemscope itemtype="http://schema.org/BlogPosting" >
-      
-  <header>
-    <span itemprop="name headline">
-      
-        <h2 class="entry-title"><a href="/2013/05/videos-about-forests/">Videos About West Coast Forests</a></h2>
-      
-    </span>
-    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2013/05/videos-about-forests/">
-    
-      <p class="meta">
-        
-  
-  
-
-  
-    
-  
-
-  
-    
-  
-
-
-
-<span itemprop="datePublished" content="May 25, 2013"><time class='entry-date' datetime='2013-05-25T00:00:00-04:00'><span class='date'>May 25, 2013</span></time></span>
-<meta itemprop="dateModified" content="May 25, 2013">
- | 
-  
-
-
-
-  <span class="byline author vcard">
-    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
-  </span>
-
-
-        
-        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
-  <meta itemprop="name" content="David Xia">
-  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
-    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
-  </div>
-</div>
-
-        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
-  
-    
-    
-    
-  
-  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
-  <meta itemprop="height" content="696">
-  <meta itemprop="width" content="696">
-</span>
-
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Throughout my many hours of watching Vimeo, I&rsquo;ve garnered a collection of videos about the
-west coast forests. It&rsquo;s amazing to see 200-year-old redwoods with their tops shrouded in fog, seals
-swimming through the rivers, and just the rich ecosystem in general.</p>
-
-<iframe class="fill-width" src="https://player.vimeo.com/video/18305022?byline=0&amp;portrait=0" width="540" height="304" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
-
-
-
-
-<iframe class="fill-width" src="https://player.vimeo.com/video/66173800?byline=0&amp;portrait=0" width="540" height="304" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
-
-
-
-
-<iframe class="fill-width" src="https://player.vimeo.com/video/33234007?byline=0&amp;portrait=0" width="540" height="305" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
-
-</div>
-  
-  
-
-
-    </article>
-    <br class="clear">
-  
   <div class="pagination">
     
     <div class="col-md-4">
@@ -1040,7 +1114,7 @@ swimming through the rivers, and just the rich ecosystem in general.</p>
 <li class='category'><a href='/categories/chinese-culture/'>Chinese Culture (12)</a></li>
 <li class='category'><a href='/categories/columbia-university/'>Columbia University (27)</a></li>
 <li class='category'><a href='/categories/computer-science/'>Computer Science (7)</a></li>
-<li class='category'><a href='/categories/current-events/'>Current Events (43)</a></li>
+<li class='category'><a href='/categories/current-events/'>Current Events (44)</a></li>
 <li class='category'><a href='/categories/design/'>Design (6)</a></li>
 <li class='category'><a href='/categories/economy/'>Economy (11)</a></li>
 <li class='category'><a href='/categories/electronics/'>Electronics (3)</a></li>

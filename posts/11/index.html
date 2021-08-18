@@ -10,8 +10,7 @@
   <meta name="author" content="David Xia">
 
   
-  <meta name="description" content="Lots of developers use MAMP for local PHP development. There&rsquo;s nothing wrong with MAMP. It
-works. But I wanted to find out how to use the pre-installed &hellip;">
+  <meta name="description" content="1. Don&rsquo;t Use FTP or Telnet I only use SSH to interact with my remote machine. Your Linux distribution should come with SSH tools already installed, but &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -31,8 +30,7 @@ works. But I wanted to find out how to use the pre-installed &hellip;">
   <meta property="og:url" content="https://www.davidxia.com/posts/11/" />
   <meta property="og:image" content="https://i.imgur.com/BJPOY0D.jpg" />
   <meta property="og:locale" content="en_US" />
-  <meta property="og:description" content="Lots of developers use MAMP for local PHP development. There&rsquo;s nothing wrong with MAMP. It
-works. But I wanted to find out how to use the pre-installed &hellip;" />
+  <meta property="og:description" content="1. Don&rsquo;t Use FTP or Telnet I only use SSH to interact with my remote machine. Your Linux distribution should come with SSH tools already installed, but &hellip;" />
   <meta property="fb:admins" content="122703" />
 
   <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -103,6 +101,96 @@ works. But I wanted to find out how to use the pre-installed &hellip;" />
   
     
     <article itemscope itemtype="http://schema.org/BlogPosting" class="first">
+      
+  <header>
+    <span itemprop="name headline">
+      
+        <h2 class="entry-title"><a href="/2012/05/5-ways-to-security-harden-your-linux-system/">5 Ways to Security Harden Your Linux System</a></h2>
+      
+    </span>
+    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2012/05/5-ways-to-security-harden-your-linux-system/">
+    
+      <p class="meta">
+        
+  
+  
+
+  
+    
+  
+
+  
+    
+  
+
+
+
+<span itemprop="datePublished" content="May 29, 2012"><time class='entry-date' datetime='2012-05-29T00:00:00-04:00'><span class='date'>May 29, 2012</span></time></span>
+<meta itemprop="dateModified" content="May 29, 2012">
+ | 
+  
+
+
+
+  <span class="byline author vcard">
+    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
+  </span>
+
+
+        
+        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
+  <meta itemprop="name" content="David Xia">
+  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
+    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
+  </div>
+</div>
+
+        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
+  
+    
+    
+    
+  
+  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
+  <meta itemprop="height" content="696">
+  <meta itemprop="width" content="696">
+</span>
+
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>1. Don&rsquo;t Use FTP or Telnet</h2>
+
+<p>I only use SSH to interact with my remote machine. Your Linux distribution should come with SSH tools already installed, but in case it doesn&rsquo;t, use <a href="http://www.openssh.org/" title="OpenSSH">OpenSSH</a>.</p>
+
+<h2>2. Keep Kernel and Software Up to Date</h2>
+
+<p>If you use apt:</p>
+
+<pre><code># apt-get update &amp;&amp; apt-get upgrade
+</code></pre>
+
+<p><a href="http://www.debian-administration.org/articles/491" title="apticron">Apticron</a> is a package that emails you when security updates are available.</p>
+
+<pre><code># apt-get install apticron
+</code></pre>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="https://www.davidxia.com/2012/05/5-ways-to-security-harden-your-linux-system/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+    <br class="clear">
+  
+    
+    <article itemscope itemtype="http://schema.org/BlogPosting" >
       
   <header>
     <span itemprop="name headline">
@@ -927,90 +1015,6 @@ certificate could <a href="http://www.clintharris.net/2009/self-signed-certifica
     </article>
     <br class="clear">
   
-    
-    <article itemscope itemtype="http://schema.org/BlogPosting" >
-      
-  <header>
-    <span itemprop="name headline">
-      
-        <h2 class="entry-title"><a href="/2012/02/how-to-deploy-python-web-app-with-apaches-mod_wsgi/">How to Deploy Python Web App With Apache&#8217;s Mod_wsgi</a></h2>
-      
-    </span>
-    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2012/02/how-to-deploy-python-web-app-with-apaches-mod_wsgi/">
-    
-      <p class="meta">
-        
-  
-  
-
-  
-    
-  
-
-  
-    
-  
-
-
-
-<span itemprop="datePublished" content="February 28, 2012"><time class='entry-date' datetime='2012-02-28T00:00:00-05:00'><span class='date'>February 28, 2012</span></time></span>
-<meta itemprop="dateModified" content="February 28, 2012">
- | 
-  
-
-
-
-  <span class="byline author vcard">
-    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
-  </span>
-
-
-        
-        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
-  <meta itemprop="name" content="David Xia">
-  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
-    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
-  </div>
-</div>
-
-        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
-  
-    
-    
-    
-  
-  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
-  <meta itemprop="height" content="696">
-  <meta itemprop="width" content="696">
-</span>
-
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>For quite a while I couldn&rsquo;t figure out how to deploy Python web apps. But with patience and
-tinkering, I slowly figured it out.</p>
-
-<p>Here were my steps:</p>
-
-<p><strong>1. Setup Domain</strong></p>
-
-<p>I created an A record for python.davidxia.com in my DNS records pointing to the IP of the server
-on which I developed.</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="https://www.davidxia.com/2012/02/how-to-deploy-python-web-app-with-apaches-mod_wsgi/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-    <br class="clear">
-  
   <div class="pagination">
     
     <div class="col-md-4">
@@ -1106,7 +1110,7 @@ on which I developed.</p>
 <li class='category'><a href='/categories/chinese-culture/'>Chinese Culture (12)</a></li>
 <li class='category'><a href='/categories/columbia-university/'>Columbia University (27)</a></li>
 <li class='category'><a href='/categories/computer-science/'>Computer Science (7)</a></li>
-<li class='category'><a href='/categories/current-events/'>Current Events (43)</a></li>
+<li class='category'><a href='/categories/current-events/'>Current Events (44)</a></li>
 <li class='category'><a href='/categories/design/'>Design (6)</a></li>
 <li class='category'><a href='/categories/economy/'>Economy (11)</a></li>
 <li class='category'><a href='/categories/electronics/'>Electronics (3)</a></li>

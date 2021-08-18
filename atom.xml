@@ -4,7 +4,7 @@
   <title><![CDATA[David Xia]]></title>
   <link href="https://www.davidxia.com/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2021-08-07T12:59:02-04:00</updated>
+  <updated>2021-08-17T23:54:14-04:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -14,14 +14,151 @@
 
   
   <entry>
+    <title type="html"><![CDATA[Notes on Michael Lewis' the Premonition]]></title>
+    <link href="https://www.davidxia.com/2021/08/notes-on-michael-lewis-the-premonition/"/>
+    <updated>2021-08-16T11:18:41-04:00</updated>
+    <id>https://www.davidxia.com/2021/08/notes-on-michael-lewis-the-premonition</id>
+    <content type="html"><![CDATA[<p>Last week I finished reading Michael Lewis&#8217; <em>The Premonition</em>. The following parts of the book (with
+page numbers) stood out to me.</p>
+
+<p>The U.S. Centers for Disease Control (CDC) is portrayed as a risk-averse bureaucracy that wants to
+study disease and not take strong measures to control disease. Sometimes this interest conflicts
+with local health officials who want to save lives and see strong measures as necessary even if not
+all the evidence is available yet. Health officials are always firefighting and can&rsquo;t wait for more
+data. Lewis compared them to platoon leaders during battle. (page 40)</p>
+
+<!-- Carter Mecher is laser focused under pressure. (61) -->
+
+
+<p>Deadly mistakes are often result from the combination of systemic and human failures. Lewis tells the
+story of a Veterans Affairs (VA) patient who was accidentally boiled alive in an Atlanta VA
+hospital. The hospital heated water to a specific temperature hot enough to kill certain bacteria
+but not hot enough to scald people. Bathtub faucets had a special valve that prevented water that
+was too hot from emerging. The water heating mechanism was broken, however. So the nurses
+compensated by adjusting the valve to a hotter temperature. Then one day, plumbers fixed the heating
+mechanism without telling the nurses. Normally a patient would tell the nurses when the water was
+too hot. But the nurses happened to be bathing one patient who was an older man with mental health
+problems. He always screamed no matter what. The nurses didn&rsquo;t think anything was wrong when he
+screamed this time. &ldquo;An hour later, the man&rsquo;s skin was peeling away, and he was dying of thermal
+burns.&rdquo; (67) This is a powerful story. Unfortunately, I&rsquo;m unable to find corroborating news
+articles, and Lewis doesn&rsquo;t have references or footnotes.</p>
+
+<p>Why and how people learn.</p>
+
+<blockquote><p>&#8230;people don&#8217;t learn what is imposed upon them but rather what they frely seek, out of desire or<br/>need. For people to learn, they need to want to learn&#8230; &#8220;People in an organization learn,&#8221; said<br/>Carter. &#8220;They&#8217;re learning all kinds of things. But they aren&#8217;t learning what you are teaching them.<br/>You go to a formal meeting. The important conversation is not in the meeting. It&#8217;s in the halls<br/>during the breaks. And usually what&#8217;s important is taboo. And you can&#8217;t say it in the formal<br/>meeting.&#8221;</p><footer><strong>72-3</strong></footer></blockquote>
+
+
+
+
+<!-- more -->
+
+
+<p>Is Lewis&#8217; account of the CDC&rsquo;s aversion to computer models accurate? <em>Premonition</em> says the CDC had
+models that were just in people&rsquo;s heads. &ldquo;They, too, used models. They, too, depended on
+abstractions to inform their judgments. Those abstractions just happened to be inside their heads.&rdquo; (85)</p>
+
+<p>One of the two main protagonists of the book is an American physician named Carter Mecher. From 1996
+to 2005, Mecher served as the Chief Medical Officer for the Southeast Veterans Administration
+Network. Mecher wanted to figure out how government should allocate resources.</p>
+
+<blockquote><p>Each year, Congress would hand more than a hundred billion dollars to Veterans Affairs, and various<br/>people inside the VA would bay for more than they&#8217;d gotten the year before. The top brass had no way<br/>to figure out who was actually busting their ass and needed more help and who was loafing&#8230;He hated<br/>in particular the way some people were able to use their own inefficiency to create a seeming need<br/>for more funding; and other people, people with a gift for making do with less, were, as a result,<br/>given even less. &#8220;It drove out the entrepreneurial spirit,&#8221; said Carter.</p><footer><strong>162</strong></footer></blockquote>
+
+
+<p>ICE under the Trump administration was bussing and flying undocumented immigrants into
+cities in California to manufacture a humanitarian crisis according to the other protagonist of the
+book, a public health official named Charity Dean. (187, 190) This seemed insane to me, but I was
+able to find news articles about this. The actual story seems a bit more nuanced as one can read
+from this AP article &ldquo;<a href="https://apnews.com/article/us-news-ap-top-news-mi-state-wire-az-state-wire-immigration-1c7aec8b18ae4cb3a8ed0a624c641eb9">Far from border, US cities feel effect of migrant releases</a>.&rdquo;</p>
+
+<p>Charity Dean explained to the CDC at the beginning of 2020 that there is no &ldquo;<strong>system</strong> of public
+health in the United States, just a patchwork of state and local health officers, beholden to a
+greater or lesser degree to local elected officials. Three thousand five hundred separate entities
+that had been starved of resources for the past forty years.&rdquo; This explains why the U.S. had no
+coordinated and science-based approach to Covid. (205-6)</p>
+
+<p>A major antagonist of the book is Sonia Angell. She was the director of California&rsquo;s Public Health
+Department and supervisor to Charity Dean who was the deputy director at the time. Lewis describes
+how she actively prevented any measures to acknowledge the severity of the virus or to try to
+contain it. Did Lewis try to interview and incorporate Sonia Angell&rsquo;s side of the story?</p>
+
+<p>A particularly egregious story of CDC incompetence is when they didn&rsquo;t bother recording the
+addresses of Americans returning from China.</p>
+
+<blockquote><p>When local health officers called the CDC to say how hard it was to track down John Smith when the<br/>CDC had listed his residence as &#8220;Los Angeles International Airport,&#8221; the CDC said, &#8220;Just don&#8217;t<br/>follow up on them.&#8221; What was the point of having these travel restrictions from Wuhan if the federal<br/>government was going to just let people loose upon their return?</p><footer><strong>206</strong></footer></blockquote>
+
+
+<p>There&rsquo;s a particularly enraging and scary part of the book on CDC inaction. Mecher learns
+about Covid transmission, hospitalization, and death reates among passengers on the <a href="https://en.wikipedia.org/wiki/COVID-19_pandemic_on_Diamond_Princess">Diamond
+Princess cruise ship</a>. This is a perfect and scary real life simulation of
+how Covid will behave in the general population. Mecher compares the situation of the world at the
+time to the <a href="https://en.wikipedia.org/wiki/Mann_Gulch_fire">Mann Gulch fire</a>. This was a wildfire that initially looked containable. 13
+smokejumpers parachuted in to fight it. But then &ldquo;unexpected high winds caused the fire to suddenly
+expand, cutting off the men&rsquo;s route and forcing them back uphill. During the next few minutes, a
+&#8220;blow-up&rdquo; of the fire covered 3,000 acres (1,200 ha) in ten minutes, claiming the lives of 13
+firefighters, including 12 of the smokejumpers. Only three of the smokejumpers survived.&ldquo; Mecher
+tries desparately to convince the CDC to take strong enough actions.</p>
+
+<blockquote><p>&#8220;I sense confusion among very smart people,&#8221; he wrote in early March. &#8220;[They] hear that more than<br/>80% of those who are infected have mild disease and that overall case fatality rates are on the<br/>order of .5%. And then they equate these states to a mild outbreak.&#8221; &#8230; Using the most conservative<br/>assumptions suggested by the cruise ship&mdash;an attack rate of 20 percent and a fatality rate of<br/>half of 1 percent&mdash;you wound up with 330,000 dead Americans&#8230; &#8220;You have all been quiet for<br/>most of the discussion over the past several weeks. I would urge you to read the article I just sent<br/>out and upbrief your boss&#8230; History will long remember what we do and what we don&#8217;t do at this<br/>critical moment. It is time to act and it is past the time to remain silent. This outbreak isn&#8217;t<br/>going to magically disappear on its own.&#8221;</p><footer><strong>214-8</strong></footer></blockquote>
+
+
+<p>It&rsquo;s obvious that people at the top of government agencies at all levels are lost. No one&rsquo;s
+coming to save us. Here&rsquo;s another enraging anecdote about Angell.</p>
+
+<blockquote><p>On March 6, Gavin Newsome convened a hundred of the state&#8217;s top officials to discuss the new<br/>coronavirus. Sonia Angell had told Charity that she, Angell, would give the briefing to the<br/>governor, and that it was better if Charity did not attend the meeting. *You have no role*, Angell<br/>explained, *so you should not be there*. Charity didn&#8217;t believe Angell had the ability to get up in<br/>front of the audience and explain what was going on. &#8220;I just had a feeling that something would<br/>happen and she wouldn&#8217;t be able to make it,&#8221; she recalled. Sure enough, the morning of the event,<br/>the phone call came. Angell couldn&#8217;t make the meeting. Might Charity step in at the last minute to<br/>replace her?</p><footer><strong>226</strong></footer></blockquote>
+
+
+<p>Media changes now force technical people to consider the cynical perception of their actions instead
+of strictly whether their decision in and of itself is the best. (287)</p>
+
+<p>Lewis introduces the interesting concept of L6.</p>
+
+<blockquote><p>In any large organization, the solution to any crisis was usually found not in the officially<br/>important people at the top but in some obscure employee far down the organization&#8217;s chart. A case<br/>in point was the day the software used by the State Department to process visa applications stopped<br/>working. That day the U.S. government simply lost its ability to issue visas&#8230; &#8220;Six layers down<br/>from the people in charge we found two contractors who actually understand what is broken.&#8221; The L6.</p><footer><strong>231</strong></footer></blockquote>
+
+
+<p>The private sector is inefficient at generating knowledge because profit motive prevents
+collaboration and openness. (246)</p>
+
+<p>Another story about how the federal government&rsquo;s laissez-faire attitude towards helping state and
+local governments secure personal protective equipment led to a market free-for-all that drove
+prices way up. (253)</p>
+
+<p>Local health offices are understaffed and behind the times. Joseph DeRisi is an American biochemist
+who heads the Chan Zuckerberg Biohub, a nonprofit research organization. In April 2020, Biohub had
+developed a Covid test kit and offered it free to any local public health officials who needed it.</p>
+
+<blockquote><p>Once his team began to deliver free test kits to them, he understood why they&#8217;d been slow to take up<br/>the Biohub&#8217;s offer of free testing. Many local health officers were so understaffed and<br/>underequipped they had trouble using the test kits. Most were unable to receive the results<br/>electronically; they needed the results faxed to them. Some had fax machines so old that they<br/>couldn&#8217;t receive more than six pages at a time. A few didn&#8217;t even have functioning fax machines, and<br/>so the Biohub got into the business of buying and delivering fax machines along with test kits.</p><footer><strong>254</strong></footer></blockquote>
+
+
+<p>This story is corroborated by this NYT article &ldquo;<a href="https://www.nytimes.com/2020/07/13/upshot/coronavirus-response-fax-machines.html">Bottleneck for U.S. Coronavirus Response: The Fax
+Machine</a>.&rdquo;</p>
+
+<p>One reason why the CDC is dysfunctional is because Reagan changed its director from being a
+civil servant to a presidential appointee. (289-90)</p>
+
+<p>Local health officials who were courageous lost their jobs and feared for their safety because
+there was a lack of leadership from CDC and federal and state leaders. (291)</p>
+
+<h2>further reading</h2>
+
+<ul>
+<li>Barry&rsquo;s <em>The Great Influenza</em></li>
+<li>Rajeeev&rsquo;s 12 page document written in 2005</li>
+<li>interviews with Carter Mecher or Charity Dean</li>
+<li>former CDC director Bill Foege&rsquo;s letter to Robert Redfield who was CDC director at the time</li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
     <title type="html"><![CDATA[Mushroom Foraging in Waltham]]></title>
     <link href="https://www.davidxia.com/2021/08/mushroom-foraging-in-waltham/"/>
     <updated>2021-08-07T11:53:58-04:00</updated>
     <id>https://www.davidxia.com/2021/08/mushroom-foraging-in-waltham</id>
-    <content type="html"><![CDATA[<p>I collected mushrooms this morning with G and my parents. It rained a lot last week in
+    <content type="html"><![CDATA[<p>I collected mushrooms this morning with Gloria and my parents. It rained a lot last week in
 Waltham, MA. Many mushrooms had sprung up in Prospect Hill Park nearby. The temperature forecast
 for today said the highs would be 32°C. So I wanted to go out in the morning while it was not too
-hot. Over the objections of my mother, G, my father, and I picked different mushrooms and
+hot. Over the objections of my mother, Gloria, my father, and I picked different mushrooms and
 carried them back to the car. Next time we&rsquo;ll bring a basket and a trowel. I took them back only to
 identify them. I am definitely neither experienced nor confident enough to eat any wild mushrooms I
 find.</p>
@@ -6978,68 +7115,6 @@ and warn you of weak encryption, key exchange protocols, cipher suites, etc.</p>
     <content type="html"><![CDATA[<p>I finally got around to editing the footage from the sailing trip.</p>
 
 <iframe class="fill-width" width="560" height="315" src="https://www.youtube.com/embed/7ZaCY7rHLgg" frameborder="0" allowfullscreen></iframe>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[British Virgin Islands Sailing Trip]]></title>
-    <link href="https://www.davidxia.com/2017/03/british-virgin-islands-sailing-trip/"/>
-    <updated>2017-03-03T21:10:36-05:00</updated>
-    <id>https://www.davidxia.com/2017/03/british-virgin-islands-sailing-trip</id>
-    <content type="html"><![CDATA[<p>I learned the basics of sailing on a week-long sailing trip in the British Virgin Islands aboard
-a 48-foot catamaran we called Millenium Falcon.</p>
-
-<h3>January 30</h3>
-
-<p>We moored off the coast of Virgin Gorda and Saba Rock. President Obama was wind surfing at neighboring Necker Island as a guest of Richard Branson.</p>
-
-<p><img class="center" src="https://i.imgur.com/xtJYYezh.jpg"></p>
-
-<div class='image center'><img  src="https://i.imgur.com/WY4BnbMh.jpg" title="The dinghy race at Virgin Gorda." ><div class='caption'>The dinghy race at Virgin Gorda.</div></div>
-
-
-
-
-<!-- more -->
-
-
-<h3>January 31</h3>
-
-<p>Anegada</p>
-
-<p><img class="center" src="https://i.imgur.com/eZ8wlJjh.jpg"></p>
-
-<p><img class="center" src="https://i.imgur.com/8BhieRQh.jpg"></p>
-
-<p><img class="center" src="https://i.imgur.com/Z9eqNS4h.jpg"></p>
-
-<p><img class="center" src="https://i.imgur.com/vGEIw30h.jpg"></p>
-
-<h3>Last day - February 4</h3>
-
-<p>Sailing through Tatch Island Cut during the race. We stopped racing because the wind died
-and we needed to return the charter boat on time.</p>
-
-<p><img class="center" src="https://i.imgur.com/rOfYB1Uh.jpg"></p>
-
-<p><img class="center" src="https://i.imgur.com/qofwLFhh.jpg"></p>
-
-<p><img class="center" src="https://i.imgur.com/3VJRFjHh.jpg"></p>
-
-<p><img class="center" src="https://i.imgur.com/rfuiRe4h.jpg"></p>
-
-<div class='image center'><img  src="https://i.imgur.com/IOXPlZxh.jpg" title="Boat mate and colleague Bastian." ><div class='caption'>Boat mate and colleague Bastian.</div></div>
-
-
-
-
-<div class='image center'><img  src="https://i.imgur.com/VcsIgQAh.jpg" title="The rest of my boat's crew." ><div class='caption'>The rest of my boat&#8217;s crew.</div></div>
-
-
-
-
-<div class='image center'><img  src="https://i.imgur.com/62Prw81h.jpg" title="We saw lots of nice houses built on cliffs." ><div class='caption'>We saw lots of nice houses built on cliffs.</div></div>
 
 ]]></content>
   </entry>

@@ -10,8 +10,8 @@
   <meta name="author" content="David Xia">
 
   
-  <meta name="description" content="At the beginning of this year I set a goal of becoming a better public speaker
-and more visible in both tech and other broader causes I believe in. I&rsquo;m &hellip;">
+  <meta name="description" content="I manage multitenant Google Kubernetes Engine (GKE) clusters for stateless backend services at
+work. Google recently graduated GKE&rsquo;s Workload Identity ( &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -31,8 +31,8 @@ and more visible in both tech and other broader causes I believe in. I&rsquo;m &
   <meta property="og:url" content="https://www.davidxia.com/posts/2/" />
   <meta property="og:image" content="https://i.imgur.com/BJPOY0D.jpg" />
   <meta property="og:locale" content="en_US" />
-  <meta property="og:description" content="At the beginning of this year I set a goal of becoming a better public speaker
-and more visible in both tech and other broader causes I believe in. I&rsquo;m &hellip;" />
+  <meta property="og:description" content="I manage multitenant Google Kubernetes Engine (GKE) clusters for stateless backend services at
+work. Google recently graduated GKE&rsquo;s Workload Identity ( &hellip;" />
   <meta property="fb:admins" content="122703" />
 
   <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -103,6 +103,102 @@ and more visible in both tech and other broader causes I believe in. I&rsquo;m &
   
     
     <article itemscope itemtype="http://schema.org/BlogPosting" class="first">
+      
+  <header>
+    <span itemprop="name headline">
+      
+        <h2 class="entry-title"><a href="/2020/04/3-levels-of-load-testing-gke-workload-identity/">3 Levels of Load Testing GKE Workload Identity</a></h2>
+      
+    </span>
+    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2020/04/3-levels-of-load-testing-gke-workload-identity/">
+    
+      <p class="meta">
+        
+  
+  
+
+  
+    
+  
+
+  
+    
+  
+
+
+
+<span itemprop="datePublished" content="April  1, 2020"><time class='entry-date' datetime='2020-04-01T10:21:11-04:00'><span class='date'>April  1, 2020</span></time></span>
+<meta itemprop="dateModified" content="April  1, 2020">
+ | 
+  
+
+
+
+  <span class="byline author vcard">
+    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
+  </span>
+
+
+        
+        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
+  <meta itemprop="name" content="David Xia">
+  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
+    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
+  </div>
+</div>
+
+        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
+  
+    
+    
+    
+  
+  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
+  <meta itemprop="height" content="696">
+  <meta itemprop="width" content="696">
+</span>
+
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>I manage multitenant <a href="https://cloud.google.com/kubernetes-engine">Google Kubernetes Engine</a> (GKE) clusters for stateless backend services at
+work. Google recently graduated GKE&rsquo;s <a href="https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity">Workload Identity</a> (WI) feature to generally available
+(GA). When my team used WI during its beta stage, it seemed to fail when there were more than 16
+requests per second (RPS) on one GKE node to retrieve Google access tokens.</p>
+
+<p>Before we knew about this low RPS failure threshold, we told many internal engineering teams
+to go ahead and use the feature. In hindsight, we should&rsquo;ve load-tested the feature before making it
+generally available internally especially since it wasn&rsquo;t even GA publicly.</p>
+
+<p>My efforts to load test WI have grown more sophisticated over time. This post describes the
+progression. It&rsquo;s like the &ldquo;4 Levels of &hellip;&rdquo; <a href="https://www.youtube.com/playlist?list=PLz3-p2q6vFYUDvVUu_aPhGUV-3ROIa6d2">Epicurious Youtube videos</a>. The goal here is to find
+out at what RPS WI starts to fail and to try to learn some generalizable lessons from load testing
+vendor-managed services.</p>
+
+<h3>tl;dr lessons learned</h3>
+
+<ul>
+<li>always load test new features above and beyond what you expect your production load will be</li>
+<li>use proper load testing tools and not bash for loops</li>
+</ul>
+
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="https://www.davidxia.com/2020/04/3-levels-of-load-testing-gke-workload-identity/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+    <br class="clear">
+  
+    
+    <article itemscope itemtype="http://schema.org/BlogPosting" >
       
   <header>
     <span itemprop="name headline">
@@ -910,94 +1006,6 @@ and warn you of weak encryption, key exchange protocols, cipher suites, etc.</p>
     </article>
     <br class="clear">
   
-    
-    <article itemscope itemtype="http://schema.org/BlogPosting" >
-      
-  <header>
-    <span itemprop="name headline">
-      
-        <h2 class="entry-title"><a href="/2017/03/british-virgin-islands-sailing-trip/">British Virgin Islands Sailing Trip</a></h2>
-      
-    </span>
-    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2017/03/british-virgin-islands-sailing-trip/">
-    
-      <p class="meta">
-        
-  
-  
-
-  
-    
-  
-
-  
-    
-  
-
-
-
-<span itemprop="datePublished" content="March  3, 2017"><time class='entry-date' datetime='2017-03-03T21:10:36-05:00'><span class='date'>March  3, 2017</span></time></span>
-<meta itemprop="dateModified" content="March  3, 2017">
- | 
-  
-
-
-
-  <span class="byline author vcard">
-    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
-  </span>
-
-
-        
-        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
-  <meta itemprop="name" content="David Xia">
-  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
-    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
-  </div>
-</div>
-
-        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
-  
-    
-    
-    
-  
-  <meta itemprop="url" content="https://i.imgur.com/xtJYYezh.jpg">
-  <meta itemprop="height" content="640">
-  <meta itemprop="width" content="619">
-</span>
-
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>I learned the basics of sailing on a week-long sailing trip in the British Virgin Islands aboard
-a 48-foot catamaran we called Millenium Falcon.</p>
-
-<h3>January 30</h3>
-
-<p>We moored off the coast of Virgin Gorda and Saba Rock. President Obama was wind surfing at neighboring Necker Island as a guest of Richard Branson.</p>
-
-<p><img class="center" src="https://i.imgur.com/xtJYYezh.jpg"></p>
-
-<div class='image center'><img  src="https://i.imgur.com/WY4BnbMh.jpg" title="The dinghy race at Virgin Gorda." ><div class='caption'>The dinghy race at Virgin Gorda.</div></div>
-
-
-
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="https://www.davidxia.com/2017/03/british-virgin-islands-sailing-trip/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-    <br class="clear">
-  
   <div class="pagination">
     
     <div class="col-md-4">
@@ -1093,7 +1101,7 @@ a 48-foot catamaran we called Millenium Falcon.</p>
 <li class='category'><a href='/categories/chinese-culture/'>Chinese Culture (12)</a></li>
 <li class='category'><a href='/categories/columbia-university/'>Columbia University (27)</a></li>
 <li class='category'><a href='/categories/computer-science/'>Computer Science (7)</a></li>
-<li class='category'><a href='/categories/current-events/'>Current Events (43)</a></li>
+<li class='category'><a href='/categories/current-events/'>Current Events (44)</a></li>
 <li class='category'><a href='/categories/design/'>Design (6)</a></li>
 <li class='category'><a href='/categories/economy/'>Economy (11)</a></li>
 <li class='category'><a href='/categories/electronics/'>Electronics (3)</a></li>
