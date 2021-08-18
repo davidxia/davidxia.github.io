@@ -105,6 +105,122 @@
   <header>
     <span itemprop="name headline">
       
+        <h2 class="entry-title"><a href="/2021/08/benchmarking-kafka-and-google-cloud-pub-slash-sub-latencies/">Benchmarking Kafka and Google Cloud Pub/Sub Latencies</a></h2>
+      
+    </span>
+    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2021/08/benchmarking-kafka-and-google-cloud-pub-slash-sub-latencies/">
+    
+      <p class="meta">
+        
+  
+  
+
+  
+    
+  
+
+  
+    
+  
+
+
+
+<span itemprop="datePublished" content="August 18, 2021"><time class='entry-date' datetime='2021-08-18T09:22:47-04:00'><span class='date'>August 18, 2021</span></time></span>
+<meta itemprop="dateModified" content="August 18, 2021">
+ | 
+  
+
+
+
+  <span class="byline author vcard">
+    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
+  </span>
+
+
+        
+        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
+  <meta itemprop="name" content="David Xia">
+  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
+    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
+  </div>
+</div>
+
+        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
+  
+    
+    
+    
+  
+  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
+  <meta itemprop="height" content="696">
+  <meta itemprop="width" content="696">
+</span>
+
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>I&rsquo;m helping a recently acquired team at work figure out if they can migrate from Kafka to Google
+Cloud Pub/Sub. Part of the exploration was figuring out the change in latencies, if any, from
+switching.</p>
+
+<p>The team&rsquo;s production setup is like this.</p>
+
+<ul>
+<li>They paid an external company called Confluent to run a managed Kafka cluster in AWS
+Oregon.</li>
+<li>This is the same region where this team ran all their backend services. Part of their
+migration also involves switching their workloads from AWS Oregon to GCP us-central1. If they choose
+to migrate to Pub/Sub, their services will be publishing and subscribing to messages across cloud
+providers and regions. So my latency benchmarks took that into account.</li>
+<li>All their services are written in Golang.</li>
+<li>Services run as containers in AWS Elastic Container Service.</li>
+</ul>
+
+
+<p>I defined latency as the time elapsed from when a message is published and when it&rsquo;s received by a
+subscriber. I didn&rsquo;t count the extra time it takes for a subscriber to acknowledge the message. I
+used Golang and the same upstream libraries for Kafka and Pub/Sub that they used or would use,
+respectively, in production. I published messages of various sizes at various rates from AWS EC2
+instances in Oregon for five minutes. At the same time, five Google Compute Engine instances in
+us-central1 subscribed to these messages (pull-based) as fast as possible with an initial burn-in
+period of one minute. I didn&rsquo;t measure the latency until the burn-in period elapsed to avoid any
+effects on latency that may arise from using a new topic or subscription or not enough messages
+flowing through the messaging service. This ensured I more closely mimicked message latency in
+production. I always took the percentile summary of the subscriber with the second highest p99
+latency. I created new Pub/Sub or Kafka topics for each series in the graphs below. Kafka topics
+always had eight partitions.</p>
+
+<p>I took some inspiration from a blog post titled &ldquo;<a href="https://bravenewgeek.com/benchmarking-message-queue-latency/">Benchmarking Message Queue
+Latency</a>&rdquo; and also found the following GCP post &ldquo;<a href="https://cloud.google.com/blog/products/data-analytics/testing-cloud-pubsub-clients-to-maximize-streaming-performance">Testing Cloud Pub/Sub clients to
+maximize streaming performance</a>.&rdquo; The latter linked to the <a href="https://github.com/GoogleCloudPlatform/pubsub/tree/master/load-test-framework">code used to benchmark
+Pub/Sub</a>. Unfortunately, after trying that tool many times and finding it
+wasn&rsquo;t documented well or had various issues <a href="https://github.com/GoogleCloudPlatform/pubsub/issues/293">like this</a>, I gave up
+and wrote my own simple latency benchmarker in Golang. This was probably better anyways to ensure I
+was using the same language and client libraries as the team I was helping.</p>
+
+<p>My full results are in <a href="https://docs.google.com/spreadsheets/d/1x_J05pX5IcuUxwpB74d2wC3vk6zD34KYP4uYP6pEeYg/edit?usp=sharing">this Google sheet</a>. The benchmarking code is at
+<a href="https://github.com/davidxia/cloud-message-latency">github.com/davidxia/cloud-message-latency</a>.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="https://www.davidxia.com/2021/08/benchmarking-kafka-and-google-cloud-pub-slash-sub-latencies/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+    <br class="clear">
+  
+    
+    <article itemscope itemtype="http://schema.org/BlogPosting" >
+      
+  <header>
+    <span itemprop="name headline">
+      
         <h2 class="entry-title"><a href="/2021/08/notes-on-michael-lewis-the-premonition/">Notes on Michael Lewis&#8217; the Premonition</a></h2>
       
     </span>
@@ -1076,99 +1192,6 @@ reinforce my understanding and to celebrate.</p>
     </article>
     <br class="clear">
   
-    
-    <article itemscope itemtype="http://schema.org/BlogPosting" >
-      
-  <header>
-    <span itemprop="name headline">
-      
-        <h2 class="entry-title"><a href="/2020/04/how-to-expose-a-localhost-only-endpoint-on-gke/">How to Expose a Localhost-only Endpoint on GKE</a></h2>
-      
-    </span>
-    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2020/04/how-to-expose-a-localhost-only-endpoint-on-gke/">
-    
-      <p class="meta">
-        
-  
-  
-
-  
-    
-  
-
-  
-    
-  
-
-
-
-<span itemprop="datePublished" content="April 13, 2020"><time class='entry-date' datetime='2020-04-13T12:24:46-04:00'><span class='date'>April 13, 2020</span></time></span>
-<meta itemprop="dateModified" content="April 13, 2020">
- | 
-  
-
-
-
-  <span class="byline author vcard">
-    By <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name" class="fn">David Xia</span></span>
-  </span>
-
-
-        
-        <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization">
-  <meta itemprop="name" content="David Xia">
-  <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
-    <meta itemprop="url" content="https://www.gravatar.com/avatar/5631ab903c74aea4375f39259e52ccd1.png">
-  </div>
-</div>
-
-        <span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
-  
-    
-    
-    
-  
-  <meta itemprop="url" content="https://i.imgur.com/BJPOY0D.jpg">
-  <meta itemprop="height" content="696">
-  <meta itemprop="width" content="696">
-</span>
-
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>In my <a href="/2020/04/3-levels-of-load-testing-gke-workload-identity/">previous post</a> I wrote about how to load test GKE Workload Identity. In this post I&rsquo;ll
-describe how to get metrics from gke-metadata-server, the part of Workload Identity that runs on
-your GKE clusters&#8217; nodes. This solution is a temporary workaround until GKE provides a better way to
-get metrics on gke-metadata-server.</p>
-
-<p>Gke-metadata-server runs as a K8s DaemonSet. It exposes metrics about itself in <a href="https://github.com/prometheus/docs/blob/master/content/docs/instrumenting/exposition_formats.md#text-based-format">Prometheus
-text-based format</a>. I want to have an external scraper make HTTP requests to periodically collect
-these metrics. Unfortunately, the Prometheus HTTP server only listens on the Container&rsquo;s <code>localhost</code>
-interface. <strong>So how can we expose these metrics, i.e. make the HTTP endpoint available externally?</strong></p>
-
-<h3>tl;dr lessons learned</h3>
-
-<ul>
-<li><code>socat</code> is awesome.</li>
-<li>If something you need is running on a computer you control, you can always find a way extract info
-from it if you&rsquo;re resourceful enough.</li>
-</ul>
-
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="https://www.davidxia.com/2020/04/how-to-expose-a-localhost-only-endpoint-on-gke/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-    <br class="clear">
-  
   <div class="pagination">
     
     <div class="col-md-4">
@@ -1259,7 +1282,7 @@ from it if you&rsquo;re resourceful enough.</li>
 <li class='category'><a href='/categories/china/'>China (13)</a></li>
 <li class='category'><a href='/categories/chinese-culture/'>Chinese Culture (12)</a></li>
 <li class='category'><a href='/categories/columbia-university/'>Columbia University (27)</a></li>
-<li class='category'><a href='/categories/computer-science/'>Computer Science (7)</a></li>
+<li class='category'><a href='/categories/computer-science/'>Computer Science (8)</a></li>
 <li class='category'><a href='/categories/current-events/'>Current Events (44)</a></li>
 <li class='category'><a href='/categories/design/'>Design (6)</a></li>
 <li class='category'><a href='/categories/economy/'>Economy (11)</a></li>
@@ -1274,11 +1297,11 @@ from it if you&rsquo;re resourceful enough.</li>
 <li class='category'><a href='/categories/new-york-city/'>New York City (17)</a></li>
 <li class='category'><a href='/categories/personal/'>Personal (55)</a></li>
 <li class='category'><a href='/categories/photography/'>Photography (3)</a></li>
-<li class='category'><a href='/categories/programming-and-software/'>Programming & Software (55)</a></li>
+<li class='category'><a href='/categories/programming-and-software/'>Programming & Software (56)</a></li>
 <li class='category'><a href='/categories/spy-shit/'>Spy Shit (5)</a></li>
 <li class='category'><a href='/categories/startups-and-entrepreneurism/'>Startups & Entrepreneurism (4)</a></li>
 <li class='category'><a href='/categories/swimming/'>Swimming (2)</a></li>
-<li class='category'><a href='/categories/technology/'>Technology (35)</a></li>
+<li class='category'><a href='/categories/technology/'>Technology (36)</a></li>
 <li class='category'><a href='/categories/travel/'>Travel (28)</a></li>
 <li class='category'><a href='/categories/tv-and-movies/'>Tv & Movies (20)</a></li>
 <li class='category'><a href='/categories/uncategorized/'>Uncategorized (22)</a></li>

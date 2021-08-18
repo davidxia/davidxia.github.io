@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Computer Science | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/computer-science/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2021-08-17T23:54:41-04:00</updated>
+  <updated>2021-08-18T10:02:29-04:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -12,6 +12,106 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Benchmarking Kafka and Google Cloud Pub/Sub Latencies]]></title>
+    <link href="https://www.davidxia.com/2021/08/benchmarking-kafka-and-google-cloud-pub-slash-sub-latencies/"/>
+    <updated>2021-08-18T09:22:47-04:00</updated>
+    <id>https://www.davidxia.com/2021/08/benchmarking-kafka-and-google-cloud-pub-slash-sub-latencies</id>
+    <content type="html"><![CDATA[<p>I&rsquo;m helping a recently acquired team at work figure out if they can migrate from Kafka to Google
+Cloud Pub/Sub. Part of the exploration was figuring out the change in latencies, if any, from
+switching.</p>
+
+<p>The team&rsquo;s production setup is like this.</p>
+
+<ul>
+<li>They paid an external company called Confluent to run a managed Kafka cluster in AWS
+Oregon.</li>
+<li>This is the same region where this team ran all their backend services. Part of their
+migration also involves switching their workloads from AWS Oregon to GCP us-central1. If they choose
+to migrate to Pub/Sub, their services will be publishing and subscribing to messages across cloud
+providers and regions. So my latency benchmarks took that into account.</li>
+<li>All their services are written in Golang.</li>
+<li>Services run as containers in AWS Elastic Container Service.</li>
+</ul>
+
+
+<p>I defined latency as the time elapsed from when a message is published and when it&rsquo;s received by a
+subscriber. I didn&rsquo;t count the extra time it takes for a subscriber to acknowledge the message. I
+used Golang and the same upstream libraries for Kafka and Pub/Sub that they used or would use,
+respectively, in production. I published messages of various sizes at various rates from AWS EC2
+instances in Oregon for five minutes. At the same time, five Google Compute Engine instances in
+us-central1 subscribed to these messages (pull-based) as fast as possible with an initial burn-in
+period of one minute. I didn&rsquo;t measure the latency until the burn-in period elapsed to avoid any
+effects on latency that may arise from using a new topic or subscription or not enough messages
+flowing through the messaging service. This ensured I more closely mimicked message latency in
+production. I always took the percentile summary of the subscriber with the second highest p99
+latency. I created new Pub/Sub or Kafka topics for each series in the graphs below. Kafka topics
+always had eight partitions.</p>
+
+<p>I took some inspiration from a blog post titled &ldquo;<a href="https://bravenewgeek.com/benchmarking-message-queue-latency/">Benchmarking Message Queue
+Latency</a>&rdquo; and also found the following GCP post &ldquo;<a href="https://cloud.google.com/blog/products/data-analytics/testing-cloud-pubsub-clients-to-maximize-streaming-performance">Testing Cloud Pub/Sub clients to
+maximize streaming performance</a>.&rdquo; The latter linked to the <a href="https://github.com/GoogleCloudPlatform/pubsub/tree/master/load-test-framework">code used to benchmark
+Pub/Sub</a>. Unfortunately, after trying that tool many times and finding it
+wasn&rsquo;t documented well or had various issues <a href="https://github.com/GoogleCloudPlatform/pubsub/issues/293">like this</a>, I gave up
+and wrote my own simple latency benchmarker in Golang. This was probably better anyways to ensure I
+was using the same language and client libraries as the team I was helping.</p>
+
+<p>My full results are in <a href="https://docs.google.com/spreadsheets/d/1x_J05pX5IcuUxwpB74d2wC3vk6zD34KYP4uYP6pEeYg/edit?usp=sharing">this Google sheet</a>. The benchmarking code is at
+<a href="https://github.com/davidxia/cloud-message-latency">github.com/davidxia/cloud-message-latency</a>.</p>
+
+<!-- more -->
+
+
+<h3>Pub/Sub Latencies</h3>
+
+<iframe width="739" height="355" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRvF9RCLQRzc3QlLCTwaDNppVn-C0P_nAXMdZMhTVAaTJTITFyWe28bG8iqIlyARzY38R_ULFluNMRZ/pubchart?oid=305705269&amp;format=interactive"></iframe>
+
+
+
+
+<iframe width="739" height="355" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRvF9RCLQRzc3QlLCTwaDNppVn-C0P_nAXMdZMhTVAaTJTITFyWe28bG8iqIlyARzY38R_ULFluNMRZ/pubchart?oid=312410551&amp;format=interactive"></iframe>
+
+
+
+
+<iframe width="739" height="355" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRvF9RCLQRzc3QlLCTwaDNppVn-C0P_nAXMdZMhTVAaTJTITFyWe28bG8iqIlyARzY38R_ULFluNMRZ/pubchart?oid=1176822520&amp;format=interactive"></iframe>
+
+
+<h3>Kafka Latencies</h3>
+
+<iframe width="739" height="355" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRvF9RCLQRzc3QlLCTwaDNppVn-C0P_nAXMdZMhTVAaTJTITFyWe28bG8iqIlyARzY38R_ULFluNMRZ/pubchart?oid=1339085412&amp;format=interactive"></iframe>
+
+
+
+
+<iframe width="739" height="355" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRvF9RCLQRzc3QlLCTwaDNppVn-C0P_nAXMdZMhTVAaTJTITFyWe28bG8iqIlyARzY38R_ULFluNMRZ/pubchart?oid=1020717340&amp;format=interactive"></iframe>
+
+
+
+
+<iframe width="739" height="355" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRvF9RCLQRzc3QlLCTwaDNppVn-C0P_nAXMdZMhTVAaTJTITFyWe28bG8iqIlyARzY38R_ULFluNMRZ/pubchart?oid=1350314893&amp;format=interactive"></iframe>
+
+
+<h2>Summary</h2>
+
+<p>With my specific test parameters, Kafka p99 latencies are 100-200ms and much lower than Pub/Sub
+latencies. In the worst case scenarios, Pub/Sub latencies were almost an order of magnitude higher.
+Pub/Sub p99 latencies were approximately 0.5-1 seconds at the team&rsquo;s current publisher throughput
+which is relatively low at about 1KB/s. At higher throughputs the latencies dropped to 300-400ms.
+This conforms to Google&rsquo;s documentation and generally accepted knowledge that Pub/Sub performs
+faster at higher message volumes. According to one of that team&rsquo;s engineers, this latency is
+acceptable for all messages except for one which can be changed to a direct service-to-service
+request.</p>
+
+<p>It was also interesting to see that message delivery was pretty evenly spread out over five
+subscribers with Pub/Sub. Kafka often had a few consumers that received twice as many messages as
+their peers.</p>
+
+<p>After I finished benchmarking, I found <a href="https://github.com/GoogleCloudPlatform/PerfKitBenchmarker">PerfKitBenchmarker</a>, an open source benchmarking tool used
+to measure and compare cloud offerings. It looks promising, but I haven&rsquo;t tried it out yet.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Useful Site for TLS Server Test]]></title>
@@ -98,15 +198,13 @@ signing. The following was copied from the <a href="https://wiki.debian.org/Subk
 </ul>
 
 
-<p>{% blockquote_nobr subkeys <a href="https://wiki.debian.org/Subkeys">https://wiki.debian.org/Subkeys</a> %}
-You should keep your private master key very, very safe. However, keeping all your keys extremely
+<p><blockquote><p>You should keep your private master key very, very safe. However, keeping all your keys extremely
 safe is inconvenient: every time you need to sign a new package upload, you need to copy the
 packages onto suitable portable media, go into your sub-basement, prove to the armed guards that
 you&rsquo;re you by using several methods of biometric and other identification, go through a deadly
 maze, feed the guard dogs the right kind of meat, and then finally open the safe, get out the
 signing laptop, and sign the packages. Then do the reverse to get back up to your Internet
-connection for uploading the packages.
-{% endblockquote_nobr %}</p>
+connection for uploading the packages.</p><footer><strong>subkeys <a href="https://wiki.debian.org/Subkeys">https://wiki.debian.org/Subkeys</a></strong></footer></blockquote></p>
 
 <ul>
 <li><code>gpg --edit-key &lt;your master key id&gt;</code></li>
@@ -293,14 +391,12 @@ small slit into which anyone can put letters. But only the owner of the mailbox 
 by opening it with her private key. The security of the encryption scheme is based on
 the fact that it&rsquo;s computationally infeasible to calculate private from public keys.</p>
 
-<p>{% blockquote_nobr Applied Cryptography <a href="http://www.amazon.com/gp/product/0471117099/ref=as_li_ss_tl?ie=UTF8&amp;camp=1789&amp;creative=390957&amp;creativeASIN=0471117099&amp;linkCode=as2&amp;tag=easiamus00-20">http://www.amazon.com/gp/product/0471117099/ref=as_li_ss_tl?ie=UTF8&amp;camp=1789&amp;creative=390957&amp;creativeASIN=0471117099&amp;linkCode=as2&amp;tag=easiamus00-20</a> %}
-Longer key lengths are better, but only up to a point. AES will have 128-bit, 192-bit, and 256-bit
+<p><blockquote><p>Longer key lengths are better, but only up to a point. AES will have 128-bit, 192-bit, and 256-bit
 key lengths. This is far longer than needed for the foreseeable future. In fact, we cannot even
 imagine a world where 256-bit brute force searches are possible. It requires some fundamental
 breakthroughs in physics and our understanding of the universe&hellip;brute-force attacks against 256-bit
 keys will be infeasible until computers are built from something other than matter and occupy
-something other than space.
-{% endblockquote_nobr %}</p>
+something other than space.</p><footer><strong>Applied Cryptography <a href="http://www.amazon.com/gp/product/0471117099/ref=as_li_ss_tl?ie=UTF8&amp;camp=1789&amp;creative=390957&amp;creativeASIN=0471117099&amp;linkCode=as2&amp;tag=easiamus00-20">http://www.amazon.com/gp/product/0471117099/ref=as_li_ss_tl?ie=UTF8&amp;camp=1789&amp;creative=390957&amp;creativeASIN=0471117099&amp;linkCode=as2&amp;tag=easiamus00-20</a></strong></footer></blockquote></p>
 
 <!-- more -->
 
@@ -425,78 +521,6 @@ VswBtq/GbejN9AXk4X2SM2SbB8E=
 =cFDb
 -----END PGP PUBLIC KEY BLOCK-----
 </code></pre>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Learning Computer Science Fundamentals Makes You a Better Software Engineer]]></title>
-    <link href="https://www.davidxia.com/2012/05/learning-computer-science-fundamentals-makes-you-a-better-software-engineer/"/>
-    <updated>2012-05-31T00:00:00-04:00</updated>
-    <id>https://www.davidxia.com/2012/05/learning-computer-science-fundamentals-makes-you-a-better-software-engineer</id>
-    <content type="html"><![CDATA[<p>I&rsquo;ve heard that one can become a great software engineer with ten years of experience or with
-fewer years of experience but a solid grasp of data structures and algorithms. Since I studied
-pure math as an undergrad, I love this stuff. Recurrence relations, prime numbers in hashing
-functions for hash tables, P vs NP.</p>
-
-<p>When I first started off programming I didn&rsquo;t know just how much I didn&rsquo;t know. I thought that
-being able to write a simple CRUD application was all there was to it and who cares about knowing
-how quick sort works. It&rsquo;s true that I&rsquo;ll probably never have to implement a hash table on the
-job, but knowing how to reverse a string or a linked list is like knowing how to play the scales
-as a musician. They&rsquo;ll never be played during a concert, but they are classic building blocks in
-understanding computing.</p>
-
-<!--more-->
-
-
-<p>So if you are learning how to code and not enrolled in an academic CS program, invest time after
-you master your first language or framework and learn the fundamentals of computer science. This
-will pay off especially if you&rsquo;re looking for a job since they are common interview questions.</p>
-
-<p>Learn how modern computer architecture works on a basic level (CPU, memory, disk). Read about data
-structures and algorithms. Networking knowledge is also very helpful (TCP/IP, DNS, basic
-architecture of the Internet). Find out how databases work (normalization, best practices for
-designing data models, indexes, ACID-compliance). Object-oriented programming is necessary to
-know. Threads and locks are not as common but good to understand.</p>
-
-<p>Being able to implement the below fluently in one or two languages is also necessary. The
-following is taken from <a href="http://www.amazon.com/gp/product/145157827X/ref=as_li_ss_tl?ie=UTF8&amp;tag=easiamus00-20&amp;linkCode=as2&amp;camp=1789&amp;creative=390957&amp;creativeASIN=145157827X"><em>Cracking the Coding Interview</em></a><img src="https://www.assoc-amazon.com/e/ir?t=easiamus00-20&amp;l=as2&amp;o=1&amp;a=145157827X" alt="" />.</p>
-
-<h3>Data Structures</h3>
-
-<ul>
-<li>linked list</li>
-<li>binary tree</li>
-<li>trie</li>
-<li>stack</li>
-<li>queue</li>
-<li>vector/arraylist</li>
-<li>hash table</li>
-</ul>
-
-
-<h3>Algorithms</h3>
-
-<ul>
-<li>breadth-first search</li>
-<li>depth-first search</li>
-<li>binary search</li>
-<li>merge sort</li>
-<li>quick sort</li>
-<li>tree insert/find/etc</li>
-</ul>
-
-
-<h3>Concepts</h3>
-
-<ul>
-<li>bit manipulation</li>
-<li>singleton design pattern</li>
-<li>factory design pattern</li>
-<li>memory (stack vs heap)</li>
-<li>recursion</li>
-<li>big-O time</li>
-</ul>
-
 ]]></content>
   </entry>
   

@@ -6,11 +6,11 @@
 <head>
   <meta charset="utf-8">
   
-  <title>An Emo Poem I Wrote Long Ago - David Xia</title>
+  <title>Benchmarking Kafka and Google Cloud Pub/Sub Latencies - David Xia</title>
   <meta name="author" content="David Xia">
 
   
-  <meta name="description" content="An Emo Poem I Wrote Long Ago November 27, 2010 | By David Xia Just found this emo poem I wrote in high school buried in my computer. Preparation In fifth &hellip;">
+  <meta name="description" content="Benchmarking Kafka and Google Cloud Pub/Sub Latencies August 18, 2021 | By David Xia I&rsquo;m helping a recently acquired team at work figure out if they can &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -19,18 +19,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="https://www.davidxia.com/2010/11/an-emo-poem-i-wrote-long-ago/">
+  <link rel="canonical" href="https://www.davidxia.com/2021/08/benchmarking-kafka-and-google-cloud-pub-slash-sub-latencies/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="David Xia" type="application/atom+xml">
 
   <meta property="og:site_name" content="David Xia" />
-  <meta property="og:title" content="An Emo Poem I Wrote Long Ago - David Xia" />
+  <meta property="og:title" content="Benchmarking Kafka and Google Cloud Pub/Sub Latencies - David Xia" />
   <meta property="og:type" content="article" />
-  <meta property="og:url" content="https://www.davidxia.com/2010/11/an-emo-poem-i-wrote-long-ago/" />
+  <meta property="og:url" content="https://www.davidxia.com/2021/08/benchmarking-kafka-and-google-cloud-pub-slash-sub-latencies/" />
   <meta property="og:image" content="https://i.imgur.com/BJPOY0D.jpg" />
   <meta property="og:locale" content="en_US" />
-  <meta property="og:description" content="An Emo Poem I Wrote Long Ago November 27, 2010 | By David Xia Just found this emo poem I wrote in high school buried in my computer. Preparation In fifth &hellip;" />
+  <meta property="og:description" content="Benchmarking Kafka and Google Cloud Pub/Sub Latencies August 18, 2021 | By David Xia I&rsquo;m helping a recently acquired team at work figure out if they can &hellip;" />
   <meta property="fb:admins" content="122703" />
 
   <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -102,10 +102,10 @@
   <header>
     <span itemprop="name headline">
       
-        <h2 class="entry-title">An Emo Poem I Wrote Long Ago</h2>
+        <h2 class="entry-title">Benchmarking Kafka and Google Cloud Pub/Sub Latencies</h2>
       
     </span>
-    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2010/11/an-emo-poem-i-wrote-long-ago/">
+    <link itemprop="mainEntityOfPage" href="https://www.davidxia.com/2021/08/benchmarking-kafka-and-google-cloud-pub-slash-sub-latencies/">
     
       <p class="meta">
         
@@ -122,8 +122,8 @@
 
 
 
-<span itemprop="datePublished" content="November 27, 2010"><time class='entry-date' datetime='2010-11-27T00:00:00-05:00'><span class='date'>November 27, 2010</span></time></span>
-<meta itemprop="dateModified" content="November 27, 2010">
+<span itemprop="datePublished" content="August 18, 2021"><time class='entry-date' datetime='2021-08-18T09:22:47-04:00'><span class='date'>August 18, 2021</span></time></span>
+<meta itemprop="dateModified" content="August 18, 2021">
  | 
   
 
@@ -158,35 +158,104 @@
   </header>
 
 
-  <div class="entry-content"><p>Just found this emo poem I wrote in high school buried in my computer.</p>
+  <div class="entry-content"><p>I&rsquo;m helping a recently acquired team at work figure out if they can migrate from Kafka to Google
+Cloud Pub/Sub. Part of the exploration was figuring out the change in latencies, if any, from
+switching.</p>
 
-<blockquote><p>Preparation</p>
+<p>The team&rsquo;s production setup is like this.</p>
 
-<p>In fifth grade teachers make students move<br/>
-Between classrooms in preparation for middle school.</p>
+<ul>
+<li>They paid an external company called Confluent to run a managed Kafka cluster in AWS
+Oregon.</li>
+<li>This is the same region where this team ran all their backend services. Part of their
+migration also involves switching their workloads from AWS Oregon to GCP us-central1. If they choose
+to migrate to Pub/Sub, their services will be publishing and subscribing to messages across cloud
+providers and regions. So my latency benchmarks took that into account.</li>
+<li>All their services are written in Golang.</li>
+<li>Services run as containers in AWS Elastic Container Service.</li>
+</ul>
 
-<p>In eighth grade they design courses<br/>
-In the model of ninth grade in preparation for high school.</p>
 
-<p>In high school they instruct majors<br/>
-And electives in preparation for college.</p>
+<p>I defined latency as the time elapsed from when a message is published and when it&rsquo;s received by a
+subscriber. I didn&rsquo;t count the extra time it takes for a subscriber to acknowledge the message. I
+used Golang and the same upstream libraries for Kafka and Pub/Sub that they used or would use,
+respectively, in production. I published messages of various sizes at various rates from AWS EC2
+instances in Oregon for five minutes. At the same time, five Google Compute Engine instances in
+us-central1 subscribed to these messages (pull-based) as fast as possible with an initial burn-in
+period of one minute. I didn&rsquo;t measure the latency until the burn-in period elapsed to avoid any
+effects on latency that may arise from using a new topic or subscription or not enough messages
+flowing through the messaging service. This ensured I more closely mimicked message latency in
+production. I always took the percentile summary of the subscriber with the second highest p99
+latency. I created new Pub/Sub or Kafka topics for each series in the graphs below. Kafka topics
+always had eight partitions.</p>
 
-<p>In college they offer majors<br/>
-In certain fields in preparation for graduate school.</p>
+<p>I took some inspiration from a blog post titled &ldquo;<a href="https://bravenewgeek.com/benchmarking-message-queue-latency/">Benchmarking Message Queue
+Latency</a>&rdquo; and also found the following GCP post &ldquo;<a href="https://cloud.google.com/blog/products/data-analytics/testing-cloud-pubsub-clients-to-maximize-streaming-performance">Testing Cloud Pub/Sub clients to
+maximize streaming performance</a>.&rdquo; The latter linked to the <a href="https://github.com/GoogleCloudPlatform/pubsub/tree/master/load-test-framework">code used to benchmark
+Pub/Sub</a>. Unfortunately, after trying that tool many times and finding it
+wasn&rsquo;t documented well or had various issues <a href="https://github.com/GoogleCloudPlatform/pubsub/issues/293">like this</a>, I gave up
+and wrote my own simple latency benchmarker in Golang. This was probably better anyways to ensure I
+was using the same language and client libraries as the team I was helping.</p>
 
-<p>In graduate school they teach specific skills<br/>
-Required in preparation for occupations.</p>
+<p>My full results are in <a href="https://docs.google.com/spreadsheets/d/1x_J05pX5IcuUxwpB74d2wC3vk6zD34KYP4uYP6pEeYg/edit?usp=sharing">this Google sheet</a>. The benchmarking code is at
+<a href="https://github.com/davidxia/cloud-message-latency">github.com/davidxia/cloud-message-latency</a>.</p>
 
-<p>In occupations they hand out salaries<br/>
-Every two weeks in preparation for retirement.</p>
+<!-- more -->
 
-<p>I am confused how all this preparation<br/>
-Prepares someone for life&rsquo;s primary goal:<br/>
-Enjoying it.</p></blockquote>
+
+<h3>Pub/Sub Latencies</h3>
+
+<iframe width="739" height="355" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRvF9RCLQRzc3QlLCTwaDNppVn-C0P_nAXMdZMhTVAaTJTITFyWe28bG8iqIlyARzY38R_ULFluNMRZ/pubchart?oid=305705269&amp;format=interactive"></iframe>
+
+
+
+
+<iframe width="739" height="355" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRvF9RCLQRzc3QlLCTwaDNppVn-C0P_nAXMdZMhTVAaTJTITFyWe28bG8iqIlyARzY38R_ULFluNMRZ/pubchart?oid=312410551&amp;format=interactive"></iframe>
+
+
+
+
+<iframe width="739" height="355" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRvF9RCLQRzc3QlLCTwaDNppVn-C0P_nAXMdZMhTVAaTJTITFyWe28bG8iqIlyARzY38R_ULFluNMRZ/pubchart?oid=1176822520&amp;format=interactive"></iframe>
+
+
+<h3>Kafka Latencies</h3>
+
+<iframe width="739" height="355" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRvF9RCLQRzc3QlLCTwaDNppVn-C0P_nAXMdZMhTVAaTJTITFyWe28bG8iqIlyARzY38R_ULFluNMRZ/pubchart?oid=1339085412&amp;format=interactive"></iframe>
+
+
+
+
+<iframe width="739" height="355" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRvF9RCLQRzc3QlLCTwaDNppVn-C0P_nAXMdZMhTVAaTJTITFyWe28bG8iqIlyARzY38R_ULFluNMRZ/pubchart?oid=1020717340&amp;format=interactive"></iframe>
+
+
+
+
+<iframe width="739" height="355" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRvF9RCLQRzc3QlLCTwaDNppVn-C0P_nAXMdZMhTVAaTJTITFyWe28bG8iqIlyARzY38R_ULFluNMRZ/pubchart?oid=1350314893&amp;format=interactive"></iframe>
+
+
+<h2>Summary</h2>
+
+<p>With my specific test parameters, Kafka p99 latencies are 100-200ms and much lower than Pub/Sub
+latencies. In the worst case scenarios, Pub/Sub latencies were almost an order of magnitude higher.
+Pub/Sub p99 latencies were approximately 0.5-1 seconds at the team&rsquo;s current publisher throughput
+which is relatively low at about 1KB/s. At higher throughputs the latencies dropped to 300-400ms.
+This conforms to Google&rsquo;s documentation and generally accepted knowledge that Pub/Sub performs
+faster at higher message volumes. According to one of that team&rsquo;s engineers, this latency is
+acceptable for all messages except for one which can be changed to a direct service-to-service
+request.</p>
+
+<p>It was also interesting to see that message delivery was pretty evenly spread out over five
+subscribers with Pub/Sub. Kafka often had a few consumers that received twice as many messages as
+their peers.</p>
+
+<p>After I finished benchmarking, I found <a href="https://github.com/GoogleCloudPlatform/PerfKitBenchmarker">PerfKitBenchmarker</a>, an open source benchmarking tool used
+to measure and compare cloud offerings. It looks promising, but I haven&rsquo;t tried it out yet.</p>
 </div>
 
 
     <ul class="post-meta">
+      
+        
       
         
       
@@ -233,7 +302,7 @@ Enjoying it.</p></blockquote>
 
 <span class="categories">
   
-    Categories: <a class='category' href='/categories/writing-and-literature/'>Writing & Literature</a>
+    Categories: <a class='category' href='/categories/computer-science/'>Computer Science</a>, <a class='category' href='/categories/programming-and-software/'>Programming & Software</a>, <a class='category' href='/categories/technology/'>Technology</a>
   
 </span>
 
@@ -242,13 +311,13 @@ Enjoying it.</p></blockquote>
       
         <div class="sharing">
   
-    <a id="custom-tweet-button" title="tweet about An Emo Poem I Wrote Long Ago" href="https://twitter.com/share?url=https%3A%2F%2Fwww.davidxia.com%2F2010%2F11%2Fan-emo-poem-i-wrote-long-ago%2F&text=An%20Emo%20Poem%20I%20Wrote%20Long%20Ago&via=davidxia_" target="_blank" rel="nofollow">tweet</a>
+    <a id="custom-tweet-button" title="tweet about Benchmarking Kafka and Google Cloud Pub/Sub Latencies" href="https://twitter.com/share?url=https%3A%2F%2Fwww.davidxia.com%2F2021%2F08%2Fbenchmarking-kafka-and-google-cloud-pub-slash-sub-latencies%2F&text=Benchmarking%20Kafka%20and%20Google%20Cloud%20Pub%2FSub%20Latencies&via=davidxia_" target="_blank" rel="nofollow">tweet</a>
   
   
-    <a id="custom-google-share-button" title="share An Emo Poem I Wrote Long Ago" href="https://plus.google.com/share?url=https%3A%2F%2Fwww.davidxia.com%2F2010%2F11%2Fan-emo-poem-i-wrote-long-ago%2F" target="_blank" rel="nofollow">Google+</a>
+    <a id="custom-google-share-button" title="share Benchmarking Kafka and Google Cloud Pub/Sub Latencies" href="https://plus.google.com/share?url=https%3A%2F%2Fwww.davidxia.com%2F2021%2F08%2Fbenchmarking-kafka-and-google-cloud-pub-slash-sub-latencies%2F" target="_blank" rel="nofollow">Google+</a>
   
   
-    <a id="custom-facebook-share-button" title="share An Emo Poem I Wrote Long Ago on Facebook" href="http://www.facebook.com/sharer.php?u=https%3A%2F%2Fwww.davidxia.com%2F2010%2F11%2Fan-emo-poem-i-wrote-long-ago%2F&t=An%20Emo%20Poem%20I%20Wrote%20Long%20Ago" target="_blank" rel="nofollow">facebook</a>
+    <a id="custom-facebook-share-button" title="share Benchmarking Kafka and Google Cloud Pub/Sub Latencies on Facebook" href="http://www.facebook.com/sharer.php?u=https%3A%2F%2Fwww.davidxia.com%2F2021%2F08%2Fbenchmarking-kafka-and-google-cloud-pub-slash-sub-latencies%2F&t=Benchmarking%20Kafka%20and%20Google%20Cloud%20Pub%2FSub%20Latencies" target="_blank" rel="nofollow">facebook</a>
   
 </div>
 
@@ -256,18 +325,20 @@ Enjoying it.</p></blockquote>
       <div class="meta np-page-links-div">
         
           <div class="basic-alignment left col-md-6">
-            <a class="np-page-link" href="/2010/11/why-the-white-house-correspondents-association-dinner-is-awesome/" title="Previous Post: Why the White House Correspondents' Association Dinner is Awesome">&larr; Why the White House Correspondents&#8217; Association Dinner is Awesome</a>
+            <a class="np-page-link" href="/2021/08/notes-on-michael-lewis-the-premonition/" title="Previous Post: Notes on Michael Lewis' The Premonition">&larr; Notes on Michael Lewis&#8217; The Premonition</a>
           </div>
         
-        
-          <div class="basic-alignment right col-md-6">
-            <a class="np-page-link" href="/2010/12/how-to-tell-good-stories/" title="Next Post: How to Tell Good Stories">How to Tell Good Stories &rarr;</a>
-          </div>
         
         <div class="clear"></div>
       </div>
     </footer>
   </article>
+  
+    <section>
+      <h1>Comments</h1>
+      <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+    </section>
   
 </div>
 
@@ -400,7 +471,10 @@ Enjoying it.</p></blockquote>
       var disqus_shortname = 'davidxia';
       
         
-        var disqus_script = 'count.js';
+        // var disqus_developer = 1;
+        var disqus_identifier = 'https://www.davidxia.com/2021/08/benchmarking-kafka-and-google-cloud-pub-slash-sub-latencies/';
+        var disqus_url = 'https://www.davidxia.com/2021/08/benchmarking-kafka-and-google-cloud-pub-slash-sub-latencies/';
+        var disqus_script = 'embed.min.js';
       
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;

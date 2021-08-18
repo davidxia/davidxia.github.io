@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Technology | David Xia]]></title>
   <link href="https://www.davidxia.com/categories/technology/atom.xml" rel="self"/>
   <link href="https://www.davidxia.com/"/>
-  <updated>2021-08-17T23:54:41-04:00</updated>
+  <updated>2021-08-18T10:02:29-04:00</updated>
   <id>https://www.davidxia.com/</id>
   <author>
     <name><![CDATA[David Xia]]></name>
@@ -12,6 +12,106 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Benchmarking Kafka and Google Cloud Pub/Sub Latencies]]></title>
+    <link href="https://www.davidxia.com/2021/08/benchmarking-kafka-and-google-cloud-pub-slash-sub-latencies/"/>
+    <updated>2021-08-18T09:22:47-04:00</updated>
+    <id>https://www.davidxia.com/2021/08/benchmarking-kafka-and-google-cloud-pub-slash-sub-latencies</id>
+    <content type="html"><![CDATA[<p>I&rsquo;m helping a recently acquired team at work figure out if they can migrate from Kafka to Google
+Cloud Pub/Sub. Part of the exploration was figuring out the change in latencies, if any, from
+switching.</p>
+
+<p>The team&rsquo;s production setup is like this.</p>
+
+<ul>
+<li>They paid an external company called Confluent to run a managed Kafka cluster in AWS
+Oregon.</li>
+<li>This is the same region where this team ran all their backend services. Part of their
+migration also involves switching their workloads from AWS Oregon to GCP us-central1. If they choose
+to migrate to Pub/Sub, their services will be publishing and subscribing to messages across cloud
+providers and regions. So my latency benchmarks took that into account.</li>
+<li>All their services are written in Golang.</li>
+<li>Services run as containers in AWS Elastic Container Service.</li>
+</ul>
+
+
+<p>I defined latency as the time elapsed from when a message is published and when it&rsquo;s received by a
+subscriber. I didn&rsquo;t count the extra time it takes for a subscriber to acknowledge the message. I
+used Golang and the same upstream libraries for Kafka and Pub/Sub that they used or would use,
+respectively, in production. I published messages of various sizes at various rates from AWS EC2
+instances in Oregon for five minutes. At the same time, five Google Compute Engine instances in
+us-central1 subscribed to these messages (pull-based) as fast as possible with an initial burn-in
+period of one minute. I didn&rsquo;t measure the latency until the burn-in period elapsed to avoid any
+effects on latency that may arise from using a new topic or subscription or not enough messages
+flowing through the messaging service. This ensured I more closely mimicked message latency in
+production. I always took the percentile summary of the subscriber with the second highest p99
+latency. I created new Pub/Sub or Kafka topics for each series in the graphs below. Kafka topics
+always had eight partitions.</p>
+
+<p>I took some inspiration from a blog post titled &ldquo;<a href="https://bravenewgeek.com/benchmarking-message-queue-latency/">Benchmarking Message Queue
+Latency</a>&rdquo; and also found the following GCP post &ldquo;<a href="https://cloud.google.com/blog/products/data-analytics/testing-cloud-pubsub-clients-to-maximize-streaming-performance">Testing Cloud Pub/Sub clients to
+maximize streaming performance</a>.&rdquo; The latter linked to the <a href="https://github.com/GoogleCloudPlatform/pubsub/tree/master/load-test-framework">code used to benchmark
+Pub/Sub</a>. Unfortunately, after trying that tool many times and finding it
+wasn&rsquo;t documented well or had various issues <a href="https://github.com/GoogleCloudPlatform/pubsub/issues/293">like this</a>, I gave up
+and wrote my own simple latency benchmarker in Golang. This was probably better anyways to ensure I
+was using the same language and client libraries as the team I was helping.</p>
+
+<p>My full results are in <a href="https://docs.google.com/spreadsheets/d/1x_J05pX5IcuUxwpB74d2wC3vk6zD34KYP4uYP6pEeYg/edit?usp=sharing">this Google sheet</a>. The benchmarking code is at
+<a href="https://github.com/davidxia/cloud-message-latency">github.com/davidxia/cloud-message-latency</a>.</p>
+
+<!-- more -->
+
+
+<h3>Pub/Sub Latencies</h3>
+
+<iframe width="739" height="355" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRvF9RCLQRzc3QlLCTwaDNppVn-C0P_nAXMdZMhTVAaTJTITFyWe28bG8iqIlyARzY38R_ULFluNMRZ/pubchart?oid=305705269&amp;format=interactive"></iframe>
+
+
+
+
+<iframe width="739" height="355" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRvF9RCLQRzc3QlLCTwaDNppVn-C0P_nAXMdZMhTVAaTJTITFyWe28bG8iqIlyARzY38R_ULFluNMRZ/pubchart?oid=312410551&amp;format=interactive"></iframe>
+
+
+
+
+<iframe width="739" height="355" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRvF9RCLQRzc3QlLCTwaDNppVn-C0P_nAXMdZMhTVAaTJTITFyWe28bG8iqIlyARzY38R_ULFluNMRZ/pubchart?oid=1176822520&amp;format=interactive"></iframe>
+
+
+<h3>Kafka Latencies</h3>
+
+<iframe width="739" height="355" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRvF9RCLQRzc3QlLCTwaDNppVn-C0P_nAXMdZMhTVAaTJTITFyWe28bG8iqIlyARzY38R_ULFluNMRZ/pubchart?oid=1339085412&amp;format=interactive"></iframe>
+
+
+
+
+<iframe width="739" height="355" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRvF9RCLQRzc3QlLCTwaDNppVn-C0P_nAXMdZMhTVAaTJTITFyWe28bG8iqIlyARzY38R_ULFluNMRZ/pubchart?oid=1020717340&amp;format=interactive"></iframe>
+
+
+
+
+<iframe width="739" height="355" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRvF9RCLQRzc3QlLCTwaDNppVn-C0P_nAXMdZMhTVAaTJTITFyWe28bG8iqIlyARzY38R_ULFluNMRZ/pubchart?oid=1350314893&amp;format=interactive"></iframe>
+
+
+<h2>Summary</h2>
+
+<p>With my specific test parameters, Kafka p99 latencies are 100-200ms and much lower than Pub/Sub
+latencies. In the worst case scenarios, Pub/Sub latencies were almost an order of magnitude higher.
+Pub/Sub p99 latencies were approximately 0.5-1 seconds at the team&rsquo;s current publisher throughput
+which is relatively low at about 1KB/s. At higher throughputs the latencies dropped to 300-400ms.
+This conforms to Google&rsquo;s documentation and generally accepted knowledge that Pub/Sub performs
+faster at higher message volumes. According to one of that team&rsquo;s engineers, this latency is
+acceptable for all messages except for one which can be changed to a direct service-to-service
+request.</p>
+
+<p>It was also interesting to see that message delivery was pretty evenly spread out over five
+subscribers with Pub/Sub. Kafka often had a few consumers that received twice as many messages as
+their peers.</p>
+
+<p>After I finished benchmarking, I found <a href="https://github.com/GoogleCloudPlatform/PerfKitBenchmarker">PerfKitBenchmarker</a>, an open source benchmarking tool used
+to measure and compare cloud offerings. It looks promising, but I haven&rsquo;t tried it out yet.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[What I Recently Learned About Docker Networking and Debugging Networking Issues in General]]></title>
@@ -104,7 +204,7 @@ CONTAINER ID        IMAGE                                                       
 a0e872188831        my-project:20210426T211411-2b5452d         "/usr/local/bin/edge…"   2 seconds ago       Up 1 second                                   relaxed_pike
 4dda670a2ee1        foo/bar:latest                                   "./bar"               2 hours ago         Up 2 hours          0.0.0.0:80-&gt;80/tcp        bar
 
-dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format {{.State.Pid}} a0e872188831)  nc 172.20.0.127 80 -nvz -w 5
+dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format  a0e872188831)  nc 172.20.0.127 80 -nvz -w 5
 (UNKNOWN) [172.20.0.127] 80 (http) : Connection timed out
 </code></pre>
 
@@ -149,7 +249,7 @@ CONTAINER ID        IMAGE                                                       
 
 <p>Now a TCP connection from the nginx container to bar succeeded.</p>
 
-<pre><code>dxia@my-host:~$ sudo nsenter --net=$(docker inspect --format {{.NetworkSettings.SandboxKey}} nginx1) nc 172.20.0.127 80 -nvz -w 5
+<pre><code>dxia@my-host:~$ sudo nsenter --net=$(docker inspect --format  nginx1) nc 172.20.0.127 80 -nvz -w 5
 (UNKNOWN) [172.20.0.127] 80 (http) open
 </code></pre>
 
@@ -191,7 +291,7 @@ num   pkts bytes target     prot opt in     out     source               destina
 8       39  2748 ACCEPT     all  --  br-8ce7e363e4f9 !br-8ce7e363e4f9  0.0.0.0/0            0.0.0.0/0
 9        0     0 ACCEPT     all  --  br-8ce7e363e4f9 br-8ce7e363e4f9  0.0.0.0/0            0.0.0.0/0
 
-dxia@my-host:~$ sudo nsenter --net=$(docker inspect --format {{.NetworkSettings.SandboxKey}} nginx1) nc 172.20.0.127 80 -nvz -w 5
+dxia@my-host:~$ sudo nsenter --net=$(docker inspect --format  nginx1) nc 172.20.0.127 80 -nvz -w 5
 (UNKNOWN) [172.20.0.127] 80 (http) open
 </code></pre>
 
@@ -274,7 +374,7 @@ table&rsquo;s <code>DOCKER_OUTPUT</code> chain&rsquo;s rules. These two rules sh
 changed for TCP packets bound for 127.0.0.11:53 to 37619. UDP packets have their port changed to
 58552.</p>
 
-<pre><code>dxia@my-host$ sudo nsenter -n -t $(docker inspect --format {{.State.Pid}} bar) sudo iptables --list DOCKER_OUTPUT --verbose --numeric --line-numbers --table nat
+<pre><code>dxia@my-host$ sudo nsenter -n -t $(docker inspect --format  bar) sudo iptables --list DOCKER_OUTPUT --verbose --numeric --line-numbers --table nat
 
 Chain DOCKER_OUTPUT (1 references)
  pkts bytes target     prot opt in     out     source               destination
@@ -284,22 +384,22 @@ Chain DOCKER_OUTPUT (1 references)
 
 <p>Whatever&rsquo;s listening on those ports was accepting TCP and UDP connections.</p>
 
-<pre><code>dxia@my-host$ sudo nsenter -n -t $(docker inspect --format {{.State.Pid}} bar) nc 127.0.0.11 58552 -nvzu -w 5
+<pre><code>dxia@my-host$ sudo nsenter -n -t $(docker inspect --format  bar) nc 127.0.0.11 58552 -nvzu -w 5
 (UNKNOWN) [127.0.0.11] 58552 (?) open
-dxia@my-host$ sudo nsenter -n -t $(docker inspect --format {{.State.Pid}} bar) nc 127.0.0.11 37619 -nvz -w 5
+dxia@my-host$ sudo nsenter -n -t $(docker inspect --format  bar) nc 127.0.0.11 37619 -nvz -w 5
 (UNKNOWN) [127.0.0.11] 37619 (?) open
 </code></pre>
 
 <p>But there was no DNS reply from either.</p>
 
-<pre><code>dxia@my-host$ sudo nsenter -n -t $(docker inspect --format {{.State.Pid}} bar) dig @127.0.0.11 -p 58552 accounts.google.com
+<pre><code>dxia@my-host$ sudo nsenter -n -t $(docker inspect --format  bar) dig @127.0.0.11 -p 58552 accounts.google.com
 
 ; &lt;&lt;&gt;&gt; DiG 9.11.3-1ubuntu1.14-Ubuntu &lt;&lt;&gt;&gt; @127.0.0.11 -p 58552 accounts.google.com
 ; (1 server found)
 ;; global options: +cmd
 ;; connection timed out; no servers could be reached
 
-dxia@my-host$ sudo nsenter -n -t $(docker inspect --format {{.State.Pid}} bar) dig @127.0.0.11 -p 37619 accounts.google.com +tcp
+dxia@my-host$ sudo nsenter -n -t $(docker inspect --format  bar) dig @127.0.0.11 -p 37619 accounts.google.com +tcp
 
 ; &lt;&lt;&gt;&gt; DiG 9.11.3-1ubuntu1.14-Ubuntu &lt;&lt;&gt;&gt; @127.0.0.11 -p 37619 accounts.google.com +tcp
 ; (1 server found)
@@ -309,7 +409,7 @@ dxia@my-host$ sudo nsenter -n -t $(docker inspect --format {{.State.Pid}} bar) d
 
 <p>Docker daemon was listening for DNS queries at that IP and port from within bar.</p>
 
-<pre><code>dxia@my-host$ sudo nsenter -n -p -t $(docker inspect --format {{.State.Pid}} bar) ss -utnlp
+<pre><code>dxia@my-host$ sudo nsenter -n -p -t $(docker inspect --format  bar) ss -utnlp
 Netid        State          Recv-Q         Send-Q                    Local Address:Port                    Peer Address:Port
 udp          UNCONN         0              0                            127.0.0.11:58552                        0.0.0.0:*             users:(("dockerd",pid=10984,fd=38))
 tcp          LISTEN         0              128                          127.0.0.11:37619                        0.0.0.0:*             users:(("dockerd",pid=10984,fd=40))
@@ -336,10 +436,10 @@ can hit the host-local unbound instance by routing DNS requests to corp0.</p>
 like UDP packets sent from bar were able to reach 10.99.0.1:53, but DNS requests failed. I also
 knew DNS requests from the host to 10.99.0.1:53 worked.</p>
 
-<pre><code>dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format {{.State.Pid}} bar) nc 10.99.0.1 53 -nvzu -w 5
+<pre><code>dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format  bar) nc 10.99.0.1 53 -nvzu -w 5
 (UNKNOWN) [10.99.0.1] 53 (domain) open
 
-dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format {{.State.Pid}} bar) dig @10.99.0.1 accounts.google.com
+dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format  bar) dig @10.99.0.1 accounts.google.com
 
 ; &lt;&lt;&gt;&gt; DiG 9.11.3-1ubuntu1.14-Ubuntu &lt;&lt;&gt;&gt; @10.99.0.1 accounts.google.com
 ; (1 server found)
@@ -374,7 +474,7 @@ After exploring this for a while with no luck, I questioned my assumption that U
 172.20.0.127:37928 were able to reach 10.99.0.1:53. I realized TCP packets from
 172.20.0.127:37928 were not able to reach 10.99.0.1:53.</p>
 
-<pre><code>dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format {{.State.Pid}} bar) nc 10.99.0.1 53 -nvz -w 5
+<pre><code>dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format  bar) nc 10.99.0.1 53 -nvz -w 5
 (UNKNOWN) [10.99.0.1] 53 (domain) : Connection timed out
 </code></pre>
 
@@ -459,7 +559,7 @@ num   pkts bytes target     prot opt in     out     source               destina
 
 <p>I retried querying for accounts.google.com, and I got a DNS reply!</p>
 
-<pre><code>dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format {{.State.Pid}} bar) dig @127.0.0.11 accounts.google.com
+<pre><code>dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format  bar) dig @127.0.0.11 accounts.google.com
 
 ; &lt;&lt;&gt;&gt; DiG 9.11.3-1ubuntu1.14-Ubuntu &lt;&lt;&gt;&gt; @127.0.0.11 accounts.google.com
 ; (1 server found)
@@ -500,7 +600,7 @@ IP</a>.</p>
 according to <a href="https://tools.ietf.org/html/rfc1918">RFC-1918</a>) and reloaded unbound. Now it worked!</p>
 
 <pre><code>dxia@my-host:~$ sudo systemctl reload unbound
-dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format {{.State.Pid}} bar) dig @127.0.0.11 accounts.google.com
+dxia@my-host:~$ sudo nsenter -n -t $(docker inspect --format  bar) dig @127.0.0.11 accounts.google.com
 
 ; &lt;&lt;&gt;&gt; DiG 9.11.3-1ubuntu1.14-Ubuntu &lt;&lt;&gt;&gt; @127.0.0.11 accounts.google.com
 ; (1 server found)
@@ -919,38 +1019,7 @@ Testing.&rdquo;</a> in various formats. <span xmlns:dct="http://purl.org/dc/term
 </ul>
 
 
-<p>{% img center <a href="https://i.imgur.com/w0P47Ugl.jpg">https://i.imgur.com/w0P47Ugl.jpg</a> 640 619 %}</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Don't Worry About Forgetting to Cancel Your Subscription - Use a Virtual Credit Card]]></title>
-    <link href="https://www.davidxia.com/2016/04/dont-worry-about-forgetting-to-cancel-your-subscription-use-a-virtual-credit-card/"/>
-    <updated>2016-04-21T08:55:32-04:00</updated>
-    <id>https://www.davidxia.com/2016/04/dont-worry-about-forgetting-to-cancel-your-subscription-use-a-virtual-credit-card</id>
-    <content type="html"><![CDATA[<p>Almost all of us have signed up for a free trial we then forgot to cancel
-before getting charged for the next month or have felt uneasy entering credit card information
-on a sketchy website. I discovered virtual credit card numbers several months ago and now use them
-for both these cases.</p>
-
-<p>Virtual credit card numbers (VCN) are credit card numbers that aren&rsquo;t associated with a physical
-card. They are usually tied to your regular credit card account, and charges to the VCN will show
-up on that credit card statement.</p>
-
-<p>VCNs have two great features on top of regular credit card numbers. <strong>You can set the expiration and
-maximum limit can be charged, and you can cancel them at any time.</strong> Let&rsquo;s say I want to try
-<a href="https://www.spotify.com/premium/">Spotify Premium</a>. It&rsquo;s free for a month and $10 per month afterwards. I generate a VCN, set the limit
-to $1 with an expiration of one month, enter that number into Spotify&rsquo;s website, and forget about
-it. Use a VCN when you&rsquo;re wary that an online merchant might steal or is unable to protect your
-card info as well.</p>
-
-<p>So how does one get a VCN? The only free and bank-sponsored credit cards I know of that offer
-them are <a href="https://www.bankofamerica.com/privacy/accounts-cards/shopsafe.go">Bank of America&rsquo;s ShopSafe feature</a> and <a href="https://www.cardbenefits.citi.com/products/virtual-account-numbers.aspx">Citibank&rsquo;s Virtual Account numbers</a>.
-(<a href="https://www.quora.com/Why-did-American-Express-discontinue-their-one-time-use-virtual-credit-card-numbers">Amex seems to have discontinued theirs.</a>)</p>
-
-<p>There are cases when using a VCN might create more hassle than it&rsquo;s worth. The two I can think of
-are booking a hotel room and needing to show your card when you arrive in person and returning a
-purchase and trying to get a refund.</p>
+<p><img class="center <a" src="href="https://i.imgur.com/w0P47Ugl.jpg">https://i.imgur.com/w0P47Ugl.jpg</a>&#8221; width=&#8221;640&#8221; height=&#8221;619&#8221;></p>
 ]]></content>
   </entry>
   
